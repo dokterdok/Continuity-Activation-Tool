@@ -27,8 +27,9 @@ Macs that are unlisted above have no use of this tool but might still need a har
 
 **From Finder**
 
-1. Double-click on the app to open it.
-2. Follow instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
+1. Download the zip (link on the right) and extract it.
+2. Double-click on the app.
+3. Follow instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
 
 **From the command line**
 The script can also be run right from the command line. It is located in Continuity Activation Tool.app/Contents/MacOS/contitool.sh
