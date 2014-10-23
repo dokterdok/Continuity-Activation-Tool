@@ -1,0 +1,10 @@
+#!/bin/bash
+appDir=$(dirname "$0")'/launcher.sh'
+#with administrator privileges
+osascript -e 'do shell script "open -a Terminal \"'"$appDir"'\"" 
+tell application "Terminal"
+    set index of window 2 to 1
+end tell
+tell application "System Events" to tell process "Terminal"
+    perform action "AXRaise" of window 1
+end tell'
