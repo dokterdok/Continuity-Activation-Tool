@@ -57,4 +57,4 @@ When using the script from the command line, make sure you have the strings bina
 * rob3r7o
 
 This tool took me many days and nights of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks!
-![PayPal Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=david%40dudokdewit%2enet&lc=US&item_name=Continuity%20Activation%20Tool&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHostedGuest)
+[Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=david%40dudokdewit%2enet&lc=US&item_name=Continuity%20Activation%20Tool&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHostedGuest)
