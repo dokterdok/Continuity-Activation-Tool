@@ -24,8 +24,8 @@ Macs that are unlisted above have no use of this tool but might still need a har
 **The tool is not compatible with BT4 USB Dongles**, it only works with the right internal Apple wireless hardware.
 
 ### Sources
-[Full guide to enable Continuity manually (MacRumors Forum Thread)](http://forums.macrumors.com/showpost.php?p=20124161)
-[Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
+* [Full guide to enable Continuity manually (MacRumors Forum Thread)](http://forums.macrumors.com/showpost.php?p=20124161)
+* [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
 
 
 ### Thanks
