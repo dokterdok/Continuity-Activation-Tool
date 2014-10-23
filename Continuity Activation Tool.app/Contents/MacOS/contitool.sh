@@ -22,7 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-hackVersion="1.0 beta 2"
+hackVersion="1.0.0"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -606,8 +606,8 @@ function rebootPrompt(){
 
 #Silently repairs the disk permissions using the Disk Utility. Takes a few minutes.
 function repairDiskPermissions(){
-	sudo diskutil repairpermissions / >> /dev/null 2>&1 & spinner "Repairing disk permissions... "
-	echo "         OK"
+	sudo diskutil repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)..."
+	echo "OK"
 }
 
 #Initiates the compatibility checks, aborts the script if an uncompatible configuration is detected.

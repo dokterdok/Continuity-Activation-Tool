@@ -20,7 +20,7 @@ MacBook Pro mid 2009 to late 2011 | New wireless card: BCM94331PCIEBT4CAX
 iMac 2008-2011 | Wi-Fi + Bluetooth card upgrade
 MacBook Pro late-2011 | New wireless card: BCM94331PCIEBT4CAX
 
-Macs that are unlisted above have no use of this tool but might still need a hardware upgrade. Table source and more info:[UncleSchnitty's guide](http://forums.macrumors.com/showpost.php?p=20124161) for an up-to-date table and more info.
+Macs that are unlisted above have no use of this tool but might still need a hardware upgrade. Table source and more info: [UncleSchnitty's guide on MacRumors](http://forums.macrumors.com/showpost.php?p=20124161).
 **The tool is not compatible with BT4 USB Dongles**, it only works with the right internal Apple wireless hardware.
 
 ### Sources
