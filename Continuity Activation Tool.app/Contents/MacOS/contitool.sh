@@ -274,13 +274,21 @@ function isMyBluetoothCompatible(){
 function disableOsKextProtection(){
 	echo -n "Verifying OS kext protection...         "
 	kextDevMode=$(sudo nvram boot-args | grep "kext-dev-mode" | awk -F= '{print $2}')
-	if [ "$kextDevMode" -eq "1" ] ; then
-		if [ "$1" != "verbose" ]; then echo "OK";
-		else echo "OK. Kext developer mode is active"; fi
+	if [ ! "${kextDevMode}" == "" ]; then
+		if [ "${kextDevMode}" -eq "1" ] ; then
+			if [ "$1" != "verbose" ]; then echo "OK";
+			else echo "OK. Kext developer mode is active"; fi
+		else
+			if [ "$1" != "verbose" ]; then
+			local output=$(sudo nvram boot-args="kext-dev-mode=1")
+			echo "NOT OK. OS is protected against changes. Please reboot to automatically fix this, then relaunch the script."; rebootPrompt; 
+			else echo "NOT OK. OS is protected against kext changes. Please reboot to fix this, then relaunch the script."; rebootPrompt; fi
+		fi
 	else
 		if [ "$1" != "verbose" ]; then
-		echo "NOT OK. OS is protected against changes. Please reboot to automatically fix this, then relaunch the script."; rebootPrompt; 
-		else echo "NOT OK. OS is protected against kext changes. Please reboot to fix this, then relaunch the script."; rebootPrompt; fi
+			local output=$(sudo nvram boot-args="kext-dev-mode=1")
+			echo "NOT OK. OS is protected against changes. Please reboot to automatically fix this, then relaunch the script."; rebootPrompt; 
+			else echo "NOT OK. OS is protected against kext changes. Please reboot to fix this, then relaunch the script."; rebootPrompt; fi
 	fi
 }
 
