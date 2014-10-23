@@ -23,6 +23,24 @@ MacBook Pro late-2011 | New wireless card: BCM94331PCIEBT4CAX
 Macs that are unlisted above have no use of this tool but might still need a hardware upgrade. Table source and more info: [UncleSchnitty's guide on MacRumors](http://forums.macrumors.com/showpost.php?p=20124161).
 **The tool is not compatible with BT4 USB Dongles**, it only works with the right internal Apple wireless hardware.
 
+## How to use it
+
+**From Finder**
+1. Double-click on the app to open it.
+2. Follow instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
+
+**From the command line**
+The script can also be run right from the command line. It is located in Continuity Activation Tool.app/Contents/MacOS/contitool.sh
+
+Usag example: "./contitool.sh activate"
+
+Script arguments: 
+* activate : Starts the activation procedure and does compatibility checks.
+* diagnostic : Starts the system compatibility diagnostic.
+* forceHack : Starts the activation procedure, and skips compatibility checks.
+
+When using the script from the command line, make sure you have the strings binary in the same directory as the script OR, if you have Apple's Command Line Tools installed, edit contitool.sh and set stringsPath="strings".
+
 ### Sources
 * [Full guide to enable Continuity manually (MacRumors Forum Thread)](http://forums.macrumors.com/showpost.php?p=20124161)
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
