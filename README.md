@@ -65,7 +65,7 @@ When using the script from the command line, make sure you have the strings bina
 * Initial release
 
 ### Thanks
-* Lem3ssie
+* Lem3ssie (LAUTRU Mehdi)
 * UncleSchnitty
 * Skvo
 * TealShark
