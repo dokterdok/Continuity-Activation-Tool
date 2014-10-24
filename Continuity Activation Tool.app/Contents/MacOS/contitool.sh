@@ -22,7 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-hackVersion="1.0.0"
+hackVersion="1.0.1"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -270,20 +270,57 @@ function isMyBluetoothCompatible(){
 	fi
 }
 
-#Verifies if the kext developer mode is active. If not, it is activated (reboot required).
+#Verifies if the kext developer mode is active. If not, it is added to the boot arguments. (reboot required).
 function disableOsKextProtection(){
 	echo -n "Verifying OS kext protection...         "
-	sudo nvram boot-args | grep -F "kext-dev-mode=1"
-	kextDevMode=$?
-	if [ $kextDevMode -eq 0 ]; then
-		if [ "$1" != "verbose" ]; then echo "OK";
-		else echo "OK. Kext developer mode is active"; fi
-	else
-		if [ "$1" != "verbose" ]; then
-			local output=$(sudo nvram boot-args="kext-dev-mode=1")
-			echo "NOT OK. OS is protected against changes. Please reboot to automatically fix this, then relaunch the script."; rebootPrompt; 
-		else echo "NOT OK. OS is protected against kext changes. Please reboot to fix this, then relaunch the script."; rebootPrompt; fi
-	fi
+
+	#Check if boot-args variable is set
+	sudo nvram boot-args >> /dev/null 2>&1
+		local bootArgsResult=$?
+		if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
+
+			#Get the boot-args variable value(s)
+			local bootArgsResult=$(sudo nvram boot-args)
+			bootArgsResult=${bootArgsResult:10} #remove boot-args declaration
+
+			#Verify if kext-dev-mode=1 is set
+			sudo nvram boot-args | grep -F "kext-dev-mode=1" >> /dev/null 2>&1
+			local devModeResult=$?
+			if [ $devModeResult -eq 0 ]; then #Dev mode is active. do noth
+				if [ "$1" != "verbose" ]; then echo "OK"; 
+				else echo "OK. Developer mode is active."; fi
+			else
+
+				#Verify if kext-dev-mode=0 is set
+				sudo nvram boot-args | grep -F "kext-dev-mode=0" >> /dev/null 2>&1
+				devModeResult=$?
+				if [ $devModeResult -eq 0 ]; then
+
+					#Dev mode was deactivated, set it to 1 without overwriting anything other values
+					local strippedBootArgs=$(echo "${bootArgsResult}" | sed 's#\kext-dev-mode=0##g')
+
+					sudo nvram boot-args="${strippedBootArgs} kext-dev-mode=1" #append the kext-dev-mode=1
+					if [ "$1" != "verbose" ]; then echo "NOT OK. Developer mode was not active. Restart now to fix this, then relaunch the app."; rebootPrompt; 
+					else echo "NOT OK. Developer mode was not active. Restart now to fix this, then relaunch the app."; rebootPrompt; fi
+				else
+					#Unknown or empty boot-args set, activate the kext-dev-mode without overwriting other values
+					#detect if it's empty, influences the spacings
+					if [ "${#bootArgsResult}" == "0" ]; then
+						sudo nvram boot-args="kext-dev-mode=1";
+					else
+						sudo nvram boot-args="${bootArgsResult} kext-dev-mode=1"
+					fi
+						if [ "$1" != "verbose" ]; then echo "NOT OK. NOT OK. Developer mode not set in the boot args. Restart now to fix this, then relaunch the app."; rebootPrompt;
+						else echo "NOT OK. Developer mode not set in the boot args. Restart now to fix this, then relaunch the app."; rebootPrompt; fi
+				fi
+			fi
+		else
+
+			#Activate dev mode from scratch
+			sudo nvram boot-args="kext-dev-mode=1"
+			if [ "$1" != "verbose" ]; then echo "NOT OK. Developer mode was not set. Restart now to fix this, then relaunch the app."; rebootPrompt;
+			else echo "NOT OK. Developer mode was not set. Restart now to fix this, then relaunch the app."; rebootPrompt; fi
+		fi
 }
 
 #Verifies if the Mac board id is correctly whitelisted in the Wi-Fi drivers
@@ -403,6 +440,7 @@ function isMyMacBlacklisted(){
 #Any existing copies of these kexts in the backup dir will be silently replaced
 function backupKexts(){
 	echo -n "Backing up drivers...                   "
+	sudo echo "" >> /dev/null 2>&1 #make sure sudo is still active
 	#Verify if the original kexts are there
 	if [ ! -d "${btKextPath}" -a ! -d "${wifiKextPath}" ]; then 
 		echo "NOT OK. ${btKextFilename} or ${wifiKextFilename} could not be found. Aborting."
@@ -600,7 +638,7 @@ function updateSystemCache(){
 #Prompts to reboot your system, e.g. after patching
 function rebootPrompt(){
 	echo ""
-	read -n 1 -p "Please close any open applications and press any key to reboot..."
+	read -n 1 -p "Press any key to reboot or CTRL-C to cancel..."
 	echo ""
 	sudo shutdown -r now
 	exit;
@@ -673,6 +711,7 @@ function checkAndHack(){
 	echo '--- Initiating Continuity mod ---'
 	echo ""
 
+	repairDiskPermissions
 	backupKexts
 	patchBluetoothKext
 	patchWifiKext
@@ -743,6 +782,7 @@ function displayMainMenu(){
 }
 
 applyTerminalTheme #apply the theme in case the script was run from the command line
+verifyStringsUtilPresence
 
 #Check if the scripts was run with args
 param1=$1
@@ -762,7 +802,6 @@ if [ ! -z "${param1}" ]; then
 	fi
 fi
 
-verifyStringsUtilPresence
 displayMainMenu
 
 echo ""
