@@ -22,7 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-hackVersion="1.0.1"
+hackVersion="1.0.2 beta"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -537,7 +537,7 @@ function detectObsoleteWifiDriver(){
 }
 
 #Removes the Brcm4331 legacy Wi-Fi kext that could load and override the Continuity enabled Brcm4360 driver
-#Note: backup the Wi-Fi kext before doing this
+#Note: it's important to backup the Wi-Fi kext before doing this
 function removeObsoleteWifiDriver(){
 	echo -n "Cleaning up old Wi-Fi kext...           "
 
