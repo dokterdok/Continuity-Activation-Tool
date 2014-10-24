@@ -273,7 +273,7 @@ function isMyBluetoothCompatible(){
 #Verifies if the kext developer mode is active. If not, it is activated (reboot required).
 function disableOsKextProtection(){
 	echo -n "Verifying OS kext protection...         "
-	sudo nvram boot-args | grep -F "kext-dev-mode=1"
+	sudo nvram boot-args | grep -F "kext-dev-mode=1" > /dev/null
 	kextDevMode=$?
 	if [ $kextDevMode -eq 0 ]; then
 		if [ "$1" != "verbose" ]; then echo "OK";
