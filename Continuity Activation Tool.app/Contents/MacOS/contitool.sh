@@ -38,6 +38,8 @@ wifiKextPath="$driverPath/$wifiKextFilename"
 wifiBrcmKextFilename="AirPortBrcm4360.kext"
 wifiBrcmBinFilename="AirPortBrcm4360"
 wifiBrcmBinPath="$driverPath/$wifiKextFilename/Contents/PlugIns/$wifiBrcmKextFilename/Contents/MacOS/$wifiBrcmBinFilename"
+wifiObsoleteBrcmKextFilename="AirPortBrcm4331.kext"
+wifiObsoleteBrcmKextPath="$driverPath/$wifiKextFilename/Contents/PlugIns/$wifiObsoleteBrcmKextFilename"
 btKextFilename="IOBluetoothFamily.kext"
 btKextPath="$driverPath/$btKextFilename"
 btBinFilename="IOBluetoothFamily"
@@ -310,7 +312,7 @@ function disableOsKextProtection(){
 					else
 						sudo nvram boot-args="${bootArgsResult} kext-dev-mode=1"
 					fi
-						if [ "$1" != "verbose" ]; then echo "NOT OK. NOT OK. Developer mode not set in the boot args. Restart now to fix this, then relaunch the app."; rebootPrompt;
+						if [ "$1" != "verbose" ]; then echo "NOT OK. Developer mode not set in the boot args. Restart now to fix this, then relaunch the app."; rebootPrompt;
 						else echo "NOT OK. Developer mode not set in the boot args. Restart now to fix this, then relaunch the app."; rebootPrompt; fi
 				fi
 			fi
@@ -517,6 +519,45 @@ function patch_strings_in_file() {
 }
 
 
+#Detects the presence of an obsolete Broadcom 4331 Wi-Fi kext for the verbose diagnostic
+#That driver can in some cases override the Continuity enabled 4360 kext (not wanted)
+function detectObsoleteWifiDriver(){
+	
+	echo -n "Verifying old Wi-Fi kext presence...    "
+
+		#detect the presence of the legacy Broadcom 4331 driver
+	if [ -d "${wifiObsoleteBrcmKextPath}" ]; then #echo "" >> /dev/null 2>&1
+		#kext exists 
+		if [ "$1" != "verbose" ]; then echo "OK";
+			else echo "OK. Old Wi-Fi driver ${wifiObsoleteBrcmKextFilename} exists. This tool can fix this."; fi
+	else
+		if [ "$1" != "verbose" ]; then echo "OK";
+		else echo "OK. Old Wi-Fi driver ${wifiObsoleteBrcmKextFilename} wasn't found (good)."; fi
+	fi
+}
+
+#Removes the Brcm4331 legacy Wi-Fi kext that could load and override the Continuity enabled Brcm4360 driver
+#Note: backup the Wi-Fi kext before doing this
+function removeObsoleteWifiDriver(){
+	echo -n "Cleaning up old Wi-Fi kext...           "
+
+			#detect the presence of the legacy 4331 driver
+		if [ -d "${wifiObsoleteBrcmKextPath}" ]; then
+			#kext exist
+			#remove any existing previous kext backups
+			sudo rm -rf "${wifiObsoleteBrcmKextPath}" >> /dev/null 2>&1
+			local result=$?
+			if [ "${result}" == "1" ]; then
+				echo "WARNING. Failed to delete the old Wi-Fi kext ${wifiObsoleteBrcmKextFilename}. Continuing."
+			else
+				echo "OK" #removal successful
+			fi
+		else
+			echo "OK" #obsolete kext has already been removed
+		fi
+}
+
+
 #Disables the blacklist in the bluetooth drivers, only if the current Mac Model is blacklisted.
 #A prerequisite is to run the isMyMacBlacklisted function, as it
 #will determine whether the Mac is blacklisted. If not done, no patching happens.
@@ -682,6 +723,8 @@ function verboseCompatibilityCheck(){
 	canMyKextsBeModded "verbose"
 	isMyMacBlacklisted "verbose"
 	isMyMacWhitelisted "verbose"
+	detectObsoleteWifiDriver "verbose"
+
 
 	backToMainMenu
 }
@@ -713,6 +756,7 @@ function checkAndHack(){
 
 	repairDiskPermissions
 	backupKexts
+	removeObsoleteWifiDriver
 	patchBluetoothKext
 	patchWifiKext
 	applyPermissions
