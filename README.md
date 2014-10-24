@@ -54,9 +54,9 @@ When using the script from the command line, make sure you have the strings bina
 ### Changelog
 **v.1.0.1 -  2014.10.24**
 
-* Fixed a boot arguments overwriting bug, that could lead to a system failure specific cases
+* Fixed a boot arguments overwriting bug, that could lead to a system failure in specific cases
 * Fixed a kext-dev-mode bug that prevented the OS to disable its drivers protection
-* Fixed the strings utility presence check, to run as well from if the script is run from the command line
+* Fixed the strings utility presence check if the script is run from the command line
 * Added a disk reparation step at the start of the patching procedure, lowering failure risks on disks with permission issues
 * Added a verification that sudo is still active before patching
 
