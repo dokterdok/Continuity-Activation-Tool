@@ -7,10 +7,10 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity on compati
 * Activate continuity: Does a Continuity compatibility check, backups the original Systems kexts, disables a Mac-model blacklist in the Buetooth kext, whitelists the Mac board-id in the Wi-Fi kext.
 * System diagnostic: Produces a report of the current system parameters influencing Continuity.
 
-**Warning:** Users should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. A backup is recommended before attempting to install the tool.
+**Warning:** Users should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. A backup is recommended before attempting to use the tool.
 
 ## Compatibility list
-Your Mac might need a hardware upgrade in addition to the software patch to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you know sure that there are inaccuracies, please report it on the thread.
+Your Mac might need a hardware upgrade in addition to the software patch to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please open an issue or report it to the guide author.
 
 Mac Model | Hardware change required | Software patch required (e.g. via this tool)
 :---|:---|:---
@@ -29,7 +29,7 @@ Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
 iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | No
 iMac 2012-2014 | No (works OTB) | No (works OTB)
 
-* The tool is currently not compatible with BT4 USB Dongles available on the market*, it only works with the right Apple wireless hardware.
+*The tool is currently not compatible with BT4 USB dongles available on the market*, it only works with the right Apple wireless hardware.
 
 ## How to use it
 
