@@ -35,9 +35,9 @@ iMac 2012-2014 | No (works OTB) | No (works OTB)
 
 **From Finder**
 
-1. Download the zip (link on the right) and extract it.
-2. Double-click on the app.
-3. Follow instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
+1. Download the ZIP (link on the right) and extract it.
+2. Run the app. _Note_: The current user must have admin privileges.
+3. Follow the instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
 
 **From the command line**
 The script can also be run right from the command line. It is located in Continuity Activation Tool.app/Contents/MacOS/contitool.sh
