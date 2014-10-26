@@ -28,10 +28,17 @@ hackVersion="1.0.2 beta"
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
 myMacIdPattern="" #Mac board id, detected later. Can be manually set here for debugging purposes. E.g.: Mac-00BE6ED71E35EB86.
 myMacModel="" #Mac model nb, automatically detected later. Can be manually set here for debugging purposes. E.g.: MacBookAir4,1
-skippedPatching=0 #set to 2 to prevent patching
+
+whitelistAlreadyPatched="0" #automatically set to 1 when detected that the current board-id is whitelisted in the Wi-Fi drivers.
+myMacIsBlacklisted="0" #automatically set to 1 when detected that the Mac model is blacklisted in the Bluetooth drivers.
+legacyWifiAlreadyPatched="0" #automatically set to 1 when the older Broadcom 4331 Wi-Fi kext plugin can't be found in the Wi-Fi drivers
+
+mbpCompatibilityList=("MacBookPro6,2" "MacBookPro8,1" "MacBookPro8,2") #compatible with wireless card upgrade BCM94331PCIEBT4CAX. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
+blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 
 #---- PATH VARIABLES ------
-backupFolder="$HOME/KextsBackup"
+backupFolderBeforePatch="$HOME/KextsBackupBeforePatch" #Kexts backup directory, where the original untouched kexts should be placed
+backupFolderAfterPatch="$HOME/KextsBackupAfterPatch" #Kexts backup directory, where the patched kexts should be placed, after a successful backup
 driverPath="/System/Library/Extensions"
 wifiKextFilename="IO80211Family.kext"
 wifiKextPath="$driverPath/$wifiKextFilename"
@@ -46,12 +53,6 @@ btBinFilename="IOBluetoothFamily"
 btBinPath="$driverPath/$btKextFilename/Contents/MacOS/$btBinFilename"
 appDir=$(dirname "$0")
 stringsPath="$appDir/strings" #the OS X "strings" utility, from Apple's Command Line Tools, must be bundled with this tool. This avoids prompting to download a ~5 GB Xcode package just to use a 40 KB tool (!).
-
-#---- HACK VARIABLES ------
-mbpCompatibilityList=("MacBookPro6,2" "MacBookPro7,1" "MacBookPro8,1" "MacBookPro8,2") #compatible with wireless card upgrade BCM94331PCIEBT4CAX. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
-blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
-myMacIsBlacklisted="0" #automatically set to 1 if detected that the Mac model is blacklisted in the Bluetooth drivers
-
 
 #---- FUNCTIONS -----------
 
@@ -120,8 +121,8 @@ function canMyKextsBeModded(){
 		wifiPermissionsError=$?
 		permissionsError=$((btPermissionsError + wifiPermissionsError))
 		if [ "${permissionsError}" -gt "0" ]; then
-			if [ "$1" != "verbose" ]; then echo "NOT OK. ${btKextFilename} and/or ${wifiKextFilename} are missing or corrupt in ${driverPath}"; echo ""; echo "   To fix this:"; echo "1) delete these files in ${driverPath}"; echo "2) find the original untouched kext backups (check in ${backupFolder})"; echo "3) reinstall them using the Kext Drop app (search online for it)"; echo "4) reboot."; echo ""; backToMainMenu
-			else echo "NOT OK. ${btKextFilename} and/or ${wifiKextFilename} are missing or corrupt in ${driverPath}."; echo ""; echo "   To fix this:"; echo "1) delete these files in ${driverPath}"; echo "2) find the original untouched kext backups (check in ${backupFolder})"; echo "3) reinstall them using the Kext Drop app (search online for it)"; echo "4) reboot."; echo ""; fi 
+			if [ "$1" != "verbose" ]; then echo "NOT OK. ${btKextFilename} and/or ${wifiKextFilename} are missing or corrupt in ${driverPath}"; echo ""; echo "   To fix this:"; echo "1) delete these files in ${driverPath}"; echo "2) find the original untouched kext backups (check in ${backupFolderBeforePatch})"; echo "3) reinstall them using the Kext Drop app (search online for it)"; echo "4) reboot."; echo ""; backToMainMenu
+			else echo "NOT OK. ${btKextFilename} and/or ${wifiKextFilename} are missing or corrupt in ${driverPath}."; echo ""; echo "   To fix this:"; echo "1) delete these files in ${driverPath}"; echo "2) find the original untouched kext backups (check in ${backupFolderBeforePatch})"; echo "3) reinstall them using the Kext Drop app (search online for it)"; echo "4) reboot."; echo ""; fi 
 		else
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Wi-Fi and Bluetooth kexts were found and could be read"; fi
@@ -373,7 +374,7 @@ function isMyMacWhitelisted(){
 			else
 		    #check if it needs patching: will do it if the whitelist is not full of own board id
 				if [ "${foundCount}" == "${#whitelist[@]}" ]; then
-					if [ "$1" != "verbose" ]; then echo "OK"; ((skippedPatching+=1));
+					if [ "$1" != "verbose" ]; then echo "OK"; whitelistAlreadyPatched="1";
 					else echo "OK. The whitelist is correctly patched with your board-id"; fi
 				else
 					if [ "$1" != "verbose" ]; then echo "OK";
@@ -412,7 +413,7 @@ function isMyMacBlacklisted(){
 				else echo "OK. Your Mac model is blacklisted. This tool can fix this."; 
 				fi
 			else
-				if [ "$1" != "verbose" ]; then echo "OK"; ((skippedPatching+=1));
+				if [ "$1" != "verbose" ]; then echo "OK";
 				else echo "OK. Your Mac model is not blacklisted"; fi
 			fi
 		else
@@ -438,41 +439,56 @@ function isMyMacBlacklisted(){
     fi
 }
 
-#Makes a backup of the Wifi kext and Bluetooth kext, in a "Backup" folder located in the directory declared in the script global variables.
+#Makes a backup of the Wifi kext and Bluetooth kext, in a "Backup" folder located in the directory declared as argument
 #Any existing copies of these kexts in the backup dir will be silently replaced
 function backupKexts(){
-	echo -n "Backing up drivers...                   "
-	sudo echo "" >> /dev/null 2>&1 #make sure sudo is still active
-	#Verify if the original kexts are there
-	if [ ! -d "${btKextPath}" -a ! -d "${wifiKextPath}" ]; then 
-		echo "NOT OK. ${btKextFilename} or ${wifiKextFilename} could not be found. Aborting."
-		backToMainMenu
+
+	local backupType=""
+	local backupFolder=$1
+
+	#set a relevant backup message
+	if [ ! -z "$backupFolder" -a "${backupFolder}" == "${backupFolderBeforePatch}" ]; then backupType="original "; fi
+	if [ ! -z "$backupFolder" -a  "${backupFolder}" == "${backupFolderAfterPatch}" ]; then backupType="modified "; fi
+	echo -n "Backing up ${backupType}drivers...          "
+
+
+	#verify if args were passed
+	if [ -z "$backupFolder" ]; then
+		echo "NOT OK. No backup folder was given. Skipping drivers backup."
 	else
-		#start the backup
-		if [ -d "${backupFolder}" ]; then
-			#backup dir already existed
-			#remove any existing previous kext backups
-			rm -rf "${backupFolder}/${wifiKextFilename}"
-			rm -rf "${backupFolder}/${btKextFilename}"
-		else
-			mkdir -p "${backupFolder}"
-		fi
-		local backupOk=0
-		local errorOutput=""
 
-		if cp -R "${btKextPath}/" "${backupFolder}/${btKextFilename}"; then ((backupOk+=1)); else errorOutput="${btKextFilename} backup failed."; fi
-		if cp -R "${wifiKextPath}/" "${backupFolder}/${wifiKextFilename}"; then ((backupOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} backup failed."; fi
-
-		if [ "${backupOk}" -eq "2" ]; then
-			echo "OK. Wi-Fi and Bluetooth kexts were backed up in '${backupFolder}'"
+		sudo echo "" >> /dev/null 2>&1 #make sure sudo is still active
+		#Verify if the original kexts are there
+		if [ ! -d "${btKextPath}" -a ! -d "${wifiKextPath}" ]; then 
+			echo "NOT OK. ${btKextFilename} or ${wifiKextFilename} could not be found. Aborting."
+			backToMainMenu
 		else
-			echo "NOT OK. ${errorOutput}"
+			#start the backup
+			if [ -d "${backupFolder}" ]; then
+				#backup dir already existed
+				#remove any existing previous kext backups
+				rm -rf "${backupFolder}/${wifiKextFilename}"
+				rm -rf "${backupFolder}/${btKextFilename}"
+			else
+				mkdir -p "${backupFolder}"
+			fi
+			local backupOk=0
+			local errorOutput=""
+
+			if cp -R "${btKextPath}/" "${backupFolder}/${btKextFilename}"; then ((backupOk+=1)); else errorOutput="${btKextFilename} backup failed."; fi
+			if cp -R "${wifiKextPath}/" "${backupFolder}/${wifiKextFilename}"; then ((backupOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} backup failed."; fi
+
+			if [ "${backupOk}" -eq "2" ]; then
+				echo "OK. Wi-Fi and Bluetooth kexts were backed up in '${backupFolder}'"
+			else
+				echo "NOT OK. ${errorOutput}"
+			fi
 		fi
 	fi
 }
 
-#Replaces a string in a binary file by the one given. Usage : patch_strings_in_file foo "old_string" "new_string"
-function patch_strings_in_file() {
+#Replaces a string in a binary file by the one given. Usage : patchStringsInFile foo "old_string" "new_string"
+function patchStringsInFile() {
     local FILE="$1"
     local PATTERN="$2"
     local REPLACEMENT="$3"
@@ -519,42 +535,47 @@ function patch_strings_in_file() {
 }
 
 
-#Detects the presence of an obsolete Broadcom 4331 Wi-Fi kext for the verbose diagnostic
-#That driver can in some cases override the Continuity enabled 4360 kext (not wanted)
-function detectObsoleteWifiDriver(){
+#Detects the presence of an obsolete Broadcom 4331 Wi-Fi kext.
+#That driver can in some cases override the Continuity enabled 4360 kext (not wanted).
+function detectLegacyWifiDriver(){
 	
 	echo -n "Verifying old Wi-Fi kext presence...    "
 
 		#detect the presence of the legacy Broadcom 4331 driver
-	if [ -d "${wifiObsoleteBrcmKextPath}" ]; then #echo "" >> /dev/null 2>&1
+	if [ -d "${wifiObsoleteBrcmKextPath}" ]; then
 		#kext exists 
 		if [ "$1" != "verbose" ]; then echo "OK";
-			else echo "OK. Old Wi-Fi driver ${wifiObsoleteBrcmKextFilename} exists. This tool can fix this."; fi
+			else echo "OK. Old Wi-Fi driver ${wifiObsoleteBrcmKextFilename} is present. This tool can fix this."; fi
 	else
+		#kext not found - consider it patched
+		legacyWifiAlreadyPatched="1";
 		if [ "$1" != "verbose" ]; then echo "OK";
-		else echo "OK. Old Wi-Fi driver ${wifiObsoleteBrcmKextFilename} wasn't found (good)."; fi
+		else echo "OK. Old Wi-Fi driver ${wifiObsoleteBrcmKextFilename} was already removed."; fi
 	fi
 }
 
 #Removes the Brcm4331 legacy Wi-Fi kext that could load and override the Continuity enabled Brcm4360 driver
 #Note: it's important to backup the Wi-Fi kext before doing this
 function removeObsoleteWifiDriver(){
-	echo -n "Cleaning up old Wi-Fi kext...           "
+	
+	#verify if the Brcm4331 kext needs to be removed
+	#detect the presence of the legacy 4331 driver
+	if [ -d "${wifiObsoleteBrcmKextPath}" ]; then
+		echo -n "Cleaning up old Wi-Fi kext...           "
 
-			#detect the presence of the legacy 4331 driver
-		if [ -d "${wifiObsoleteBrcmKextPath}" ]; then
-			#kext exist
-			#remove any existing previous kext backups
-			sudo rm -rf "${wifiObsoleteBrcmKextPath}" >> /dev/null 2>&1
-			local result=$?
-			if [ "${result}" == "1" ]; then
-				echo "WARNING. Failed to delete the old Wi-Fi kext ${wifiObsoleteBrcmKextFilename}. Continuing."
-			else
-				echo "OK" #removal successful
-			fi
+		#kext exist
+		#remove any existing previous kext backups
+		sudo rm -rf "${wifiObsoleteBrcmKextPath}" >> /dev/null 2>&1
+		local result=$?
+		if [ "${result}" == "1" ]; then
+			echo "WARNING. Failed to delete the old Wi-Fi kext ${wifiObsoleteBrcmKextFilename}. Continuing." #Continuity might still work (as in v.1.0.0 and v.1.0.1 of the script)
 		else
-			echo "OK" #obsolete kext has already been removed
+			legacyWifiAlreadyPatched="1"
+			echo "OK"; #removal successful
 		fi
+	else
+		echo "Skipping old Wi-Fi driver clean up...   OK" #obsolete kext has already been removed
+	fi
 }
 
 
@@ -563,9 +584,6 @@ function removeObsoleteWifiDriver(){
 #will determine whether the Mac is blacklisted. If not done, no patching happens.
 # e.g. MacBookAir4,2 will be turned into MacBookAir1,1
 function patchBluetoothKext(){
-
-	#reset patching counter
-	skippedPatching=0
 
 	#verify if mac is blacklisted, if not skip
 	if [ "${myMacIsBlacklisted}" == "1" ]; then
@@ -588,8 +606,8 @@ function patchBluetoothKext(){
 
     		#use the helper function to apply the hack
     		for (( i = 0; i < ${#blacklistedMacs[@]}; i++ )); do
-    			#patch_strings_in_file foo "old string" "new string"
-    			patch_strings_in_file "${btBinPath}" "${blacklistedMacs[i]}" "${disabledBlacklist[i]}"
+    			#patchStringsInFile foo "old string" "new string"
+    			patchStringsInFile "${btBinPath}" "${blacklistedMacs[i]}" "${disabledBlacklist[i]}"
     			echo -n "."
     		done
     		echo "              OK"
@@ -597,7 +615,6 @@ function patchBluetoothKext(){
     		echo "NOT OK. Failed to disable the blacklist - no changes were applied. Aborting."; backToMainMenu
     	fi
 	else
-		((skippedPatching+=1))
 		echo "Skipping blacklist patch...             OK"
 	fi
 }
@@ -623,14 +640,14 @@ function patchWifiKext(){
 	done
 	#only skip the wifi patching if the wifi kext is not exactly patched as this script does: with all board-ids replaced by own board-id
 	if [ "${occurence}" -eq "${#whitelist[@]}" ]; then
-		((skippedPatching+=1))
+		whitelistAlreadyPatched="1"
 		echo "Skipping whitelist patch...             OK"
 	else
 		echo -n "Patching whitelist..."
 		local whitelistedBoardId
 		for whitelistedBoardId in "${whitelist[@]}"; do
 			#do the patch, one by one
-			patch_strings_in_file "${wifiBrcmBinPath}" "${whitelistedBoardId}" "${myMacIdPattern}"
+			patchStringsInFile "${wifiBrcmBinPath}" "${whitelistedBoardId}" "${myMacIdPattern}"
 			echo -n "."
 		done
 		echo "      OK"
@@ -706,6 +723,7 @@ function compatibilityPrecautions(){
 	canMyKextsBeModded
 	isMyMacBlacklisted
 	isMyMacWhitelisted
+	detectLegacyWifiDriver
 }
 
 #Initiates the system compatibility checks, displays detailed interpretations of each test's result.
@@ -723,8 +741,7 @@ function verboseCompatibilityCheck(){
 	canMyKextsBeModded "verbose"
 	isMyMacBlacklisted "verbose"
 	isMyMacWhitelisted "verbose"
-	detectObsoleteWifiDriver "verbose"
-
+	detectLegacyWifiDriver "verbose"
 
 	backToMainMenu
 }
@@ -738,14 +755,20 @@ function backToMainMenu(){
 
 #Initiates the backup, patching and clean-up.
 function checkAndHack(){
-	skippedPatching=0 #reset patching counter
 	
-	if [ "${forceHack}" -ne "1" ]; then
-		compatibilityPrecautions
+	if [ "${forceHack}" == "0" ]; then
+		
+		#reset the patching flags in case they were set in a previous hack/diagnostic in the same session. They will be set again.
+		whitelistAlreadyPatched=0
+		myMacIsBlacklisted=0
+		legacyWifiAlreadyPatched=0
+
+		#run the checks
+		compatibilityPrecautions 
 	fi
 
-	#prevent patching if patch is already applied
-	if [ "${skippedPatching}" -gt "1" ]; then
+	#prevent patching if all the patches were detected to be already applied
+	if [ "${whitelistAlreadyPatched}" == "1" -a "${myMacIsBlacklisted}" == "0" -a "${legacyWifiAlreadyPatched}" == "1" ]; then
 		echo ""
 		echo "No changes were applied, your system seems to be already OK for Continuity"
 		backToMainMenu
@@ -755,21 +778,22 @@ function checkAndHack(){
 	echo ""
 
 	repairDiskPermissions
-	backupKexts
-	removeObsoleteWifiDriver
+	backupKexts "${backupFolderBeforePatch}"
 	patchBluetoothKext
 	patchWifiKext
+	removeObsoleteWifiDriver
 	applyPermissions
 	updatePrelinkedKernelCache
 	updateSystemCache
 	repairDiskPermissions
+	backupKexts "${backupFolderAfterPatch}"
 	echo ""
 	echo "ALMOST DONE! After rebooting:"
 	echo "1) Make sure that both your Mac and iOS device have Bluetooth turned on, and are on the same Wi-Fi network."
 	echo "2) On OS X go to SYSTEM PREFERENCES> GENERAL> and ENABLE HANDOFF."
 	echo "3) On iOS go to SETTINGS> GENERAL> HANDOFF & SUGGESTED APPS> and ENABLE HANDOFF."
 	echo "4) On OS X, and sign out and then sign in again to your iCloud account."
-	echo "Further troubleshooting: support.apple.com/kb/TS5458"
+	echo "Troubleshooting: support.apple.com/kb/TS5458"
 	displayThanks
 	rebootPrompt
 }
