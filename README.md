@@ -7,7 +7,7 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity on compati
 * Activate continuity: Does a Continuity compatibility check, backups the original Systems kexts, disables a Mac-model blacklist in the Buetooth kext, whitelists the Mac board-id in the Wi-Fi kext.
 * System diagnostic: Produces a report of the current system parameters influencing Continuity.
 
-**Warning:** Users should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. A backup is recommended before attempting to use the tool.
+**Warning:** Users should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. A backup is recommended before attempting to install the tool. If you do this fix, and it works, and then later reset the PRAM, it will cause problems. This isn’t just a simple little thing your doing, it’s at your own risk.
 
 ## Compatibility list
 Your Mac might need a hardware upgrade in addition to the software patch to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please open an issue or report it to the guide author.
