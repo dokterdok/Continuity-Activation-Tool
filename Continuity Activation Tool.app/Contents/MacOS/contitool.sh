@@ -22,7 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-hackVersion="1.0.1"
+hackVersion="1.0.2"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -46,7 +46,7 @@ appDir=$(dirname "$0")
 stringsPath="$appDir/strings" #the OS X "strings" utility, from Apple's Command Line Tools, must be bundled with this tool. This avoids prompting to download a ~5 GB Xcode package just to use a 40 KB tool (!).
 
 #---- HACK VARIABLES ------
-mbpCompatibilityList=("MacBookPro6,2" "MacBookPro7,1" "MacBookPro8,1" "MacBookPro8,2") #compatible with wireless card upgrade BCM94331PCIEBT4CAX. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
+mbpCompatibilityList=("MacBookPro6,2" "MacBookPro8,1" "MacBookPro8,2") #compatible with wireless card upgrade BCM94331PCIEBT4CAX. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 myMacIsBlacklisted="0" #automatically set to 1 if detected that the Mac model is blacklisted in the Bluetooth drivers
 
