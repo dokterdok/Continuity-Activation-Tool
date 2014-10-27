@@ -448,8 +448,14 @@ function backupKexts(){
 
 	#set a relevant backup message
 	if [ ! -z "$backupFolder" -a "${backupFolder}" == "${backupFolderBeforePatch}" ]; then backupType="original "; fi
-	if [ ! -z "$backupFolder" -a  "${backupFolder}" == "${backupFolderAfterPatch}" ]; then backupType="modified "; fi
-	echo -n "Backing up ${backupType}drivers...          "
+	if [ ! -z "$backupFolder" -a  "${backupFolder}" == "${backupFolderAfterPatch}" ]; then backupType="patched "; fi
+	local prettySpacing=""
+
+	#ensures the OK / NOT ok are nicely aligned with the other steps results
+	if [ "${backupType}" == "patched " ]; then
+		prettySpacing=" "
+	fi
+	echo -n "Backing up ${backupType}drivers...          ${prettySpacing}"
 
 
 	#verify if args were passed
@@ -458,30 +464,48 @@ function backupKexts(){
 	else
 
 		sudo echo "" >> /dev/null 2>&1 #make sure sudo is still active
-		#Verify if the original kexts are there
+		local skipBackup="0" #set to "1" if the user requests the backup to be skipped
+
+		#Verify if the system kexts are there
 		if [ ! -d "${btKextPath}" -a ! -d "${wifiKextPath}" ]; then 
 			echo "NOT OK. ${btKextFilename} or ${wifiKextFilename} could not be found. Aborting."
 			backToMainMenu
 		else
-			#start the backup
-			if [ -d "${backupFolder}" ]; then
-				#backup dir already existed
-				#remove any existing previous kext backups
-				rm -rf "${backupFolder}/${wifiKextFilename}"
-				rm -rf "${backupFolder}/${btKextFilename}"
+			#verify if the backup folder already exists
+			if [ -d "${backupFolder}" ]; then #it does exist
+
+				#verify existence of kext backups
+				if [ -d "${backupFolder}/${wifiKextFilename}" -o -d "${backupFolder}/${btKextFilename}" ];
+					then
+					echo "Would you like to overwrite the existing backup found in ${backupFolder}? "
+					select yn in "Yes, overwrite" "No, skip this backup"; do
+						case $yn in
+							'Yes, overwrite') #continue
+								#remove any existing previous kext backups.
+								rm -rf "${backupFolder}/${wifiKextFilename}"; rm -rf "${backupFolder}/${btKextFilename}"; break;;
+							'No, skip this backup') skipBackup="1"; break;;
+							*) echo "Invalid option, enter a number";;
+						esac
+					done
+				fi
 			else
 				mkdir -p "${backupFolder}"
 			fi
-			local backupOk=0
-			local errorOutput=""
 
-			if cp -R "${btKextPath}/" "${backupFolder}/${btKextFilename}"; then ((backupOk+=1)); else errorOutput="${btKextFilename} backup failed."; fi
-			if cp -R "${wifiKextPath}/" "${backupFolder}/${wifiKextFilename}"; then ((backupOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} backup failed."; fi
+			if [ "${skipBackup}" == "0" ]; then
+				local backupOk=0
+				local errorOutput=""
 
-			if [ "${backupOk}" -eq "2" ]; then
-				echo "OK. Wi-Fi and Bluetooth kexts were backed up in '${backupFolder}'"
-			else
+				if cp -R "${btKextPath}/" "${backupFolder}/${btKextFilename}"; then ((backupOk+=1)); else errorOutput="${btKextFilename} backup failed."; fi
+				if cp -R "${wifiKextPath}/" "${backupFolder}/${wifiKextFilename}"; then ((backupOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} backup failed."; fi
+				if [ "${backupOk}" -eq "2" ]; then
+				echo "OK: ${backupType}Wi-Fi and Bluetooth kexts were backed up in '${backupFolder}'"
+				else
 				echo "NOT OK. ${errorOutput}"
+				fi
+			else
+				#skip backup. no changes were applied.
+				echo "Skipping backup...                      OK"
 			fi
 		fi
 	fi
@@ -817,7 +841,6 @@ function displayThanks(){
 function applyTerminalTheme(){
 	tput setab 0
 	tput setaf 10
-	#tput setaf 113
 	printf '\e[8;30;158t'
 	printf '\e[3;0;0t'
 	tput clear
