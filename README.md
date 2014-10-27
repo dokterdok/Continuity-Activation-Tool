@@ -68,7 +68,7 @@ When using the script from the command line, make sure you have the strings bina
 * Added a backup step for freshly patched drivers, potentially useful if a future OS X update disables the patching methods
 * Added a prompt in case existing backups are found, asking whether to overwrite the files or skip. Previous behaviour was to silently overwrite.
 * Removed the 13" MacBook Pro 2010 from the compatible list ([#28](https://github.com/dokterdok/Continuity-Activation-Tool/issues/28), pull [#29](https://github.com/dokterdok/Continuity-Activation-Tool/pull/29))
-* Minor optimisations ([#11](https://github.com/dokterdok/Continuity-Activation-Tool/issues/11))
+* Minor optimisations
 
 
 **v.1.0.1 -  2014.10.24**
