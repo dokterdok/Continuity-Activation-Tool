@@ -64,8 +64,8 @@ When using the script from the command line, make sure you have the strings bina
 
 **v.1.0.2 - 2014.10.27**
 
-* Fixed a bug that prevented Handoff to be enabled in the System Preferences, even after a successful patch ([#21](https://github.com/dokterdok/Continuity-Activation-Tool/issues/21), [#31](https://github.com/dokterdok/Continuity-Activation-Tool/issues/31))
-* Added a backup step for freshly patched drivers, potentially useful if a future OS X update disables the patching methods
+* Fixed a bug that prevented Handoff to be enabled in the System Preferences, even after a successful patch ([#21](https://github.com/dokterdok/Continuity-Activation-Tool/issues/21),[#22](https://github.com/dokterdok/Continuity-Activation-Tool/issues/22), [#31](https://github.com/dokterdok/Continuity-Activation-Tool/issues/31))
+* Added a backup step for freshly patched drivers, potentially useful if a future OS X update disables the patching methods ( [#16](https://github.com/dokterdok/Continuity-Activation-Tool/issues/16))
 * Added a prompt in case existing backups are found, asking whether to overwrite the files or skip. Previous behaviour was to silently overwrite.
 * Removed the 13" MacBook Pro 2010 from the compatible list ([#28](https://github.com/dokterdok/Continuity-Activation-Tool/issues/28), pull [#29](https://github.com/dokterdok/Continuity-Activation-Tool/pull/29))
 * Minor optimisations
