@@ -10,7 +10,7 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity on compati
 ##Warning
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk
 * A backup is recommended before attempting to install the tool.
-* The tool disables OS security features in order to work.  Enabling Continuity on Yosemite will put you at risk to get the “grey stop sign” at boot-time. Not only for your first reboot, but anytime in the future if your PRAM is reset. I recommend you read “[Trim Enabler and Yosemite](http://www.cindori.org/trim-enabler-and-yosemite)”(Cindori.org), which explains the risks involved and solutions in case of issues.
+* The tool disables OS security features in order to work.  Enabling Continuity on Yosemite will put you at risk to get the “grey stop sign” at boot-time. Not only for your first reboot, but anytime in the future if your PRAM is reset. I recommend you read “[Trim Enabler and Yosemite](http://www.cindori.org/trim-enabler-and-yosemite)” (Cindori.org), which explains the risks involved and solutions in case of issues.
 
 ## Compatibility list
 Your Mac might need a hardware upgrade as well to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you are 100% sure that there are inaccuracies, please report it on the thread.
