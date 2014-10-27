@@ -4,13 +4,16 @@ Continuity Activation Tool
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
 ## Features
-* Activate continuity: Does a Continuity compatibility check, backups the original Systems kexts, disables a Mac-model blacklist in the Buetooth kext, whitelists the Mac board-id in the Wi-Fi kext.
-* System diagnostic: Produces a report of the current system parameters influencing Continuity.
+* Activate Continuity: Does a Continuity compatibility check, backups the original Systems kexts, disables a Mac-model blacklist in the Bluetooth kext, whitelists the Mac board-id in the Wi-Fi kext.
+* System Diagnostic: Produces a report of the current system parameters influencing Continuity.
 
-**Warning:** Users should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. A backup is recommended before attempting to install the tool. If you do this fix, and it works, and then later reset the PRAM, it will cause problems. This isn’t just a simple little thing your doing, it’s at your own risk.
+##Warning
+* You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk
+* A backup is recommended before attempting to install the tool.
+* The tool disables OS security features in order to work.  Enabling Continuity on Yosemite will put you at risk to get the “grey stop sign” at boot-time. Not only for your first reboot, but anytime in the future if your PRAM is reset. I recommend you read “[Trim Enabler and Yosemite](http://www.cindori.org/trim-enabler-and-yosemite)” (Cindori.org), which explains the risks involved and solutions in case of issues.
 
 ## Compatibility list
-Your Mac might need a hardware upgrade in addition to the software patch to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please open an issue or report it to the guide author.
+Your Mac might need a hardware upgrade as well to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you are 100% sure that there are inaccuracies, please report it on the thread.
 
 Mac Model | Hardware change required | Software patch required (e.g. via this tool)
 :---|:---|:---
@@ -29,15 +32,15 @@ Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
 iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | No
 iMac 2012-2014 | No (works OTB) | No (works OTB)
 
-*The tool is currently not compatible with BT4 USB dongles available on the market*, it only works with the right Apple wireless hardware.
+*The tool is currently not compatible with BT4 USB Dongles available on the market*, it only works with the right Apple wireless hardware.
 
 ## How to use it
 
 **From Finder**
 
-1. Download the ZIP (link on the right) and extract it.
-2. Run the app. _Note_: The current user must have admin privileges.
-3. Follow the instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
+1. Download the zip (link on the right) and extract it.
+2. Double-click on the app.
+3. Follow instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
 
 **From the command line**
 The script can also be run right from the command line. It is located in Continuity Activation Tool.app/Contents/MacOS/contitool.sh
@@ -54,12 +57,23 @@ When using the script from the command line, make sure you have the strings bina
 
 ### Sources
 * [Full guide to enable Continuity manually (MacRumors Forum Thread)](http://forums.macrumors.com/showpost.php?p=20124161)
+* [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
 
 ### Changelog
+
+**v.1.0.2 - 2014.10.26**
+
+* Fixed a bug that prevented Handoff to be enabled in the System Preferences, even after a successful patch ([#21](https://github.com/dokterdok/Continuity-Activation-Tool/issues/21), [#31](https://github.com/dokterdok/Continuity-Activation-Tool/issues/31))
+* Added a backup step for freshly patched drivers, potentially useful if a future OS X update disables the patching methods
+* Added a prompt in case existing backups are found, asking whether to overwrite the files or skip. Previous behaviour was to silently overwrite.
+* Removed the 13" MacBook Pro 2010 from the compatible list ([#28](https://github.com/dokterdok/Continuity-Activation-Tool/issues/28), pull [#29](https://github.com/dokterdok/Continuity-Activation-Tool/pull/29))
+* Minor optimisations
+
+
 **v.1.0.1 -  2014.10.24**
 
-* Fixed a boot arguments overwriting bug, that could lead to a system failure in specific cases
+* Fixed a boot arguments overwriting bug, that could lead to a system failure in specific cases ([#1](https://github.com/dokterdok/Continuity-Activation-Tool/issues/1), [#15](https://github.com/dokterdok/Continuity-Activation-Tool/issues/15))
 * Fixed a kext-dev-mode bug that prevented the OS to disable its drivers protection
 * Fixed the strings utility presence check when the script is run from the command line
 * Added a disk reparation step at the start of the patching procedure, lowering failure risks on disks with permissions issues
@@ -69,7 +83,7 @@ When using the script from the command line, make sure you have the strings bina
 
 * Initial release
 
-### Thanks
+### Thanks
 * Lem3ssie (LAUTRU Mehdi)
 * UncleSchnitty
 * Skvo
@@ -78,4 +92,4 @@ When using the script from the command line, make sure you have the strings bina
 * rob3r7o
 
 This tool took me many days and nights of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks!
-[Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+[![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
