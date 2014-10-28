@@ -816,7 +816,7 @@ function checkAndHack(){
 	echo "1) Make sure that both your Mac and iOS device have Bluetooth turned on, and are on the same Wi-Fi network."
 	echo "2) On OS X go to SYSTEM PREFERENCES> GENERAL> and ENABLE HANDOFF."
 	echo "3) On iOS go to SETTINGS> GENERAL> HANDOFF & SUGGESTED APPS> and ENABLE HANDOFF."
-	echo "4) On OS X, and sign out and then sign in again to your iCloud account."
+	echo "4) On OS X, sign out and then sign in again to your iCloud account."
 	echo "Troubleshooting: support.apple.com/kb/TS5458"
 	displayThanks
 	rebootPrompt
