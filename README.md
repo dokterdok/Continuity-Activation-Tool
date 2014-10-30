@@ -17,7 +17,6 @@ Your Mac might need a hardware upgrade as well to be able to work with Continuit
 
 Mac Model | Hardware change required | Software patch required (e.g. via this tool)
 :---|:---|:---
-MacBook Air 2008-2010 | Yes, new wireless card BCM94360CS2 | Yes
 MacBook Air mid-2011 | No | Yes
 MacBook Air 2012-2014 | No (works OTB) | No (works OTB)
 MacBook Pro mid-2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX | Yes
