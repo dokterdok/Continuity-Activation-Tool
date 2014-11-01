@@ -19,7 +19,7 @@ Mac Model | Hardware change required | Software patch required (e.g. via this to
 :---|:---|:---
 MacBook Air mid-2011 | No | Yes
 MacBook Air 2012-2014 | No (works OTB) | No (works OTB)
-MacBook Pro mid-2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX | Yes
+MacBook Pro mid-2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX, see [guide](http://forums.macrumors.com/showpost.php?p=20269421&postcount=639) | Yes
 MacBook Pro early 2011 to late 2011 (all models) | Yes, new wireless card BCM94331PCIEBT4CAX | Yes
 MacBook Pro mid-2012 (non-retina) | No (works OTB)| No (works OTB)
 MacBook Pro Retina (all models) | No (works OTB) | No (works OTB)
@@ -42,6 +42,7 @@ iMac 2012-2014 | No (works OTB) | No (works OTB)
 3. Follow instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
 
 **From the command line**
+
 The script can also be run right from the command line. It is located in Continuity Activation Tool.app/Contents/MacOS/contitool.sh
 
 Usage example: "sudo ./contitool.sh activate"
