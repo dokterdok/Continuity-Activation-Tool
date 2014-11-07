@@ -17,8 +17,10 @@ Thanks for your support!
 
 ##Warning
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk.
-* A backup is recommended before attempting to install the tool.
-* The tool disables OS security features in order to work.  Enabling Continuity on Yosemite will put you at risk to get the “grey stop sign” at boot-time. Not only for your first reboot, but anytime in the future if your PRAM is reset. I recommend you read “[Trim Enabler and Yosemite](http://www.cindori.org/trim-enabler-and-yosemite)” (Cindori.org), which explains the risks involved and solutions in case of issues.
+* Always use the latest version of the tool to avoid issues. See the changelog at the bottom to understand what was changed.
+* The tool disables the verification of original Apple drivers in order to work, which lowers the overall system security.
+
+Note: Contrarily to what was stated here before, using the tool will not increase risks of getting a "grey stop sign" at boot time, even after reboots and PRAM resets. This has been confirmed after many tests on different Mac configurations. Macs that have already successfully activated Continuity with v.1.0.0 are not at risk either.
 
 ## Compatibility list
 Your Mac might need a hardware upgrade as well to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please report them to the guide author and open an issue.
