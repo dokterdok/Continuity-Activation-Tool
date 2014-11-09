@@ -3,7 +3,7 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
-## News - 2014.11.07
+## News - 2014.11.09
 A quick update on the evolution of the app.
 
 * **Continuity Activation Tool 1.1**  will include an uninstallation feature, as well as various bug fixes and optimizations. A pre-release has been be published in the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta).
