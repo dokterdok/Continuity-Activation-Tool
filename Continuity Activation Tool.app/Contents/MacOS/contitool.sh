@@ -9,9 +9,9 @@
 # The tool has no influence over Call/SMS Handoff.
 #
 # Before the actual hacking happens, a system compatibility test is made, 
-# as well as a backup of the (presumably untouched) bluetooth and wifi kexts.
-# The system check produces a report of typical parameters influencing
-# Continuity: this may be useful when troubleshooting.
+# as well as a backup of the bluetooth and wifi kexts, before and after patching.
+# The system check produces a report of typical parameters influencing.
+# An uninstaller is available as well.
 #
 # This hack should work with:
 # * mid-2010 MacBook Pro models upgraded with an internal BT4 LE Airport wireless card (model BCM94331PCIEBT4CAX)
@@ -22,7 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-hackVersion="1.0.2"
+hackVersion="1.1.0 beta 1"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -32,6 +32,8 @@ myMacModel="" #Mac model nb, automatically detected later. Can be manually set h
 whitelistAlreadyPatched="0" #automatically set to 1 when detected that the current board-id is whitelisted in the Wi-Fi drivers.
 myMacIsBlacklisted="0" #automatically set to 1 when detected that the Mac model is blacklisted in the Bluetooth drivers.
 legacyWifiAlreadyPatched="0" #automatically set to 1 when the older Broadcom 4331 Wi-Fi kext plugin can't be found in the Wi-Fi drivers
+forceRecoveryDiskBackup="0" #automatically set to 1 when backups made by the Continuity Activation Tool can't be found. It's a flag used to determine if kext from the Recovery Disk are to be used during the uninstallation process.
+nbOfInvalidKexts="0"
 
 mbpCompatibilityList=("MacBookPro6,2" "MacBookPro8,1" "MacBookPro8,2") #compatible with wireless card upgrade BCM94331PCIEBT4CAX. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
@@ -39,6 +41,7 @@ blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macm
 #---- PATH VARIABLES ------
 backupFolderBeforePatch="$HOME/KextsBackupBeforePatch" #Kexts backup directory, where the original untouched kexts should be placed
 backupFolderAfterPatch="$HOME/KextsBackupAfterPatch" #Kexts backup directory, where the patched kexts should be placed, after a successful backup
+legacyBackupPath="$HOME/KextsBackup" #backup directory used in CAT 1.0.0 and CAT 1.0.1
 driverPath="/System/Library/Extensions"
 wifiKextFilename="IO80211Family.kext"
 wifiKextPath="$driverPath/$wifiKextFilename"
@@ -52,7 +55,26 @@ btKextPath="$driverPath/$btKextFilename"
 btBinFilename="IOBluetoothFamily"
 btBinPath="$driverPath/$btKextFilename/Contents/MacOS/$btBinFilename"
 appDir=$(dirname "$0")
+recoveryHdName="Recovery HD"
+recoveryDmgPath="/Volumes/Recovery HD/com.apple.recovery.boot/BaseSystem.dmg"
+osxBaseSystemPath="/Volumes/OS X Base System"
+
+#---- TOOLCHAIN PATHS ------
+#the toolchain path has been hardcoded to avoid having potential 3rd party tools being used
+awkPath="/usr/bin/awk"
+chmodPath="/bin/chmod"
+chownPath="/usr/sbin/chown"
+cpPath="/bin/cp"
+duPath="/usr/bin/du"
+hexdumpPath="/usr/bin/hexdump"
+kextstatPath="/usr/sbin/kextstat"
+mkdirPath="/bin/mkdir"
+nvramPath="/usr/sbin/nvram"
+rmPath="/bin/rm"
+sedPath="/usr/bin/sed"
+statPath="/usr/bin/stat"
 stringsPath="$appDir/strings" #the OS X "strings" utility, from Apple's Command Line Tools, must be bundled with this tool. This avoids prompting to download a ~5 GB Xcode package just to use a 40 KB tool (!).
+xxdPath="/usr/bin/xxd"
 
 #---- FUNCTIONS -----------
 
@@ -115,9 +137,9 @@ function isMyMacOSCompatible() {
 #Verifies that the kexts don't have a 0 bytes size and that they can be found. Failed hack attempts are known to mess this up.
 function canMyKextsBeModded(){
 		echo -n "Verifying kexts readability...          "
-		du -hs "${btKextPath}" >> /dev/null 2>&1
+		$duPath -hs "${btKextPath}" >> /dev/null 2>&1
 		btPermissionsError=$?
-		du -hs "${wifiKextPath}" >> /dev/null 2>&1
+		$duPath -hs "${wifiKextPath}" >> /dev/null 2>&1
 		wifiPermissionsError=$?
 		permissionsError=$((btPermissionsError + wifiPermissionsError))
 		if [ "${permissionsError}" -gt "0" ]; then
@@ -134,7 +156,7 @@ function isMyMacBoardIdCompatible(){
 	echo -n "Verifying Mac board-id...               "
 	#echo -n "Verifying Mac board-id compatibility... "
 	if [ ! -z "{$myMacIdPattern}" ] ; then
-		myMacIdPattern=$(ioreg -l | grep "board-id" | awk -F\" '{print $4}')
+		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
 	fi
 	if [ ! -z "{$myMacIdPattern}" ] ; then
 		if [ ${#myMacIdPattern} -eq 12 ] ; then
@@ -161,13 +183,13 @@ function areMyActiveWifiDriversOk(){
 
 	echo -n "Verifying active AirPort drivers...     "
 	
-	driverVersion=($(kextstat | grep "Brcm" | awk -F' ' '{print $6}'))
+	driverVersion=($($kextstatPath | grep "Brcm" | $awkPath -F' ' '{print $6}'))
 
 	#Verify if no Wi-Fi drivers are loaded at all
 	if [ -z "${driverVersion}" ]; then
 		if [ "$1" != "verbose" ]; then echo "NOT OK. No active Broadcom AirPort card was detected. Aborting."; backToMainMenu;
 		else
-			possibleDriver=($(kextstat | grep "AirPort" | awk -F' ' '{print $6}')) 
+			possibleDriver=($($kextstatPath | grep "AirPort" | $awkPath -F' ' '{print $6}')) 
 			if [ -z "${possibleDriver}" ]; then
 				echo "NOT OK. No active Broadcom AirPort card detected"
 			else
@@ -178,7 +200,7 @@ function areMyActiveWifiDriversOk(){
 		if [ "${#driverVersion[@]}" -eq "1" ]; then
 			if [ "$1" != "verbose" ]; then echo "OK"
 			else 
-				local shortDriverName=$(echo "${driverVersion}" | awk -F'.' '{print $5}')
+				local shortDriverName=$(echo "${driverVersion}" | $awkPath -F'.' '{print $5}')
 				echo "OK. Broadcom AirPort driver ${shortDriverName} is currently active";
 			fi
 		else 
@@ -190,10 +212,10 @@ function areMyActiveWifiDriversOk(){
 			for element in "${driverVersion[@]}";
 				do 
 				if [ "${element}" == "com.apple.driver.AirPort.Brcm4331" ]; then
-					activeCards+=($(echo "${element}" | awk -F'.' '{print $5}')) #store the short kext name
+					activeCards+=($(echo "${element}" | $awkPath -F'.' '{print $5}')) #store the short kext name
 				else
 					if [ "${element}" == "com.apple.driver.AirPort.Brcm4360" ]; then
-					activeCards+=($(echo "${element}" | awk -F'.' '{print $5}')) #store the short kext name
+					activeCards+=($(echo "${element}" | $awkPath -F'.' '{print $5}')) #store the short kext name
 					fi
 				fi
 			done
@@ -210,7 +232,7 @@ function areMyActiveWifiDriversOk(){
 				else
 					#Multiple Wi-Fi drivers loaded, but none are of the Broadcom brand
 					if [ "$1" != "verbose" ]; then echo "NOT OK. No Broadcom AirPort card is active. Aborting."; backToMainMenu;
-					else echo "NOT OK. No Broadcom AirPort card is active. Type 'kextstat | grep AirPort' for more info. brc ${activeCards[*]}"; fi
+					else echo "NOT OK. No Broadcom AirPort card is active. Type '$kextstatPath | grep AirPort' for more info. brc ${activeCards[*]}"; fi
 				fi
 			fi
 		fi
@@ -231,7 +253,7 @@ function isMyMacModelCompatible(){
 	echo -n "Verifying Mac model reference...        "
 	#echo -n "Verifying Mac model nb compatibility... "
 	modelsList=("${mbpCompatibilityList[@]}" "${blacklistedMacs[@]}")
-	myMacModel=$(ioreg -l | grep "model" | awk -F\" '{print $4;exit;}')
+	myMacModel=$(ioreg -l | grep "model" | $awkPath -F\" '{print $4;exit;}')
 	myResult=`containsElement "${myMacModel}" "${modelsList[@]}"; echo $?`
 	if [ "${myResult}" -eq 1 ] ; then
 		if [ "$1" != "verbose" ]; then echo "OK";
@@ -253,19 +275,19 @@ function isMyMacModelCompatible(){
 	fi
 }
 
-#Verifies if the Bluetooth chip is compatible, by checking if the LMP version is 6
-function isMyBluetoothCompatible(){
-	echo -n "Verifying Bluetooth hardware...         "
+#Verifies if the active Bluetooth chip is compatible, by checking if the LMP version is 6
+function isMyBluetoothVersionCompatible(){
+	echo -n "Verifying Bluetooth version...          "
 
-	lmpVersion=$(ioreg -l | grep "LMPVersion" | awk -F' = ' '{print $2}')
+	local lmpVersion=$(ioreg -l | grep "LMPVersion" | $awkPath -F' = ' '{print $2}')
 
 	if [ ! "${lmpVersion}" == "" ]; then
 		if [ "${lmpVersion}" == "6" ]; then
 			if [ "$1" != "verbose" ]; then echo "OK";
-			else echo "OK. Bluetooth 4.0 LE detected (LMP Version 6)"; fi
+			else echo "OK. Bluetooth 4.0 detected (LMP Version 6)"; fi
 		else
-			if [ "$1" != "verbose" ]; then echo "NOT OK. Incompatible Bluetooth hardware detected. LMP Version=${lmpVersion}, but expected 6 (Bluetooth 4.0 LE). Aborting."; backToMainMenu;
-			else echo "NOT OK. Incompatible Bluetooth hardware detected. LMP Version=${lmpVersion}, but expected 6 (Bluetooth 4.0 LE)."; fi
+			if [ "$1" != "verbose" ]; then echo "NOT OK. Your hardware doesn't support Bluetooth 4.0, necessary for Continuity Current LMP Version=${lmpVersion}, expected 6. Aborting."; backToMainMenu;
+			else echo "NOT OK. Your hardware doesn't support Bluetooth 4.0, necessary for Continuity. Current LMP Version=${lmpVersion}, expected 6."; fi
 		fi
 	else
 		if [ "$1" != "verbose" ]; then echo "NOT OK. No active Bluetooth hardware detected. Aborting."; backToMainMenu;
@@ -273,71 +295,188 @@ function isMyBluetoothCompatible(){
 	fi
 }
 
-#Verifies if the kext developer mode is active. If not, it is added to the boot arguments. (reboot required).
-function disableOsKextProtection(){
+#Counts all kexts in the given folder that either have no signature or that don't pass signature validation
+#This function is used during the uninstallation to make sure that the OS Kext Protection doesn't get re-activated and blocks potentially vital kexts from loading
+#Output example : "nbOfInvalidKexts=8"
+#Negative values indicate an error.
+#Usage: countInvalidKexts "${kextFolderPath}" > tmp; . tmp; rm tmp;
+function countInvalidKexts(){
+	folderToVerify=$1
+	if [ -z $folderToVerify ]; then echo "-1"; nbOfInvalidKexts="-1"; #no argument given
+    else 
+    	if [ ! -d $folderToVerify ]; then echo "-2";nbOfInvalidKexts="-2"; #folder not found
+    	else
+    		if [ $(ls -1 ${folderToVerify}/*.kext 2>/dev/null | wc -l) -eq 0 ]; then echo "-3";nbOfInvalidKexts="-3"; #no kexts were found in this directory
+    		else
+    			cd $folderToVerify 
+    		 	echo "nbOfInvalidKexts=$(find *.kext -prune -type d | while read kext; do
+    			codesign -v "$kext" 2>&1 | grep -E 'invalid signature|not signed at all'
+    			done | wc -l | tr -d ' ')"
+			fi
+		fi
+	fi
+}
+
+
+#Enables or disables the kext developer mode in the PRAM. If activated, a reboot prompt is displayed.
+#Arguments: disableDevMode or enableDevMode
+#Warning: this function relies entirely on the PRAM, not on the boot plist.
+function modifyKextDevMode(){
+	
+	local modificationAction="$1"
+	local sedRegEx #regex that can be used to remove the "kext-dev-mode" variable from the boot-args
+	local longSedRegEx #regex that can be used to remove the "-kext-dev-mode" variable from the boot-args. It includes a dash at the beginning.
+	local okToDisable="0" #flag set to 1 when no unsigned kexts were found in the extensions folder
+
+	#Sanitize the inputs and display the relevent the info message
+	if [ -z "$1" ]; then
+    	echo "Internal error: no OS Kext Protection input argument given. Aborting."; backToMainMenu;
+    else
+		if [ "${modificationAction}" == "disableDevMode" ]; then 
+
+			#first we need to be sure that no other unsigned kexts are found in the Extensions folder
+			#otherwise, disabling dev mode might prevent the system from booting.
+			countInvalidKexts "${driverPath}" > tmp & spinner "Verifying system kexts signatures...    "; . tmp; rm tmp;
+
+			#output=$(countInvalidKexts "${driverPath}")
+			if [ "${nbOfInvalidKexts}" -gt "0" ]; then
+				echo -e "\rVerifying system kexts signatures...    OK. 1 or more unsigned drivers were found. OS kext security protection won't be changed to avoid potential issues."; return;
+			else
+				if [ "${nbOfInvalidKexts}" -lt "0" ]; then
+					#echo "       WARNING. There was an internal error while validating kexts. Proceeding."
+					echo -n "Activating OS kext protection...        "
+				else
+					#the system folder doesn't contain unclean kexts, proceed
+					echo "       OK"
+					echo -n "Activating OS kext protection...        "
+					longSedRegEx="s#\-kext-dev-mode=1##g" #this kext-dev-mode string will be removed. A dash might have been used if there are more than 1 boot-args.
+					sedRegEx="s#\kext-dev-mode=1##g" #this kext-dev-mode string will be removed if it exists
+					okToDisable="1"
+				fi
+			fi
+		else 
+			if [ "${modificationAction}" == "enableDevMode" ]; then 
+				echo -n "Disabling OS kext protection...         "
+				longSedRegEx="s#\-kext-dev-mode=0##g"
+				sedRegEx="s#\kext-dev-mode=0##g" #this kext-dev-mode string will be removed if it exists
+			else echo "Internal error: unknown OS Kext Protection input argument given. Aborting."; backToMainMenu;
+			fi
+		fi
+	fi
+
+	#Check if boot-args variable is set
+	sudo $nvramPath boot-args >> /dev/null 2>&1
+	local bootArgsResult=$?
+	if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
+
+		#Get the boot-args variable value(s)
+		bootArgsResult=$(sudo $nvramPath boot-args)
+		bootArgsResult=${bootArgsResult:10} #remove boot-args declaration, necessary later
+
+		#Verify if the kext-dev-mode is declared as active
+		sudo $nvramPath boot-args | grep -F "kext-dev-mode=1" >> /dev/null 2>&1
+		local devModeResult=$?
+		if [ $devModeResult -eq 0 ]; then 
+
+			if [ "${modificationAction}" == "disableDevMode" ]; then
+				if [ "${okToDisable}" == "1" ]; then #re-activate the OS kext protection, because no irregular kexts were found
+
+					#Dev mode will be removed from the boot-args.
+					local strippedBootArgs=$(echo "${bootArgsResult}" | $sedPath "${longSedRegEx}")
+					strippedBootArgs=$(echo "${strippedBootArgs}" | $sedPath "${sedRegEx}")
+					sudo $nvramPath boot-args="${strippedBootArgs}"
+					echo "OK. The OS kext protection was re-activated"
+				else
+					echo "OK. Unsigned drivers are used by your system. OS kext security protection won't be changed to avoid potential issues." #do nothing, unsigned kexts were found, the kext-dev-mode won't be disabled
+				fi
+			else
+				echo "OK" #do nothing, dev mode was already active, as wanted
+			fi
+		else
+			#Verify if the kext-dev-mode is declared as disabled (rare, by default this variable is not set by OS X)
+			sudo $nvramPath boot-args | grep -F "kext-dev-mode=0" >> /dev/null 2>&1
+			devModeResult=$?
+			if [ $devModeResult -eq 0 ]; then 
+
+				#Dev mode is declared as unset
+				if [ "${modificationAction}" == "enableDevMode" ]; then
+
+					#Dev mode will be activated, previous kext-dev-mode variable is stripped first
+					local strippedBootArgs=$(echo "${bootArgsResult}" | $sedPath "${longSedRegEx}")
+					strippedBootArgs=$(echo "${strippedBootArgs}" | $sedPath "${sedRegEx}")
+					sudo $nvramPath boot-args="${strippedBootArgs} kext-dev-mode=1"
+
+					#Prompt to reboot now
+					echo "OK"
+				else
+					echo "OK. The OS kext protection was already disabled." #dev mode was already disabled, as wanted
+				fi
+			else
+				#No kext-dev-mode boot-args are set.
+				if [ "${modificationAction}" == "enableDevMode" ]; then
+					
+					#Activate the kext-dev-mode
+					sudo $nvramPath boot-args="${bootArgsResult} kext-dev-mode=1"
+					
+					#Prompt to reboot now
+					echo "OK"
+				else
+					#Do nothing, dev mode is already disabled, as wanted
+					echo "OK. The OS kext protection was already active"
+				fi
+			fi
+		fi
+	else
+		#No boot-args are set at all. Only set them in the PRAM if it needs to be activated.
+		if [ "${modificationAction}" == "enableDevMode" ]; then
+			sudo $nvramPath boot-args="kext-dev-mode=1"
+			echo "OK"
+		else
+			echo "OK. The OS kext protection was already active" #do nothing, dev mode is disabled, as wanted
+		fi
+	fi
+}
+
+#Verifies if the kext developer mode is active. No changes are applied to the PRAM here.
+function verifyOsKextDevMode(){
 	echo -n "Verifying OS kext protection...         "
 
 	#Check if boot-args variable is set
-	sudo nvram boot-args >> /dev/null 2>&1
-		local bootArgsResult=$?
-		if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
+	sudo $nvramPath boot-args >> /dev/null 2>&1
+	local bootArgsResult=$?
+	if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
 
-			#Get the boot-args variable value(s)
-			local bootArgsResult=$(sudo nvram boot-args)
-			bootArgsResult=${bootArgsResult:10} #remove boot-args declaration
-
-			#Verify if kext-dev-mode=1 is set
-			sudo nvram boot-args | grep -F "kext-dev-mode=1" >> /dev/null 2>&1
-			local devModeResult=$?
-			if [ $devModeResult -eq 0 ]; then #Dev mode is active. do noth
-				if [ "$1" != "verbose" ]; then echo "OK"; 
-				else echo "OK. Developer mode is active."; fi
-			else
-
-				#Verify if kext-dev-mode=0 is set
-				sudo nvram boot-args | grep -F "kext-dev-mode=0" >> /dev/null 2>&1
-				devModeResult=$?
-				if [ $devModeResult -eq 0 ]; then
-
-					#Dev mode was deactivated, set it to 1 without overwriting anything other values
-					local strippedBootArgs=$(echo "${bootArgsResult}" | sed 's#\kext-dev-mode=0##g')
-
-					sudo nvram boot-args="${strippedBootArgs} kext-dev-mode=1" #append the kext-dev-mode=1
-					if [ "$1" != "verbose" ]; then echo "NOT OK. Developer mode was not active. Restart now to fix this, then relaunch the app."; rebootPrompt; 
-					else echo "NOT OK. Developer mode was not active. Restart now to fix this, then relaunch the app."; rebootPrompt; fi
-				else
-					#Unknown or empty boot-args set, activate the kext-dev-mode without overwriting other values
-					#detect if it's empty, influences the spacings
-					if [ "${#bootArgsResult}" == "0" ]; then
-						sudo nvram boot-args="kext-dev-mode=1";
-					else
-						sudo nvram boot-args="${bootArgsResult} kext-dev-mode=1"
-					fi
-						if [ "$1" != "verbose" ]; then echo "NOT OK. Developer mode not set in the boot args. Restart now to fix this, then relaunch the app."; rebootPrompt;
-						else echo "NOT OK. Developer mode not set in the boot args. Restart now to fix this, then relaunch the app."; rebootPrompt; fi
-				fi
-			fi
+		#Verify if kext-dev-mode=1 is set
+		sudo $nvramPath boot-args | grep -F "kext-dev-mode=1" >> /dev/null 2>&1
+		local devModeResult=$?
+		if [ $devModeResult -eq 0 ]; then #Dev mode is active
+			if [ "$1" != "verbose" ]; then echo "OK"; 
+			else echo "OK. Kext developer mode is already active"; fi
 		else
-
-			#Activate dev mode from scratch
-			sudo nvram boot-args="kext-dev-mode=1"
-			if [ "$1" != "verbose" ]; then echo "NOT OK. Developer mode was not set. Restart now to fix this, then relaunch the app."; rebootPrompt;
-			else echo "NOT OK. Developer mode was not set. Restart now to fix this, then relaunch the app."; rebootPrompt; fi
+			if [ "$1" != "verbose" ]; then echo "OK";
+			else echo "OK. Kext developer mode is not active. This tool can fix this."; fi
 		fi
+	else
+
+		#No boot-args are set at all
+		if [ "$1" != "verbose" ]; then echo "OK";
+		else echo "OK. Kext developer mode is not active. This tool can fix this."; fi
+	fi
 }
+
 
 #Verifies if the Mac board id is correctly whitelisted in the Wi-Fi drivers
 function isMyMacWhitelisted(){
 	echo -n "Verifying Wi-Fi whitelist status...     "
 	#verify if the Brcm4360 binary exists
 	if [ ! -f "${wifiBrcmBinPath}" ]; then
-    	if [ "$1" != "verbose" ]; then echo "NOT OK: Wifi binary not found at ${wifiBrcmBinPath}. Aborting."; backToMainMenu;
-    	else echo "NOT OK: Wi-Fi binary not found at ${wifiBrcmBinPath}"; fi
+    	if [ "$1" != "verbose" ]; then echo "NOT OK. Wifi binary not found at ${wifiBrcmBinPath}. Aborting."; backToMainMenu;
+    	else echo "NOT OK. Wi-Fi binary not found at ${wifiBrcmBinPath}"; fi
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; #Continue the verification. A brcm AirPort driver was found.
     	fi
-     	local whitelist=($("$stringsPath" -a -t x ${wifiBrcmBinPath} | grep Mac- | awk -F" " '{print $2}'))
-		myMacIdPattern=$(ioreg -l | grep "board-id" | awk -F\" '{print $4}')
+     	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2}'))
+		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
     	local foundCount=0
     	local element
     	if [[ $whitelist ]]; then
@@ -350,8 +489,8 @@ function isMyMacWhitelisted(){
 			if [ "${foundCount}" -gt "0" -a "${foundCount}" -lt "${#whitelist[@]}" ]; then
 				if [ "$1" != "verbose" ]; then echo "OK";
 				else 
-					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | awk -F" " '{print $2;exit;}')
-					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | awk -F" " '{a=$0} END{print $2;exit;}')
+					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2;exit;}')
+					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{a=$0} END{print $2;exit;}')
 					#Increase checks if the Mac is blacklisted (2011 MacBook Airs, Minis). Purely for reporting info.
 					if [ "${myMacIsBlacklisted}" == "1" ]; then
 						if [ "${myMacIdPattern}" == "${firstWhitelistedBoardId}" -a "${myMacIdPattern}" == "${lastWhitelistedBoardId}" ]; then
@@ -392,12 +531,12 @@ function isMyMacWhitelisted(){
 function isMyMacBlacklisted(){
 	echo -n "Verifying Bluetooth blacklist status... "
 	if [ ! -f "${btBinPath}" ]; then
-		if [ "$1" != "verbose" ]; then echo "NOT OK: Bluetooth binary not found at ${btBinPath}. Aborting."; backToMainMenu;
-    	else echo "NOT OK: Bluetooth binary not found at ${btBinPath}"; fi
+		if [ "$1" != "verbose" ]; then echo "NOT OK. Bluetooth binary not found at ${btBinPath}. Aborting."; backToMainMenu;
+    	else echo "NOT OK. Bluetooth binary not found at ${btBinPath}"; fi
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; fi #Continue, the bluetooth binary was found
-    	local blacklist=($("$stringsPath" -a -t x ${btBinPath} | grep Mac | awk -F"'" '{print $2}'))
-		local myMacModel=$(ioreg -l | grep "model" | awk -F\" '{print $4;exit;}')
+    	local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | grep Mac | $awkPath -F"'" '{print $2}'))
+		local myMacModel=$(ioreg -l | grep "model" | $awkPath -F\" '{print $4;exit;}')
     	local foundCount=0
     	local element
     	if [[ $blacklist ]]; then
@@ -467,7 +606,7 @@ function backupKexts(){
 		local skipBackup="0" #set to "1" if the user requests the backup to be skipped
 
 		#Verify if the system kexts are there
-		if [ ! -d "${btKextPath}" -a ! -d "${wifiKextPath}" ]; then 
+		if [ ! -d "${btKextPath}" -o ! -d "${wifiKextPath}" ]; then 
 			echo "NOT OK. ${btKextFilename} or ${wifiKextFilename} could not be found. Aborting."
 			backToMainMenu
 		else
@@ -482,24 +621,24 @@ function backupKexts(){
 						case $yn in
 							'Yes, overwrite') #continue
 								#remove any existing previous kext backups.
-								rm -rf "${backupFolder}/${wifiKextFilename}"; rm -rf "${backupFolder}/${btKextFilename}"; break;;
+								$rmPath -rf "${backupFolder}/${wifiKextFilename}"; $rmPath -rf "${backupFolder}/${btKextFilename}"; break;;
 							'No, skip this backup') skipBackup="1"; break;;
 							*) echo "Invalid option, enter a number";;
 						esac
 					done
 				fi
 			else
-				mkdir -p "${backupFolder}"
+				$mkdirPath -p "${backupFolder}"
 			fi
 
 			if [ "${skipBackup}" == "0" ]; then
 				local backupOk=0
 				local errorOutput=""
 
-				if cp -R "${btKextPath}/" "${backupFolder}/${btKextFilename}"; then ((backupOk+=1)); else errorOutput="${btKextFilename} backup failed."; fi
-				if cp -R "${wifiKextPath}/" "${backupFolder}/${wifiKextFilename}"; then ((backupOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} backup failed."; fi
+				if $cpPath -R "${btKextPath}/" "${backupFolder}/${btKextFilename}"; then ((backupOk+=1)); else errorOutput="${btKextFilename} backup failed."; fi
+				if $cpPath -R "${wifiKextPath}/" "${backupFolder}/${wifiKextFilename}"; then ((backupOk+=1)); else errorOutput="${errorOutput} ${wifiKextFilename} backup failed."; fi
 				if [ "${backupOk}" -eq "2" ]; then
-				echo "OK: ${backupType}Wi-Fi and Bluetooth kexts were backed up in '${backupFolder}'"
+				echo "OK. Wi-Fi and Bluetooth kexts were backed up in '${backupFolder}'"
 				else
 				echo "NOT OK. ${errorOutput}"
 				fi
@@ -518,7 +657,7 @@ function patchStringsInFile() {
     local REPLACEMENT="$3"
 
     #Find all unique strings in FILE that contain the pattern 
-    STRINGS=$("$stringsPath" "${FILE}" | grep "${PATTERN}" | sort -u -r)
+    STRINGS=$("${stringsPath}" "${FILE}" | grep "${PATTERN}" | sort -u -r)
 
     if [ "${STRINGS}" != "" ] ; then
         #echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
@@ -528,8 +667,8 @@ function patchStringsInFile() {
             NEW_STRING=${OLD_STRING//${PATTERN}/${REPLACEMENT}}
 
             # Create null terminated ASCII HEX representations of the strings
-            OLD_STRING_HEX="$(echo -n "${OLD_STRING}" | xxd -g 0 -u -ps -c 256)00"
-            NEW_STRING_HEX="$(echo -n "${NEW_STRING}" | xxd -g 0 -u -ps -c 256)00"
+            OLD_STRING_HEX="$(echo -n "${OLD_STRING}" | $xxdPath -g 0 -u -ps -c 256)00"
+            NEW_STRING_HEX="$(echo -n "${NEW_STRING}" | $xxdPath -g 0 -u -ps -c 256)00"
 
             if [ ${#NEW_STRING_HEX} -le ${#OLD_STRING_HEX} ] ; then
                 # Pad the replacement string with null terminations so the
@@ -540,12 +679,11 @@ function patchStringsInFile() {
 
                 # Now, replace every occurrence of OLD_STRING with NEW_STRING 
                 #echo -n "Replacing ${OLD_STRING} with ${NEW_STRING}... "
-                hexdump -ve '1/1 "%.2X"' "${FILE}" | \
-                sed "s/${OLD_STRING_HEX}/${NEW_STRING_HEX}/g" | \
-                xxd -r -p > "${FILE}.tmp"
-                SAVEMOD=$(stat -r "$FILE" | cut -f3 -d' ')
-                #chmod --reference ${FILE} ${FILE}.tmp unix command not working on OS X
-                chmod "$SAVEMOD" "${FILE}.tmp"
+                $hexdumpPath -ve '1/1 "%.2X"' "${FILE}" | \
+                $sedPath "s/${OLD_STRING_HEX}/${NEW_STRING_HEX}/g" | \
+                $xxdPath -r -p > "${FILE}.tmp"
+                SAVEMOD=$($statPath -r "$FILE" | cut -f3 -d' ')
+                $chmodPath "${SAVEMOD}" "${FILE}.tmp"
                 mv "${FILE}.tmp" "${FILE}"
             else
                 echo "NOT OK. New string '${NEW_STRING}' is longer than old" \
@@ -574,7 +712,7 @@ function detectLegacyWifiDriver(){
 		#kext not found - consider it patched
 		legacyWifiAlreadyPatched="1";
 		if [ "$1" != "verbose" ]; then echo "OK";
-		else echo "OK. Old Wi-Fi driver ${wifiObsoleteBrcmKextFilename} was already removed."; fi
+		else echo "OK. Old Wi-Fi driver ${wifiObsoleteBrcmKextFilename} was already removed"; fi
 	fi
 }
 
@@ -589,7 +727,7 @@ function removeObsoleteWifiDriver(){
 
 		#kext exist
 		#remove any existing previous kext backups
-		sudo rm -rf "${wifiObsoleteBrcmKextPath}" >> /dev/null 2>&1
+		sudo $rmPath -rf "${wifiObsoleteBrcmKextPath}" >> /dev/null 2>&1
 		local result=$?
 		if [ "${result}" == "1" ]; then
 			echo "WARNING. Failed to delete the old Wi-Fi kext ${wifiObsoleteBrcmKextFilename}. Continuing." #Continuity might still work (as in v.1.0.0 and v.1.0.1 of the script)
@@ -614,7 +752,7 @@ function patchBluetoothKext(){
 		echo -n "Patching blacklist..."
 		
 		#(re)populate blacklist
-		blacklistedMacs=($("$stringsPath" -a -t x ${btBinPath} | grep Mac | awk -F"'" '{print $2}'))
+		blacklistedMacs=($("${stringsPath}" -a -t x ${btBinPath} | grep Mac | $awkPath -F"'" '{print $2}'))
 
     	#build a disabled blacklist
     	local disabledBlacklist=()
@@ -622,7 +760,7 @@ function patchBluetoothKext(){
     	for blacklistedMac in "${blacklistedMacs[@]}";
     	do
     		#replace the last three chars of the mac model with "1,1", e.g. MacBookAir4,2 -> MacBookAir1,1
-    		disabledBlacklist+=($(echo $blacklistedMac | rev | cut -c 4- | rev | awk '{print $1"1,1"}'))
+    		disabledBlacklist+=($(echo $blacklistedMac | rev | cut -c 4- | rev | $awkPath '{print $1"1,1"}'))
     	done
 
     	#verify that the disabled blacklist is correctly built (last chance before applying the hack)
@@ -650,11 +788,11 @@ function patchWifiKext(){
 
 	#get the current board id
 	if [ -z "${myMacIdPattern}" ]; then
-		myMacIdPattern=$(ioreg -l | grep "board-id" | awk -F\" '{print $4}')
+		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
 	fi
 
 	#populate whitelist
-	local whitelist=($("$stringsPath" -a -t x ${wifiBrcmBinPath} | grep Mac- | awk -F" " '{print $2}'))
+	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2}'))
 
 	#check if it needs patching: will do it if the whitelist is not full of own board id
 	local occurence=0
@@ -682,10 +820,10 @@ function patchWifiKext(){
 function applyPermissions(){
 	echo -n "Applying correct permissions...         "
 	
-	sudo chown -R root:wheel "${btKextPath}"
-	sudo chown -R root:wheel "${wifiKextPath}"
-	sudo chmod -R 644 "${btKextPath}"
-	sudo chmod -R 644 "${wifiKextPath}"
+	sudo $chownPath -R root:wheel "${btKextPath}"
+	sudo $chownPath -R root:wheel "${wifiKextPath}"
+	sudo $chmodPath -R 755 "${btKextPath}"
+	sudo $chmodPath -R 755 "${wifiKextPath}"
 
 	echo "OK"
 }
@@ -707,14 +845,14 @@ function spinner(){
 
 #Avoids having OS X reuse unpatched cached kexts at system startup
 function updatePrelinkedKernelCache(){
-	sudo kextcache -system-prelinked-kernel >> /dev/null 2>&1 & spinner "Updating kext caches... "
-	echo "               OK"
+	sudo kextcache -system-prelinked-kernel >> /dev/null 2>&1 & spinner "Updating kext caches...                 "
+	echo -e "\rUpdating kext caches...                 OK"
 }
 
 #Avoids having OS X reuse unpatched cached kexts at late system startup and beyond
 function updateSystemCache(){
-	sudo kextcache -system-caches >> /dev/null 2>&1 & spinner "Updating system caches... "
-	echo "             OK"
+	sudo kextcache -system-caches >> /dev/null 2>&1 & spinner "Updating system caches...               "
+	echo -e "\rUpdating system caches...               OK"
 }
 
 #Prompts to reboot your system, e.g. after patching
@@ -728,8 +866,161 @@ function rebootPrompt(){
 
 #Silently repairs the disk permissions using the Disk Utility. Takes a few minutes.
 function repairDiskPermissions(){
-	sudo diskutil repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)..."
-	echo "OK"
+	sudo diskutil repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
+	echo -e "\rFixing disk permissions...              OK"
+}
+
+#Verifies if the kexts from previous a previous backup can be restored, otherwise use those from the Recovery Disk
+function startTheKextsReplacement(){
+
+	echo -n "Restoring kexts...                      "
+
+	#verify CAT 1.0.2 backup directory presence
+	if [ "${forceRecoveryDiskBackup}" == "1" ]; then
+		echo "OK. Using Recovery Disk backups."
+		mountRecoveryBaseSystem
+		replaceKextsWithRecoveryDiskOnes
+	else
+
+		#check the presence of CAT >=1.0.2 backups
+		$duPath -hs "${backupFolderBeforePatch}/${btKextFilename}" >> /dev/null 2>&1
+		local btPermissionsError=$?
+		$duPath -hs "${backupFolderBeforePatch}/${wifiKextFilename}"  >> /dev/null 2>&1
+		local wifiPermissionsError=$?
+		local permissionsError=$((btPermissionsError + wifiPermissionsError))
+
+		#check the presence of CAT <=1.0.1 backups
+		$duPath -hs "${legacyBackupPath}/${btKextFilename}" >> /dev/null 2>&1
+		local legacyBtPermissionsError=$?
+		$duPath -hs "${legacyBackupPath}/${wifiKextFilename}"  >> /dev/null 2>&1
+		local legacyWifiPermissionsError=$?
+		local legacypPermissionsError=$((legacyBtPermissionsError + legacyWifiPermissionsError))
+
+		
+		if [ "${permissionsError}" -eq "0" ]; then
+			#a kext backup made with a recent CAT version exists, recover those
+			#silently remove any existing previous kext backups (doesn't care if the old kexts were found or not)
+			sudo $rmPath -rf "${wifiKextPath}" >> /dev/null 2>&1
+			sudo $rmPath -rf "${btKextPath}" >> /dev/null 2>&1
+
+			#create the kexts directories in the System Extensions folder
+			sudo $mkdirPath -p "${wifiKextPath}"
+			sudo $mkdirPath -p "${btKextPath}"
+
+			#now copy the clean kexts
+			local uninstallOk=0
+			local errorOutput=""
+
+			if sudo $cpPath -R "${backupFolderBeforePatch}/${wifiKextFilename}/" "${driverPath}/${wifiKextFilename}"; then ((uninstallOk+=1)); else errorOutput="Failed to restore ${wifiKextFilename} from ${backupFolderBeforePatch}."; fi
+			if sudo $cpPath -R "${backupFolderBeforePatch}/${btKextFilename}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} Failed to restore ${btKextFilename} from ${backupFolderBeforePatch}."; fi
+		
+			if [ "${uninstallOk}" -eq "2" ]; then
+				echo "OK. Restored backed up files found in '${backupFolderBeforePatch}'"
+			else
+				echo "NOT OK. ${errorOutput}."; backToMainMenu;
+			fi
+		else
+			if [ "${legacypPermissionsError}" -eq "0" ]; then
+
+				#recent CAT backup NOT found, but:
+				#CAT 1.0.0 or CAT 1.0.1 backup exists, recover those
+				#silently remove any existing previous kext backups (doesn't care if the old kexts were found or not)
+				sudo $rmPath -rf "${wifiKextPath}" >> /dev/null 2>&1
+				sudo $rmPath -rf "${btKextPath}" >> /dev/null 2>&1
+
+				#create the kexts directories in the System Extensions folder
+				sudo $mkdirPath -p "${wifiKextPath}"
+				sudo $mkdirPath -p "${btKextPath}"
+
+				#now copy the clean kexts
+				local uninstallOk=0
+				local errorOutput=""
+
+				if sudo $cpPath -R "${legacyBackupPath}/${wifiKextFilename}/" "${driverPath}/${wifiKextFilename}"; then ((uninstallOk+=1)); else errorOutput="Failed to restore ${wifiKextFilename} from ${legacyBackupPath}."; fi
+				if sudo $cpPath -R "${legacyBackupPath}/${btKextFilename}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} Failed to restore ${btKextFilename} from ${legacyBackupPath}."; fi
+			
+				if [ "${uninstallOk}" -eq "2" ]; then
+					echo "OK. Restored backup files found in '${legacyBackupPath}'"
+				else
+					echo "NOT OK. ${errorOutput}."; backToMainMenu;
+				fi
+			else
+
+				#no backups made with CAT were found. Use the OSX recovery disk
+				echo "OK. No backups made with the tool were found, using the OS X Recovery Disk backups."
+				mountRecoveryBaseSystem
+				replaceKextsWithRecoveryDiskOnes
+			fi
+		fi
+	fi
+
+}
+
+
+#Mounts the Recovery disk and OS X's Base System image, where the original drivers should be located
+function mountRecoveryBaseSystem(){
+
+	diskutil mount "${recoveryHdName}" >> /dev/null 2>&1
+
+	if [ $? == "1" ]; then
+		echo "Mounting Recovery HD...                 NOT OK. Error mounting '${recoveryHdName}'"; backToMainMenu
+	else
+		#disk mounted
+		if [ -f "${recoveryDmgPath}" ]; then
+
+				#attach the OS X Base System DMG without opening a Finder window
+				hdiutil attach -nobrowse "${recoveryDmgPath}"  >> /dev/null 2>&1 & spinner "Mounting Recovery HD...                 "
+			if [ $? == "1" ]; then
+				echo -e "\rMounting Recovery HD...                 NOT OK. Error attaching '${recoveryDmgPath}'"; backToMainMenu
+			else
+
+				echo -e "\rMounting Recovery HD...                 OK"
+			fi
+		else
+			echo "Mounting Recovery HD...                 NOT OK. The recovery DMG could not be found at ${recoveryDmgPath}"; backToMainMenu
+		fi
+	fi
+}
+
+#Replaces the Wi-Fi and Bluetooth kexts with clean ones, directly from the OS X Recovery drive
+function replaceKextsWithRecoveryDiskOnes(){
+
+	echo -n "Reinstalling original Apple drivers...  "
+
+	#detect the presence of the base system kexts files
+	if [ -d "${osxBaseSystemPath}/${wifiKextPath}" -a -d "${osxBaseSystemPath}/${btKextPath}" ]; then
+
+		#silently remove any existing previous kext backups (doesn't care if the old kexts were found or not)
+		sudo $rmPath -rf "${wifiKextPath}" >> /dev/null 2>&1
+		sudo $rmPath -rf "${btKextPath}" >> /dev/null 2>&1
+
+		#create the kexts directories in the System Extensions folder
+		sudo $mkdirPath -p "${wifiKextPath}"
+		sudo $mkdirPath -p "${btKextPath}"
+
+		#now copy the clean kexts
+		local uninstallOk=0
+		local errorOutput=""
+
+		if sudo $cpPath -R "${osxBaseSystemPath}/${wifiKextPath}/" "${driverPath}/${wifiKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${wifiKextFilename} uninstallation failed."; fi
+		if sudo $cpPath -R "${osxBaseSystemPath}/${btKextPath}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} uninstallation failed."; fi
+		
+		if [ "${uninstallOk}" -eq "2" ]; then
+			hdiutil detach -force -quiet "/Volumes/Recovery HD"
+			echo "OK"
+		else
+			echo "NOT OK. ${errorOutput}."; backToMainMenu;
+		fi
+	else
+		echo "NOT OK" #obsolete kext has already been removed
+	fi
+}
+
+#Prompts to go back to the main menu
+function backToMainMenu(){
+	echo ""
+	read -n 1 -p "Press any key to go back to the main menu..."
+	displayMainMenu
 }
 
 #Initiates the compatibility checks, aborts the script if an uncompatible configuration is detected.
@@ -740,10 +1031,9 @@ function compatibilityPrecautions(){
 	echo ''
 	isMyMacModelCompatible
 	isMyMacOSCompatible
-	isMyBluetoothCompatible
+	isMyBluetoothVersionCompatible
 	isMyMacBoardIdCompatible
 	areMyActiveWifiDriversOk
-	disableOsKextProtection
 	canMyKextsBeModded
 	isMyMacBlacklisted
 	isMyMacWhitelisted
@@ -758,10 +1048,10 @@ function verboseCompatibilityCheck(){
 	echo ''
 	isMyMacModelCompatible "verbose"
 	isMyMacOSCompatible "verbose"
-	isMyBluetoothCompatible "verbose"
+	isMyBluetoothVersionCompatible "verbose"
 	isMyMacBoardIdCompatible "verbose"
 	areMyActiveWifiDriversOk "verbose"
-	disableOsKextProtection "verbose"
+	verifyOsKextDevMode "verbose"
 	canMyKextsBeModded "verbose"
 	isMyMacBlacklisted "verbose"
 	isMyMacWhitelisted "verbose"
@@ -770,12 +1060,6 @@ function verboseCompatibilityCheck(){
 	backToMainMenu
 }
 
-#Prompts to go back to the main menu
-function backToMainMenu(){
-	echo ""
-	read -n 1 -p "Press any key to go back to the main menu..."
-	displayMainMenu
-}
 
 #Initiates the backup, patching and clean-up.
 function checkAndHack(){
@@ -801,6 +1085,7 @@ function checkAndHack(){
 	echo '--- Initiating Continuity mod ---'
 	echo ""
 
+	modifyKextDevMode "enableDevMode"
 	repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
 	patchBluetoothKext
@@ -809,19 +1094,35 @@ function checkAndHack(){
 	applyPermissions
 	updatePrelinkedKernelCache
 	updateSystemCache
-	repairDiskPermissions
 	backupKexts "${backupFolderAfterPatch}"
 	echo ""
 	echo "ALMOST DONE! After rebooting:"
 	echo "1) Make sure that both your Mac and iOS device have Bluetooth turned on, and are on the same Wi-Fi network."
 	echo "2) On OS X go to SYSTEM PREFERENCES> GENERAL> and ENABLE HANDOFF."
 	echo "3) On iOS go to SETTINGS> GENERAL> HANDOFF & SUGGESTED APPS> and ENABLE HANDOFF."
-	echo "4) On OS X, and sign out and then sign in again to your iCloud account."
+	echo "4) On OS X, sign out and then sign in again to your iCloud account."
 	echo "Troubleshooting: support.apple.com/kb/TS5458"
 	displayThanks
 	rebootPrompt
 }
 
+#Puts back a clean OS X wireless drivers stack, and attempts to disable the kext-dev-mode
+function uninstall(){
+	displaySplash
+	echo '--- Initiating uninstallation ---'
+	echo ''
+
+	startTheKextsReplacement
+	applyPermissions
+	updatePrelinkedKernelCache
+	updateSystemCache
+	modifyKextDevMode "disableDevMode"
+	echo ""
+	echo ""
+	echo "DONE. Please reboot now to complete the uninstallation."
+	echo ""
+	rebootPrompt
+}
 #Displays the application splash at the top of the Terminal screen
 function displaySplash(){
 	tput clear
@@ -851,7 +1152,7 @@ function displayMainMenu(){
 	displaySplash
 	echo "Select an option:"
 	echo ""
-	options=("Activate Continuity" "System Diagnostic" "Quit")
+	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
@@ -860,6 +1161,9 @@ function displayMainMenu(){
 				;;
 			'System Diagnostic') 
 				verboseCompatibilityCheck
+				;;
+			'Uninstall') 
+				uninstall
 				;;
 			'Quit')
 				displayThanks
@@ -888,6 +1192,17 @@ if [ ! -z "${param1}" ]; then
 			if [ "${param1}" == "forceHack" ]; then
 				forceHack=1
 				checkAndHack
+			else
+				if [ "${param1}" == "uninstall" ]; then
+					uninstall
+				else
+					if [ "${param1}" == "uninstallWithRecoveryDisk" ]; then
+						forceRecoveryDiskBackup=1
+						uninstall
+					else
+						echo "Unknown argument used. Please refer to the documentation."; exit;
+					fi
+				fi
 			fi
 		fi
 	fi
