@@ -3,10 +3,10 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
-## News - 2014.11.07
+## News - 2014.11.09
 A quick update on the evolution of the app.
 
-* **Continuity Activation Tool 1.1**  will include an uninstallation feature, as well as various bug fixes and optimizations. A pre-release is available in the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta).
+* **Continuity Activation Tool 1.1**  will include an uninstallation feature, as well as various bug fixes and optimizations. A pre-release is now available in the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta).
 * **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. I'm looking for testers: if you are interested, please send me a mail with your Mac model, year, and USB BT4.0 dongle brand and I'll get back to you with testing material as soon as it is ready.
 
 Thanks for your support!
