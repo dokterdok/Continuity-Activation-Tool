@@ -3,17 +3,18 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
-## News - 2014.11.09
+## News - 2014.11.11
 A quick update on the evolution of the app.
 
-* **Continuity Activation Tool 1.1**  will include an uninstallation feature, as well as various bug fixes and optimizations. A pre-release is now available in the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta).
+* **Continuity Activation Tool 1.1**  Released today. Includes an uninstallation feature, speed improvements, as well as various bug fixes and optimizations.
 * **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. I'm looking for testers: if you are interested, please fill in this [form](http://goo.gl/forms/ojDezibB2q).
 
 Thanks for your support!
 
 ## Features
-* Activate Continuity: Does a Continuity compatibility check, backups the original Systems kexts, disables a Mac-model blacklist in the Bluetooth kext, whitelists the Mac board-id in the Wi-Fi kext.
+* Activate Continuity: Does a Continuity compatibility check, backups the Systems kexts before and after patching, disables a Mac-model blacklist in the Bluetooth kext, whitelists the Mac board-id in the Wi-Fi kext, removes a legacy Wi-Fi kext plugin.
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
+* Uninstall: Rolls back changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are reinstalled. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed and valid, to prevent potential booting issues with 3rd party tools or hardware.
 
 ##Warning
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk.
@@ -61,6 +62,8 @@ Script arguments:
 * activate : Starts the activation procedure and does compatibility checks.
 * diagnostic : Starts the system compatibility diagnostic.
 * forceHack : Starts the activation procedure and skips compatibility checks.
+* uninstall : Starts the uninstallation
+* uninstallWithRecoveryDisk : Starts the uninstallation, but directly recovers kexts from the OS X Recovery Image
 
 When using the script from the command line, make sure you have the strings binary in the same directory as the script OR, if you have Apple's Command Line Tools installed, edit contitool.sh and set stringsPath="strings".
 
@@ -71,6 +74,18 @@ When using the script from the command line, make sure you have the strings bina
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
 
 ### Changelog
+
+**v.1.1.0 - 2014.11.11**
+
+* **New uninstallation feature**: new option to rollback all system changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are used. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed. The uninstallation can be also be called from the command line.
+* **Speed improvements**: activating Continuity is now twice as fast compared to the last version: only 1 reboot at the end and 1 permissions repair are necessary.
+* **Reliability improvements:**
+* The diagnostic no longer applies boot-args changes
+* Fewer risks of issues with systems that use third party utilities
+* Activation will now abort if 1 of the two mandatory kexts are missing
+* Incorrect or inaccurate messages
+* Many other small optimizations
+
 
 **v.1.0.2 - 2014.10.27**
 
@@ -101,5 +116,5 @@ When using the script from the command line, make sure you have the strings bina
 * Manic Harmonic
 * rob3r7o
 
-This tool took me many days and nights of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks!
+This tool is taking me many days and nights of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks!
 [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
