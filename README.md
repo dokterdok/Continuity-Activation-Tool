@@ -77,11 +77,11 @@ When using the script from the command line, make sure you have the strings bina
 
 **v.1.1.0 - 2014.11.11**
 
-* **New uninstallation feature**: new option to rollback all system changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are used. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed. The uninstallation can be also be called from the command line.
+* **New uninstallation feature**: new option to rollback all system changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are used. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed. The uninstallation can be also be called from the command line. (#15, #21, #36, #40, #45)
 * **Speed improvements**: activating Continuity is now twice as fast compared to the last version: only 1 reboot at the end and 1 permissions repair are necessary.
 * **Reliability improvements:**
-* The diagnostic no longer applies boot-args changes
-* Fewer risks of issues with systems that use third party utilities
+* The diagnostic no longer applies boot-args changes (#1)
+* Fewer risks of issues with systems that use third party utilities (#9)
 * Activation will now abort if 1 of the two mandatory kexts are missing
 * Incorrect or inaccurate messages
 * Many other small optimizations
