@@ -66,7 +66,9 @@ chmodPath="/bin/chmod"
 chownPath="/usr/sbin/chown"
 cpPath="/bin/cp"
 duPath="/usr/bin/du"
+grepPath="/usr/bin/grep"
 hexdumpPath="/usr/bin/hexdump"
+ioregPath="/usr/sbin/ioreg"
 kextstatPath="/usr/sbin/kextstat"
 mkdirPath="/bin/mkdir"
 nvramPath="/usr/sbin/nvram"
@@ -156,7 +158,7 @@ function isMyMacBoardIdCompatible(){
 	echo -n "Verifying Mac board-id...               "
 	#echo -n "Verifying Mac board-id compatibility... "
 	if [ ! -z "{$myMacIdPattern}" ] ; then
-		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
+		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
 	fi
 	if [ ! -z "{$myMacIdPattern}" ] ; then
 		if [ ${#myMacIdPattern} -eq 12 ] ; then
@@ -183,13 +185,13 @@ function areMyActiveWifiDriversOk(){
 
 	echo -n "Verifying active AirPort drivers...     "
 	
-	driverVersion=($($kextstatPath | grep "Brcm" | $awkPath -F' ' '{print $6}'))
+	driverVersion=($($kextstatPath | $grepPath "Brcm" | $awkPath -F' ' '{print $6}'))
 
 	#Verify if no Wi-Fi drivers are loaded at all
 	if [ -z "${driverVersion}" ]; then
 		if [ "$1" != "verbose" ]; then echo "NOT OK. No active Broadcom AirPort card was detected. Aborting."; backToMainMenu;
 		else
-			possibleDriver=($($kextstatPath | grep "AirPort" | $awkPath -F' ' '{print $6}')) 
+			possibleDriver=($($kextstatPath | $grepPath "AirPort" | $awkPath -F' ' '{print $6}')) 
 			if [ -z "${possibleDriver}" ]; then
 				echo "NOT OK. No active Broadcom AirPort card detected"
 			else
@@ -232,7 +234,7 @@ function areMyActiveWifiDriversOk(){
 				else
 					#Multiple Wi-Fi drivers loaded, but none are of the Broadcom brand
 					if [ "$1" != "verbose" ]; then echo "NOT OK. No Broadcom AirPort card is active. Aborting."; backToMainMenu;
-					else echo "NOT OK. No Broadcom AirPort card is active. Type '$kextstatPath | grep AirPort' for more info. brc ${activeCards[*]}"; fi
+					else echo "NOT OK. No Broadcom AirPort card is active. Type '$kextstatPath | $grepPath AirPort' for more info. brc ${activeCards[*]}"; fi
 				fi
 			fi
 		fi
@@ -253,7 +255,7 @@ function isMyMacModelCompatible(){
 	echo -n "Verifying Mac model reference...        "
 	#echo -n "Verifying Mac model nb compatibility... "
 	modelsList=("${mbpCompatibilityList[@]}" "${blacklistedMacs[@]}")
-	myMacModel=$(ioreg -l | grep "model" | $awkPath -F\" '{print $4;exit;}')
+	myMacModel=$($ioregPath -l | $grepPath "model" | $awkPath -F\" '{print $4;exit;}')
 	myResult=`containsElement "${myMacModel}" "${modelsList[@]}"; echo $?`
 	if [ "${myResult}" -eq 1 ] ; then
 		if [ "$1" != "verbose" ]; then echo "OK";
@@ -279,7 +281,7 @@ function isMyMacModelCompatible(){
 function isMyBluetoothVersionCompatible(){
 	echo -n "Verifying Bluetooth version...          "
 
-	local lmpVersion=$(ioreg -l | grep "LMPVersion" | $awkPath -F' = ' '{print $2}')
+	local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}')
 
 	if [ ! "${lmpVersion}" == "" ]; then
 		if [ "${lmpVersion}" == "6" ]; then
@@ -310,7 +312,7 @@ function countInvalidKexts(){
     		else
     			cd $folderToVerify 
     		 	echo "nbOfInvalidKexts=$(find *.kext -prune -type d | while read kext; do
-    			codesign -v "$kext" 2>&1 | grep -E 'invalid signature|not signed at all'
+    			codesign -v "$kext" 2>&1 | $grepPath -E 'invalid signature|not signed at all'
     			done | wc -l | tr -d ' ')"
 			fi
 		fi
@@ -374,7 +376,7 @@ function modifyKextDevMode(){
 		bootArgsResult=${bootArgsResult:10} #remove boot-args declaration, necessary later
 
 		#Verify if the kext-dev-mode is declared as active
-		sudo $nvramPath boot-args | grep -F "kext-dev-mode=1" >> /dev/null 2>&1
+		sudo $nvramPath boot-args | $grepPath -F "kext-dev-mode=1" >> /dev/null 2>&1
 		local devModeResult=$?
 		if [ $devModeResult -eq 0 ]; then 
 
@@ -394,7 +396,7 @@ function modifyKextDevMode(){
 			fi
 		else
 			#Verify if the kext-dev-mode is declared as disabled (rare, by default this variable is not set by OS X)
-			sudo $nvramPath boot-args | grep -F "kext-dev-mode=0" >> /dev/null 2>&1
+			sudo $nvramPath boot-args | $grepPath -F "kext-dev-mode=0" >> /dev/null 2>&1
 			devModeResult=$?
 			if [ $devModeResult -eq 0 ]; then 
 
@@ -447,7 +449,7 @@ function verifyOsKextDevMode(){
 	if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
 
 		#Verify if kext-dev-mode=1 is set
-		sudo $nvramPath boot-args | grep -F "kext-dev-mode=1" >> /dev/null 2>&1
+		sudo $nvramPath boot-args | $grepPath -F "kext-dev-mode=1" >> /dev/null 2>&1
 		local devModeResult=$?
 		if [ $devModeResult -eq 0 ]; then #Dev mode is active
 			if [ "$1" != "verbose" ]; then echo "OK"; 
@@ -475,8 +477,8 @@ function isMyMacWhitelisted(){
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; #Continue the verification. A brcm AirPort driver was found.
     	fi
-     	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2}'))
-		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
+     	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
+		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
     	local foundCount=0
     	local element
     	if [[ $whitelist ]]; then
@@ -489,8 +491,8 @@ function isMyMacWhitelisted(){
 			if [ "${foundCount}" -gt "0" -a "${foundCount}" -lt "${#whitelist[@]}" ]; then
 				if [ "$1" != "verbose" ]; then echo "OK";
 				else 
-					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2;exit;}')
-					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{a=$0} END{print $2;exit;}')
+					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2;exit;}')
+					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{a=$0} END{print $2;exit;}')
 					#Increase checks if the Mac is blacklisted (2011 MacBook Airs, Minis). Purely for reporting info.
 					if [ "${myMacIsBlacklisted}" == "1" ]; then
 						if [ "${myMacIdPattern}" == "${firstWhitelistedBoardId}" -a "${myMacIdPattern}" == "${lastWhitelistedBoardId}" ]; then
@@ -535,8 +537,8 @@ function isMyMacBlacklisted(){
     	else echo "NOT OK. Bluetooth binary not found at ${btBinPath}"; fi
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; fi #Continue, the bluetooth binary was found
-    	local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | grep Mac | $awkPath -F"'" '{print $2}'))
-		local myMacModel=$(ioreg -l | grep "model" | $awkPath -F\" '{print $4;exit;}')
+    	local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
+		local myMacModel=$($ioregPath -l | $grepPath "model" | $awkPath -F\" '{print $4;exit;}')
     	local foundCount=0
     	local element
     	if [[ $blacklist ]]; then
@@ -657,7 +659,7 @@ function patchStringsInFile() {
     local REPLACEMENT="$3"
 
     #Find all unique strings in FILE that contain the pattern 
-    STRINGS=$("${stringsPath}" "${FILE}" | grep "${PATTERN}" | sort -u -r)
+    STRINGS=$("${stringsPath}" "${FILE}" | $grepPath "${PATTERN}" | sort -u -r)
 
     if [ "${STRINGS}" != "" ] ; then
         #echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
@@ -752,7 +754,7 @@ function patchBluetoothKext(){
 		echo -n "Patching blacklist..."
 		
 		#(re)populate blacklist
-		blacklistedMacs=($("${stringsPath}" -a -t x ${btBinPath} | grep Mac | $awkPath -F"'" '{print $2}'))
+		blacklistedMacs=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
 
     	#build a disabled blacklist
     	local disabledBlacklist=()
@@ -788,11 +790,11 @@ function patchWifiKext(){
 
 	#get the current board id
 	if [ -z "${myMacIdPattern}" ]; then
-		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
+		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
 	fi
 
 	#populate whitelist
-	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2}'))
+	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
 
 	#check if it needs patching: will do it if the whitelist is not full of own board id
 	local occurence=0
