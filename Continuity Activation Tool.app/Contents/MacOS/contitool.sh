@@ -22,7 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-hackVersion="1.1.0 beta 1"
+hackVersion="1.1.0"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
