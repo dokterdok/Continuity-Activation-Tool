@@ -22,7 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-hackVersion="1.1.0"
+hackVersion="1.1.1"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -65,17 +65,27 @@ awkPath="/usr/bin/awk"
 chmodPath="/bin/chmod"
 chownPath="/usr/sbin/chown"
 cpPath="/bin/cp"
+cutPath="/usr/bin/cut"
+diskutilPath="/usr/sbin/diskutil"
 duPath="/usr/bin/du"
 grepPath="/usr/bin/grep"
+hdiutilPath="/usr/bin/hdiutil"
 hexdumpPath="/usr/bin/hexdump"
 ioregPath="/usr/sbin/ioreg"
+kextcachePath="/usr/sbin/kextcache"
 kextstatPath="/usr/sbin/kextstat"
 mkdirPath="/bin/mkdir"
+mvPath="/bin/mv"
 nvramPath="/usr/sbin/nvram"
+revPath="/usr/bin/rev"
 rmPath="/bin/rm"
 sedPath="/usr/bin/sed"
+shutdownPath="/sbin/shutdown"
+sortPath="/usr/bin/sort"
 statPath="/usr/bin/stat"
 stringsPath="$appDir/strings" #the OS X "strings" utility, from Apple's Command Line Tools, must be bundled with this tool. This avoids prompting to download a ~5 GB Xcode package just to use a 40 KB tool (!).
+trPath="/usr/bin/tr"
+wcPath="/usr/bin/wc"
 xxdPath="/usr/bin/xxd"
 
 #---- FUNCTIONS -----------
@@ -83,7 +93,6 @@ xxdPath="/usr/bin/xxd"
 #Verifies the presence of the strings binary, necessary to run many checks and patches
 #The 'strings' binutil used with the tool comes from the 'Apple Command Line Utilities' package
 function verifyStringsUtilPresence() {
-		#verify if the Brcm4360 binary exists
 	if [ ! -f "${stringsPath}" ]; then
 		
 		tput clear
@@ -104,7 +113,7 @@ function isMyMacOSCompatible() {
 	echo -n "Verifying OS X version...               "
 	osVersion=$(sw_vers -productVersion)
 	minVersion=10
-	subVersion=$(echo "$osVersion" | cut -d '.' -f 2)
+	subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
 	
 	if [ "$subVersion" -lt "$minVersion" ]; then 
 		if [ "$1" != "verbose" ]; then echo "NOT OK. Your OS X version is too old to work with this hack. Aborting."; exit;
@@ -308,12 +317,12 @@ function countInvalidKexts(){
     else 
     	if [ ! -d $folderToVerify ]; then echo "-2";nbOfInvalidKexts="-2"; #folder not found
     	else
-    		if [ $(ls -1 ${folderToVerify}/*.kext 2>/dev/null | wc -l) -eq 0 ]; then echo "-3";nbOfInvalidKexts="-3"; #no kexts were found in this directory
+    		if [ $(ls -1 ${folderToVerify}/*.kext 2>/dev/null | $wcPath -l) -eq 0 ]; then echo "-3";nbOfInvalidKexts="-3"; #no kexts were found in this directory
     		else
     			cd $folderToVerify 
     		 	echo "nbOfInvalidKexts=$(find *.kext -prune -type d | while read kext; do
     			codesign -v "$kext" 2>&1 | $grepPath -E 'invalid signature|not signed at all'
-    			done | wc -l | tr -d ' ')"
+    			done | $wcPath -l | $trPath -d ' ')"
 			fi
 		fi
 	fi
@@ -659,7 +668,7 @@ function patchStringsInFile() {
     local REPLACEMENT="$3"
 
     #Find all unique strings in FILE that contain the pattern 
-    STRINGS=$("${stringsPath}" "${FILE}" | $grepPath "${PATTERN}" | sort -u -r)
+    STRINGS=$("${stringsPath}" "${FILE}" | $grepPath "${PATTERN}" | $sortPath -u -r)
 
     if [ "${STRINGS}" != "" ] ; then
         #echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
@@ -684,9 +693,9 @@ function patchStringsInFile() {
                 $hexdumpPath -ve '1/1 "%.2X"' "${FILE}" | \
                 $sedPath "s/${OLD_STRING_HEX}/${NEW_STRING_HEX}/g" | \
                 $xxdPath -r -p > "${FILE}.tmp"
-                SAVEMOD=$($statPath -r "$FILE" | cut -f3 -d' ')
+                SAVEMOD=$($statPath -r "$FILE" | $cutPath -f3 -d' ')
                 $chmodPath "${SAVEMOD}" "${FILE}.tmp"
-                mv "${FILE}.tmp" "${FILE}"
+                $mvPath "${FILE}.tmp" "${FILE}"
             else
                 echo "NOT OK. New string '${NEW_STRING}' is longer than old" \
                      "string '${OLD_STRING}'. Skipping."
@@ -762,7 +771,7 @@ function patchBluetoothKext(){
     	for blacklistedMac in "${blacklistedMacs[@]}";
     	do
     		#replace the last three chars of the mac model with "1,1", e.g. MacBookAir4,2 -> MacBookAir1,1
-    		disabledBlacklist+=($(echo $blacklistedMac | rev | cut -c 4- | rev | $awkPath '{print $1"1,1"}'))
+    		disabledBlacklist+=($(echo $blacklistedMac | $revPath | $cutPath -c 4- | $revPath | $awkPath '{print $1"1,1"}'))
     	done
 
     	#verify that the disabled blacklist is correctly built (last chance before applying the hack)
@@ -847,13 +856,13 @@ function spinner(){
 
 #Avoids having OS X reuse unpatched cached kexts at system startup
 function updatePrelinkedKernelCache(){
-	sudo kextcache -system-prelinked-kernel >> /dev/null 2>&1 & spinner "Updating kext caches...                 "
+	sudo $kextcachePath -system-prelinked-kernel >> /dev/null 2>&1 & spinner "Updating kext caches...                 "
 	echo -e "\rUpdating kext caches...                 OK"
 }
 
 #Avoids having OS X reuse unpatched cached kexts at late system startup and beyond
 function updateSystemCache(){
-	sudo kextcache -system-caches >> /dev/null 2>&1 & spinner "Updating system caches...               "
+	sudo $kextcachePath -system-caches >> /dev/null 2>&1 & spinner "Updating system caches...               "
 	echo -e "\rUpdating system caches...               OK"
 }
 
@@ -862,13 +871,13 @@ function rebootPrompt(){
 	echo ""
 	read -n 1 -p "Press any key to reboot or CTRL-C to cancel..."
 	echo ""
-	sudo shutdown -r now
+	sudo $shutdownPath -r now
 	exit;
 }
 
 #Silently repairs the disk permissions using the Disk Utility. Takes a few minutes.
 function repairDiskPermissions(){
-	sudo diskutil repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
+	sudo $diskutilPath repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
 	echo -e "\rFixing disk permissions...              OK"
 }
 
@@ -962,7 +971,7 @@ function startTheKextsReplacement(){
 #Mounts the Recovery disk and OS X's Base System image, where the original drivers should be located
 function mountRecoveryBaseSystem(){
 
-	diskutil mount "${recoveryHdName}" >> /dev/null 2>&1
+	$diskutilPath mount "${recoveryHdName}" >> /dev/null 2>&1
 
 	if [ $? == "1" ]; then
 		echo "Mounting Recovery HD...                 NOT OK. Error mounting '${recoveryHdName}'"; backToMainMenu
@@ -971,7 +980,7 @@ function mountRecoveryBaseSystem(){
 		if [ -f "${recoveryDmgPath}" ]; then
 
 				#attach the OS X Base System DMG without opening a Finder window
-				hdiutil attach -nobrowse "${recoveryDmgPath}"  >> /dev/null 2>&1 & spinner "Mounting Recovery HD...                 "
+				$hdiutilPath attach -nobrowse "${recoveryDmgPath}"  >> /dev/null 2>&1 & spinner "Mounting Recovery HD...                 "
 			if [ $? == "1" ]; then
 				echo -e "\rMounting Recovery HD...                 NOT OK. Error attaching '${recoveryDmgPath}'"; backToMainMenu
 			else
@@ -1008,7 +1017,7 @@ function replaceKextsWithRecoveryDiskOnes(){
 		if sudo $cpPath -R "${osxBaseSystemPath}/${btKextPath}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} uninstallation failed."; fi
 		
 		if [ "${uninstallOk}" -eq "2" ]; then
-			hdiutil detach -force -quiet "/Volumes/Recovery HD"
+			$hdiutilPath detach -force -quiet "/Volumes/Recovery HD"
 			echo "OK"
 		else
 			echo "NOT OK. ${errorOutput}."; backToMainMenu;
