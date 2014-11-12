@@ -3,10 +3,10 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
-## News - 2014.11.11
+## News - 2014.11.12
 A quick update on the evolution of the app.
 
-* **Continuity Activation Tool 1.1**  Released today. Includes an uninstallation feature, speed improvements, as well as various bug fixes and optimizations.
+* **Continuity Activation Tool 1.1.1**  Released. Includes an uninstallation feature, speed improvements, as well as various bug fixes and optimizations.
 * **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. I'm looking for testers: if you are interested, please fill in this [form](http://goo.gl/forms/ojDezibB2q).
 
 Thanks for your support!
@@ -75,13 +75,16 @@ When using the script from the command line, make sure you have the strings bina
 
 ### Changelog
 
+**v.1.1.1 - 2014.11.12**
+* Further improved reliability with systems that can't find utilities due to an irregular PATH ([#9](https://github.com/dokterdok/Continuity-Activation-Tool/issues/9))
+
 **v.1.1.0 - 2014.11.11**
 
-* **New uninstallation feature**: new option to rollback all system changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are used. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed. The uninstallation can be also be called from the command line. (#15, #21, #36, #40, #45)
+* **New uninstallation feature**: new option to rollback all system changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are used. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed. The uninstallation can be also be called from the command line. ([#15](https://github.com/dokterdok/Continuity-Activation-Tool/issues/15), [#21](https://github.com/dokterdok/Continuity-Activation-Tool/issues/21), [#36](https://github.com/dokterdok/Continuity-Activation-Tool/issues/36), [#40](https://github.com/dokterdok/Continuity-Activation-Tool/issues/40), [#45](https://github.com/dokterdok/Continuity-Activation-Tool/issues/45))
 * **Speed improvements**: activating Continuity is now twice as fast compared to the last version: only 1 reboot at the end and 1 permissions repair are necessary.
 * **Reliability improvements:**
-* The diagnostic no longer applies boot-args changes (#1)
-* Fewer risks of issues with systems that use third party utilities (#9)
+* The diagnostic no longer applies boot-args changes ([#1](https://github.com/dokterdok/Continuity-Activation-Tool/issues/1))
+* Fewer risks of issues with systems that use third party utilities ([#9](https://github.com/dokterdok/Continuity-Activation-Tool/issues/9))
 * Activation will now abort if 1 of the two mandatory kexts are missing
 * Incorrect or inaccurate messages
 * Many other small optimizations
