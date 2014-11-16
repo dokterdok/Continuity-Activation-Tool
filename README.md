@@ -6,7 +6,7 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity on compati
 ## News - 2014.11.16
 A quick update on the evolution of the app.
 
-* **Continuity Activation Tool 1.1.2**  Released. Includes uninstallation reliability improvements. It fixes a bug where the uninstaller could in some cases re-activate OS kext signature protection even if unsigned kexts are installed. Trim Enabler users should not use the uninstallation feature from prior versions to avoid risks of issues at boot-time.
+* **Continuity Activation Tool 1.1.2**  Released. Includes uninstallation reliability improvements. Trim Enabler users should not use the uninstallation feature from prior versions to avoid risks of issues at boot-time.
 * **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. I'm looking for testers: if you are interested, please fill in this [form](http://goo.gl/forms/ojDezibB2q).
 
 Thanks for your support!
