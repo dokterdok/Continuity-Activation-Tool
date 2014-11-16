@@ -22,7 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-hackVersion="1.1.1"
+hackVersion="1.1.2"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -347,7 +347,7 @@ function modifyKextDevMode(){
 
 			#first we need to be sure that no other unsigned kexts are found in the Extensions folder
 			#otherwise, disabling dev mode might prevent the system from booting.
-			countInvalidKexts "${driverPath}" > tmp & spinner "Verifying system kexts signatures...    "; . tmp; rm tmp;
+			countInvalidKexts "${driverPath}" > tmp.txt & spinner "Verifying system kexts signatures...    "; . tmp.txt; rm tmp.txt;
 
 			#output=$(countInvalidKexts "${driverPath}")
 			if [ "${nbOfInvalidKexts}" -gt "0" ]; then

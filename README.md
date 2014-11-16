@@ -3,10 +3,10 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
-## News - 2014.11.12
+## News - 2014.11.16
 A quick update on the evolution of the app.
 
-* **Continuity Activation Tool 1.1.1**  Released. Includes an uninstallation feature, speed improvements, as well as various bug fixes and optimizations.
+* **Continuity Activation Tool 1.1.2**  Released. Includes uninstallation reliability improvements. It fixes a bug where the uninstaller could in some cases re-activate OS kext signature protection even if unsigned kexts are installed. Trim Enabler users should not use the uninstallation feature from prior versions to avoid risks of issues at boot-time.
 * **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. I'm looking for testers: if you are interested, please fill in this [form](http://goo.gl/forms/ojDezibB2q).
 
 Thanks for your support!
@@ -20,8 +20,6 @@ Thanks for your support!
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk.
 * Always use the latest version of the tool to avoid issues. See the changelog at the bottom to understand what was changed.
 * The tool disables the verification of original Apple drivers in order to work, which lowers the overall system security.
-
-Note: Contrarily to what was stated here before, using the tool will not increase risks of getting a "grey stop sign" at boot time, even after reboots and PRAM resets. This has been confirmed after many tests on different Mac configurations. Macs that have already successfully activated Continuity with v.1.0.0 are not at risk either.
 
 ## Compatibility list
 Your Mac might need a hardware upgrade as well to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please report them to the guide author and open an issue.
@@ -74,6 +72,9 @@ When using the script from the command line, make sure you have the strings bina
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
 
 ### Changelog
+
+**v.1.1.2 - 2014.11.16**
+* Improved uninstallation reliability. It fixes a bug where the uninstaller could in some cases re-activate OS kext signature protection even if unsigned kexts are installed. Trim Enabler users should not use the uninstallation feature from prior versions to avoid risks of issues at boot-time.
 
 **v.1.1.1 - 2014.11.12**
 * Further improved reliability with systems that can't find utilities due to an irregular PATH ([#9](https://github.com/dokterdok/Continuity-Activation-Tool/issues/9))
