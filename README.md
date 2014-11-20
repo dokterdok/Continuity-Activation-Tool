@@ -26,14 +26,15 @@ Your Mac might need a hardware upgrade as well to be able to work with Continuit
 
 Mac Model | Hardware change required | Software patch required (e.g. via this tool)
 :---|:---|:---
-MacBook Air mid-2011 | No | Yes
+MacBook Air late 2010 | Yes, new wireless card BCM943224PCIEBT2BX, see [here](https://github.com/dokterdok/Continuity-Activation-Tool/issues/41#issuecomment-63767699) | Yes
+MacBook Air mid 2011 | No | Yes
 MacBook Air 2012-2014 | No (works OTB) | No (works OTB)
-MacBook Pro mid-2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX, see [guide](http://forums.macrumors.com/showpost.php?p=20269421&postcount=639) | Yes
+MacBook Pro mid 2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX, see [guide](http://forums.macrumors.com/showpost.php?p=20269421&postcount=639) | Yes
 MacBook Pro early 2011 to late 2011 (all models) | Yes, new wireless card BCM94331PCIEBT4CAX | Yes
-MacBook Pro mid-2012 (non-retina) | No (works OTB)| No (works OTB)
+MacBook Pro mid 2012 (non-retina) | No (works OTB)| No (works OTB)
 MacBook Pro Retina (all models) | No (works OTB) | No (works OTB)
 Mac mini 2009-2010 | Yes, new wireless card BCM94331PCIEBT4CAX (to be confirmed) | Yes
-Mac mini mid-2011 | No | Yes
+Mac mini mid 2011 | No | Yes
 Mac mini 2012-2014 | No (works OTB) | No (works OTB)
 Mac Pro early 2008-2012 | Yes, new wireless card BCM94360CD + adapter | No
 Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
