@@ -3,13 +3,10 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
-## News - 2014.11.18
+## News - 2014.11.24
 
 * **OS X 10.10.1 update**: It is safe to upgrade, but the tool must be re-applied after the upgrade to get Continuity working again. More info and discussion [here](https://github.com/dokterdok/Continuity-Activation-Tool/issues/44).
-* **Continuity Activation Tool 1.1.2**:  Released. Includes uninstallation reliability improvements. Trim Enabler users should not use the uninstallation feature from prior versions to avoid risks of issues at boot-time.
-* **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. I'm looking for testers: if you are interested, please fill in this [form](http://goo.gl/forms/ojDezibB2q).
-
-Thanks for your support!
+* **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. A solution has been identified to enable Continuity on Macs as far back as 2008. Beta enrollment is closed until further notice - No ETA: I will get back in touch with those who signed up if/when I find a stable enough solution. Many thanks for your support!
 
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, backups the Systems kexts before and after patching, disables a Mac-model blacklist in the Bluetooth kext, whitelists the Mac board-id in the Wi-Fi kext, removes a legacy Wi-Fi kext plugin.
