@@ -9,13 +9,8 @@
 # The tool has no influence over Call/SMS Handoff.
 #
 # Before the actual hacking happens, a system compatibility test is made, 
-<<<<<<< HEAD
-# as well as a backup of the bluetooth and wifi kexts, before and after patching.
-# The system check produces a report of typical parameters influencing.
-=======
 # as well as a backup of the bluetooth and wifi kexts, before and after patching.
 # The system check produces a report of typical parameters influencing.
->>>>>>> master
 # An uninstaller is available as well.
 #
 # This hack should work with:
@@ -27,11 +22,7 @@
 # Other Mac models are untested and will be prompted with a warning before applying the hack.
 # 
 
-<<<<<<< HEAD
-hackVersion="1.1.0 beta 1"
-=======
 hackVersion="1.1.2"
->>>>>>> master
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -74,17 +65,6 @@ awkPath="/usr/bin/awk"
 chmodPath="/bin/chmod"
 chownPath="/usr/sbin/chown"
 cpPath="/bin/cp"
-<<<<<<< HEAD
-duPath="/usr/bin/du"
-hexdumpPath="/usr/bin/hexdump"
-kextstatPath="/usr/sbin/kextstat"
-mkdirPath="/bin/mkdir"
-nvramPath="/usr/sbin/nvram"
-rmPath="/bin/rm"
-sedPath="/usr/bin/sed"
-statPath="/usr/bin/stat"
-stringsPath="$appDir/strings" #the OS X "strings" utility, from Apple's Command Line Tools, must be bundled with this tool. This avoids prompting to download a ~5 GB Xcode package just to use a 40 KB tool (!).
-=======
 cutPath="/usr/bin/cut"
 diskutilPath="/usr/sbin/diskutil"
 duPath="/usr/bin/du"
@@ -106,7 +86,6 @@ statPath="/usr/bin/stat"
 stringsPath="$appDir/strings" #the OS X "strings" utility, from Apple's Command Line Tools, must be bundled with this tool. This avoids prompting to download a ~5 GB Xcode package just to use a 40 KB tool (!).
 trPath="/usr/bin/tr"
 wcPath="/usr/bin/wc"
->>>>>>> master
 xxdPath="/usr/bin/xxd"
 
 #---- FUNCTIONS -----------
@@ -188,11 +167,7 @@ function isMyMacBoardIdCompatible(){
 	echo -n "Verifying Mac board-id...               "
 	#echo -n "Verifying Mac board-id compatibility... "
 	if [ ! -z "{$myMacIdPattern}" ] ; then
-<<<<<<< HEAD
-		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
-=======
 		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
->>>>>>> master
 	fi
 	if [ ! -z "{$myMacIdPattern}" ] ; then
 		if [ ${#myMacIdPattern} -eq 12 ] ; then
@@ -219,21 +194,13 @@ function areMyActiveWifiDriversOk(){
 
 	echo -n "Verifying active AirPort drivers...     "
 	
-<<<<<<< HEAD
-	driverVersion=($($kextstatPath | grep "Brcm" | $awkPath -F' ' '{print $6}'))
-=======
 	driverVersion=($($kextstatPath | $grepPath "Brcm" | $awkPath -F' ' '{print $6}'))
->>>>>>> master
 
 	#Verify if no Wi-Fi drivers are loaded at all
 	if [ -z "${driverVersion}" ]; then
 		if [ "$1" != "verbose" ]; then echo "NOT OK. No active Broadcom AirPort card was detected. Aborting."; backToMainMenu;
 		else
-<<<<<<< HEAD
-			possibleDriver=($($kextstatPath | grep "AirPort" | $awkPath -F' ' '{print $6}')) 
-=======
 			possibleDriver=($($kextstatPath | $grepPath "AirPort" | $awkPath -F' ' '{print $6}')) 
->>>>>>> master
 			if [ -z "${possibleDriver}" ]; then
 				echo "NOT OK. No active Broadcom AirPort card detected"
 			else
@@ -276,11 +243,7 @@ function areMyActiveWifiDriversOk(){
 				else
 					#Multiple Wi-Fi drivers loaded, but none are of the Broadcom brand
 					if [ "$1" != "verbose" ]; then echo "NOT OK. No Broadcom AirPort card is active. Aborting."; backToMainMenu;
-<<<<<<< HEAD
-					else echo "NOT OK. No Broadcom AirPort card is active. Type '$kextstatPath | grep AirPort' for more info. brc ${activeCards[*]}"; fi
-=======
 					else echo "NOT OK. No Broadcom AirPort card is active. Type '$kextstatPath | $grepPath AirPort' for more info. brc ${activeCards[*]}"; fi
->>>>>>> master
 				fi
 			fi
 		fi
@@ -301,11 +264,7 @@ function isMyMacModelCompatible(){
 	echo -n "Verifying Mac model reference...        "
 	#echo -n "Verifying Mac model nb compatibility... "
 	modelsList=("${mbpCompatibilityList[@]}" "${blacklistedMacs[@]}")
-<<<<<<< HEAD
-	myMacModel=$(ioreg -l | grep "model" | $awkPath -F\" '{print $4;exit;}')
-=======
 	myMacModel=$($ioregPath -l | $grepPath "model" | $awkPath -F\" '{print $4;exit;}')
->>>>>>> master
 	myResult=`containsElement "${myMacModel}" "${modelsList[@]}"; echo $?`
 	if [ "${myResult}" -eq 1 ] ; then
 		if [ "$1" != "verbose" ]; then echo "OK";
@@ -331,11 +290,7 @@ function isMyMacModelCompatible(){
 function isMyBluetoothVersionCompatible(){
 	echo -n "Verifying Bluetooth version...          "
 
-<<<<<<< HEAD
-	local lmpVersion=$(ioreg -l | grep "LMPVersion" | $awkPath -F' = ' '{print $2}')
-=======
 	local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}')
->>>>>>> master
 
 	if [ ! "${lmpVersion}" == "" ]; then
 		if [ "${lmpVersion}" == "6" ]; then
@@ -362,21 +317,12 @@ function countInvalidKexts(){
     else 
     	if [ ! -d $folderToVerify ]; then echo "-2";nbOfInvalidKexts="-2"; #folder not found
     	else
-<<<<<<< HEAD
-    		if [ $(ls -1 ${folderToVerify}/*.kext 2>/dev/null | wc -l) -eq 0 ]; then echo "-3";nbOfInvalidKexts="-3"; #no kexts were found in this directory
-    		else
-    			cd $folderToVerify 
-    		 	echo "nbOfInvalidKexts=$(find *.kext -prune -type d | while read kext; do
-    			codesign -v "$kext" 2>&1 | grep -E 'invalid signature|not signed at all'
-    			done | wc -l | tr -d ' ')"
-=======
     		if [ $(ls -1 ${folderToVerify}/*.kext 2>/dev/null | $wcPath -l) -eq 0 ]; then echo "-3";nbOfInvalidKexts="-3"; #no kexts were found in this directory
     		else
     			cd $folderToVerify 
     		 	echo "nbOfInvalidKexts=$(find *.kext -prune -type d | while read kext; do
     			codesign -v "$kext" 2>&1 | $grepPath -E 'invalid signature|not signed at all'
     			done | $wcPath -l | $trPath -d ' ')"
->>>>>>> master
 			fi
 		fi
 	fi
@@ -401,11 +347,7 @@ function modifyKextDevMode(){
 
 			#first we need to be sure that no other unsigned kexts are found in the Extensions folder
 			#otherwise, disabling dev mode might prevent the system from booting.
-<<<<<<< HEAD
-			countInvalidKexts "${driverPath}" > tmp & spinner "Verifying system kexts signatures...    "; . tmp; rm tmp;
-=======
 			countInvalidKexts "${driverPath}" > tmp.txt & spinner "Verifying system kexts signatures...    "; . tmp.txt; rm tmp.txt;
->>>>>>> master
 
 			#output=$(countInvalidKexts "${driverPath}")
 			if [ "${nbOfInvalidKexts}" -gt "0" ]; then
@@ -443,11 +385,7 @@ function modifyKextDevMode(){
 		bootArgsResult=${bootArgsResult:10} #remove boot-args declaration, necessary later
 
 		#Verify if the kext-dev-mode is declared as active
-<<<<<<< HEAD
-		sudo $nvramPath boot-args | grep -F "kext-dev-mode=1" >> /dev/null 2>&1
-=======
 		sudo $nvramPath boot-args | $grepPath -F "kext-dev-mode=1" >> /dev/null 2>&1
->>>>>>> master
 		local devModeResult=$?
 		if [ $devModeResult -eq 0 ]; then 
 
@@ -467,11 +405,7 @@ function modifyKextDevMode(){
 			fi
 		else
 			#Verify if the kext-dev-mode is declared as disabled (rare, by default this variable is not set by OS X)
-<<<<<<< HEAD
-			sudo $nvramPath boot-args | grep -F "kext-dev-mode=0" >> /dev/null 2>&1
-=======
 			sudo $nvramPath boot-args | $grepPath -F "kext-dev-mode=0" >> /dev/null 2>&1
->>>>>>> master
 			devModeResult=$?
 			if [ $devModeResult -eq 0 ]; then 
 
@@ -524,11 +458,7 @@ function verifyOsKextDevMode(){
 	if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
 
 		#Verify if kext-dev-mode=1 is set
-<<<<<<< HEAD
-		sudo $nvramPath boot-args | grep -F "kext-dev-mode=1" >> /dev/null 2>&1
-=======
 		sudo $nvramPath boot-args | $grepPath -F "kext-dev-mode=1" >> /dev/null 2>&1
->>>>>>> master
 		local devModeResult=$?
 		if [ $devModeResult -eq 0 ]; then #Dev mode is active
 			if [ "$1" != "verbose" ]; then echo "OK"; 
@@ -556,13 +486,8 @@ function isMyMacWhitelisted(){
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; #Continue the verification. A brcm AirPort driver was found.
     	fi
-<<<<<<< HEAD
-     	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2}'))
-		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
-=======
      	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
 		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
->>>>>>> master
     	local foundCount=0
     	local element
     	if [[ $whitelist ]]; then
@@ -575,13 +500,8 @@ function isMyMacWhitelisted(){
 			if [ "${foundCount}" -gt "0" -a "${foundCount}" -lt "${#whitelist[@]}" ]; then
 				if [ "$1" != "verbose" ]; then echo "OK";
 				else 
-<<<<<<< HEAD
-					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2;exit;}')
-					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{a=$0} END{print $2;exit;}')
-=======
 					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2;exit;}')
 					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{a=$0} END{print $2;exit;}')
->>>>>>> master
 					#Increase checks if the Mac is blacklisted (2011 MacBook Airs, Minis). Purely for reporting info.
 					if [ "${myMacIsBlacklisted}" == "1" ]; then
 						if [ "${myMacIdPattern}" == "${firstWhitelistedBoardId}" -a "${myMacIdPattern}" == "${lastWhitelistedBoardId}" ]; then
@@ -626,13 +546,8 @@ function isMyMacBlacklisted(){
     	else echo "NOT OK. Bluetooth binary not found at ${btBinPath}"; fi
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; fi #Continue, the bluetooth binary was found
-<<<<<<< HEAD
-    	local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | grep Mac | $awkPath -F"'" '{print $2}'))
-		local myMacModel=$(ioreg -l | grep "model" | $awkPath -F\" '{print $4;exit;}')
-=======
     	local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
 		local myMacModel=$($ioregPath -l | $grepPath "model" | $awkPath -F\" '{print $4;exit;}')
->>>>>>> master
     	local foundCount=0
     	local element
     	if [[ $blacklist ]]; then
@@ -753,11 +668,7 @@ function patchStringsInFile() {
     local REPLACEMENT="$3"
 
     #Find all unique strings in FILE that contain the pattern 
-<<<<<<< HEAD
-    STRINGS=$("${stringsPath}" "${FILE}" | grep "${PATTERN}" | sort -u -r)
-=======
     STRINGS=$("${stringsPath}" "${FILE}" | $grepPath "${PATTERN}" | $sortPath -u -r)
->>>>>>> master
 
     if [ "${STRINGS}" != "" ] ; then
         #echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
@@ -782,15 +693,9 @@ function patchStringsInFile() {
                 $hexdumpPath -ve '1/1 "%.2X"' "${FILE}" | \
                 $sedPath "s/${OLD_STRING_HEX}/${NEW_STRING_HEX}/g" | \
                 $xxdPath -r -p > "${FILE}.tmp"
-<<<<<<< HEAD
-                SAVEMOD=$($statPath -r "$FILE" | cut -f3 -d' ')
-                $chmodPath "${SAVEMOD}" "${FILE}.tmp"
-                mv "${FILE}.tmp" "${FILE}"
-=======
                 SAVEMOD=$($statPath -r "$FILE" | $cutPath -f3 -d' ')
                 $chmodPath "${SAVEMOD}" "${FILE}.tmp"
                 $mvPath "${FILE}.tmp" "${FILE}"
->>>>>>> master
             else
                 echo "NOT OK. New string '${NEW_STRING}' is longer than old" \
                      "string '${OLD_STRING}'. Skipping."
@@ -858,11 +763,7 @@ function patchBluetoothKext(){
 		echo -n "Patching blacklist..."
 		
 		#(re)populate blacklist
-<<<<<<< HEAD
-		blacklistedMacs=($("${stringsPath}" -a -t x ${btBinPath} | grep Mac | $awkPath -F"'" '{print $2}'))
-=======
 		blacklistedMacs=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
->>>>>>> master
 
     	#build a disabled blacklist
     	local disabledBlacklist=()
@@ -870,11 +771,7 @@ function patchBluetoothKext(){
     	for blacklistedMac in "${blacklistedMacs[@]}";
     	do
     		#replace the last three chars of the mac model with "1,1", e.g. MacBookAir4,2 -> MacBookAir1,1
-<<<<<<< HEAD
-    		disabledBlacklist+=($(echo $blacklistedMac | rev | cut -c 4- | rev | $awkPath '{print $1"1,1"}'))
-=======
     		disabledBlacklist+=($(echo $blacklistedMac | $revPath | $cutPath -c 4- | $revPath | $awkPath '{print $1"1,1"}'))
->>>>>>> master
     	done
 
     	#verify that the disabled blacklist is correctly built (last chance before applying the hack)
@@ -902,19 +799,11 @@ function patchWifiKext(){
 
 	#get the current board id
 	if [ -z "${myMacIdPattern}" ]; then
-<<<<<<< HEAD
-		myMacIdPattern=$(ioreg -l | grep "board-id" | $awkPath -F\" '{print $4}')
-	fi
-
-	#populate whitelist
-	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | grep Mac- | $awkPath -F" " '{print $2}'))
-=======
 		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
 	fi
 
 	#populate whitelist
 	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
->>>>>>> master
 
 	#check if it needs patching: will do it if the whitelist is not full of own board id
 	local occurence=0
@@ -967,21 +856,13 @@ function spinner(){
 
 #Avoids having OS X reuse unpatched cached kexts at system startup
 function updatePrelinkedKernelCache(){
-<<<<<<< HEAD
-	sudo kextcache -system-prelinked-kernel >> /dev/null 2>&1 & spinner "Updating kext caches...                 "
-=======
 	sudo $kextcachePath -system-prelinked-kernel >> /dev/null 2>&1 & spinner "Updating kext caches...                 "
->>>>>>> master
 	echo -e "\rUpdating kext caches...                 OK"
 }
 
 #Avoids having OS X reuse unpatched cached kexts at late system startup and beyond
 function updateSystemCache(){
-<<<<<<< HEAD
-	sudo kextcache -system-caches >> /dev/null 2>&1 & spinner "Updating system caches...               "
-=======
 	sudo $kextcachePath -system-caches >> /dev/null 2>&1 & spinner "Updating system caches...               "
->>>>>>> master
 	echo -e "\rUpdating system caches...               OK"
 }
 
@@ -996,11 +877,7 @@ function rebootPrompt(){
 
 #Silently repairs the disk permissions using the Disk Utility. Takes a few minutes.
 function repairDiskPermissions(){
-<<<<<<< HEAD
-	sudo diskutil repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
-=======
 	sudo $diskutilPath repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
->>>>>>> master
 	echo -e "\rFixing disk permissions...              OK"
 }
 
@@ -1094,11 +971,7 @@ function startTheKextsReplacement(){
 #Mounts the Recovery disk and OS X's Base System image, where the original drivers should be located
 function mountRecoveryBaseSystem(){
 
-<<<<<<< HEAD
-	diskutil mount "${recoveryHdName}" >> /dev/null 2>&1
-=======
 	$diskutilPath mount "${recoveryHdName}" >> /dev/null 2>&1
->>>>>>> master
 
 	if [ $? == "1" ]; then
 		echo "Mounting Recovery HD...                 NOT OK. Error mounting '${recoveryHdName}'"; backToMainMenu
@@ -1107,11 +980,7 @@ function mountRecoveryBaseSystem(){
 		if [ -f "${recoveryDmgPath}" ]; then
 
 				#attach the OS X Base System DMG without opening a Finder window
-<<<<<<< HEAD
-				hdiutil attach -nobrowse "${recoveryDmgPath}"  >> /dev/null 2>&1 & spinner "Mounting Recovery HD...                 "
-=======
 				$hdiutilPath attach -nobrowse "${recoveryDmgPath}"  >> /dev/null 2>&1 & spinner "Mounting Recovery HD...                 "
->>>>>>> master
 			if [ $? == "1" ]; then
 				echo -e "\rMounting Recovery HD...                 NOT OK. Error attaching '${recoveryDmgPath}'"; backToMainMenu
 			else
@@ -1148,11 +1017,7 @@ function replaceKextsWithRecoveryDiskOnes(){
 		if sudo $cpPath -R "${osxBaseSystemPath}/${btKextPath}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} uninstallation failed."; fi
 		
 		if [ "${uninstallOk}" -eq "2" ]; then
-<<<<<<< HEAD
-			hdiutil detach -force -quiet "/Volumes/Recovery HD"
-=======
 			$hdiutilPath detach -force -quiet "/Volumes/Recovery HD"
->>>>>>> master
 			echo "OK"
 		else
 			echo "NOT OK. ${errorOutput}."; backToMainMenu;
