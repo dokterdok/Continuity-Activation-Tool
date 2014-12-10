@@ -3,6 +3,7 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
+<<<<<<< HEAD
 ## News - 2014.11.11
 A quick update on the evolution of the app.
 
@@ -10,6 +11,12 @@ A quick update on the evolution of the app.
 * **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. I'm looking for testers: if you are interested, please fill in this [form](http://goo.gl/forms/ojDezibB2q).
 
 Thanks for your support!
+=======
+## News - 2014.11.24
+
+* **OS X 10.10.1 update**: It is safe to upgrade, but the tool must be re-applied after the upgrade to get Continuity working again. More info and discussion [here](https://github.com/dokterdok/Continuity-Activation-Tool/issues/44).
+* **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. A solution has been identified to enable Continuity on Macs as far back as 2008. Beta enrollment is closed until further notice - No ETA: I will get back in touch with those who signed up if/when I find a stable enough solution. Many thanks for your support!
+>>>>>>> master
 
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, backups the Systems kexts before and after patching, disables a Mac-model blacklist in the Bluetooth kext, whitelists the Mac board-id in the Wi-Fi kext, removes a legacy Wi-Fi kext plugin.
@@ -21,13 +28,17 @@ Thanks for your support!
 * Always use the latest version of the tool to avoid issues. See the changelog at the bottom to understand what was changed.
 * The tool disables the verification of original Apple drivers in order to work, which lowers the overall system security.
 
+<<<<<<< HEAD
 Note: Contrarily to what was stated here before, using the tool will not increase risks of getting a "grey stop sign" at boot time, even after reboots and PRAM resets. This has been confirmed after many tests on different Mac configurations. Macs that have already successfully activated Continuity with v.1.0.0 are not at risk either.
 
+=======
+>>>>>>> master
 ## Compatibility list
 Your Mac might need a hardware upgrade as well to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please report them to the guide author and open an issue.
 
 Mac Model | Hardware change required | Software patch required (e.g. via this tool)
 :---|:---|:---
+<<<<<<< HEAD
 MacBook Air mid-2011 | No | Yes
 MacBook Air 2012-2014 | No (works OTB) | No (works OTB)
 MacBook Pro mid-2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX, see [guide](http://forums.macrumors.com/showpost.php?p=20269421&postcount=639) | Yes
@@ -36,6 +47,16 @@ MacBook Pro mid-2012 (non-retina) | No (works OTB)| No (works OTB)
 MacBook Pro Retina (all models) | No (works OTB) | No (works OTB)
 Mac mini 2009-2010 | Yes, new wireless card BCM94331PCIEBT4CAX (to be confirmed) | Yes
 Mac mini mid-2011 | No | Yes
+=======
+MacBook Air late 2010 | Yes, new wireless card BCM943224PCIEBT2BX, see [here](https://github.com/dokterdok/Continuity-Activation-Tool/issues/41#issuecomment-63767699) | Yes
+MacBook Air mid 2011 | No | Yes
+MacBook Air 2012-2014 | No (works OTB) | No (works OTB)
+MacBook Pro mid 2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX, see [guide](http://forums.macrumors.com/showpost.php?p=20269421&postcount=639) | Yes
+MacBook Pro early 2011 to late 2011 (all models) | Yes, new wireless card BCM94331PCIEBT4CAX | Yes
+MacBook Pro mid 2012 (non-retina) | No (works OTB)| No (works OTB)
+MacBook Pro Retina (all models) | No (works OTB) | No (works OTB)
+Mac mini mid 2011 | No | Yes
+>>>>>>> master
 Mac mini 2012-2014 | No (works OTB) | No (works OTB)
 Mac Pro early 2008-2012 | Yes, new wireless card BCM94360CD + adapter | No
 Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
@@ -73,8 +94,12 @@ When using the script from the command line, make sure you have the strings bina
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
 
+This tool is taking me many days and nights of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks!
+[![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+
 ### Changelog
 
+<<<<<<< HEAD
 **v.1.1.0 - 2014.11.11**
 
 * **New uninstallation feature**: new option to rollback all system changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are used. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed. The uninstallation can be also be called from the command line.
@@ -82,6 +107,21 @@ When using the script from the command line, make sure you have the strings bina
 * **Reliability improvements:**
 * The diagnostic no longer applies boot-args changes
 * Fewer risks of issues with systems that use third party utilities
+=======
+**v.1.1.2 - 2014.11.16**
+* Improved uninstallation reliability. It fixes a bug where the uninstaller could in some cases re-activate OS kext signature protection even if unsigned kexts are installed. Trim Enabler users should not use the uninstallation feature from prior versions to avoid risks of issues at boot-time.
+
+**v.1.1.1 - 2014.11.12**
+* Further improved reliability with systems that can't find utilities due to an irregular PATH ([#9](https://github.com/dokterdok/Continuity-Activation-Tool/issues/9))
+
+**v.1.1.0 - 2014.11.11**
+
+* **New uninstallation feature**: new option to rollback all system changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are used. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed. The uninstallation can be also be called from the command line. ([#15](https://github.com/dokterdok/Continuity-Activation-Tool/issues/15), [#21](https://github.com/dokterdok/Continuity-Activation-Tool/issues/21), [#36](https://github.com/dokterdok/Continuity-Activation-Tool/issues/36), [#40](https://github.com/dokterdok/Continuity-Activation-Tool/issues/40), [#45](https://github.com/dokterdok/Continuity-Activation-Tool/issues/45))
+* **Speed improvements**: activating Continuity is now twice as fast compared to the last version: only 1 reboot at the end and 1 permissions repair are necessary.
+* **Reliability improvements:**
+* The diagnostic no longer applies boot-args changes ([#1](https://github.com/dokterdok/Continuity-Activation-Tool/issues/1))
+* Fewer risks of issues with systems that use third party utilities ([#9](https://github.com/dokterdok/Continuity-Activation-Tool/issues/9))
+>>>>>>> master
 * Activation will now abort if 1 of the two mandatory kexts are missing
 * Incorrect or inaccurate messages
 * Many other small optimizations
@@ -115,6 +155,9 @@ When using the script from the command line, make sure you have the strings bina
 * TealShark
 * Manic Harmonic
 * rob3r7o
+<<<<<<< HEAD
 
 This tool is taking me many days and nights of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks!
 [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+=======
+>>>>>>> master
