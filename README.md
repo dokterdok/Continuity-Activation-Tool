@@ -18,8 +18,11 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity on compati
 
 ## Compatibility list
 Your Mac might require a hardware upgrade to be able to work with Continuity. See the chart below to understand what your Mac supports. 
-Pros of using USB BT4.0 dongles: low cost, easy to install, easy to find on the market
-Pros of using AirPort Extreme cards: real Apple hardware, better support for Continuity features, doesn't occupy a USB slot
+
+![Compatibility Chart](https://github.com/dokterdok/Continuity-Activation-Tool/blob/beta/CompatibilityChart-13.12.2014.png)
+
+**Pros of using USB BT4.0 dongles**: low cost, easy to install, easy to find on the market
+**Pros of using AirPort Extreme cards**: real Apple hardware, better support for Continuity features, doesn't occupy a USB slot
 
 ### Bluetooth 4.0 USB dongles
 A few import notes about using CAT with USB Bluetooth 4.0 dongles
@@ -56,9 +59,6 @@ iMac 2012-2014 | No (works OTB) | No (works OTB)
 2. Double-click on the app.
 3. Follow instructions on the screen. Ignore or deny any "Access to accessibility features" prompt.
 
-This tool took a lot of research, testing and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks!
-[![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
-
 **From the command line**
 
 The script can also be run right from the command line. It is located in Continuity Activation Tool.app/Contents/MacOS/contitool.sh
@@ -80,11 +80,13 @@ When using the script from the command line, make sure you have the strings bina
 * [Guide to enable Continuity manually (MacRumors Forum Thread)](http://forums.macrumors.com/showpost.php?p=20124161)
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
+This tool took a lot of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+
 ### Changelog
 
 **v.2.0.0 - 2014.12.13**
 * Added compatibility with many older Macs when using a USB Bluetooth 4.0 dongle (see chart).
-* Added the ability to choose the admin user executing the tool [#14](https://github.com/dokterdok/Continuity-Activation-Tool/issues/14)
+* Added the ability to choose the admin user executing the tool ([#14](https://github.com/dokterdok/Continuity-Activation-Tool/issues/14))
 * Added new diagnostics, including a system wide Continuity activation check.
 * Added ability to run the System Diagnostic from the command line without admin privileges.
 * Improved the command line execution and arguments.
