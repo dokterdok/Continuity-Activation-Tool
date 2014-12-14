@@ -21,9 +21,10 @@ Your Mac might require a hardware upgrade to be able to work with Continuity. Se
 
 ![Compatibility Chart](https://github.com/dokterdok/Continuity-Activation-Tool/blob/beta/CompatibilityChart-13.12.2014.png)
 
-Chart data sources: Feedback from >150 CAT 2.0 beta testers, feedback reported on this GitHub site, UncleSchnitty's [guide](http://forums.macrumors.com/showpost.php?p=20124161).
+**Chart data sources**: Feedback from >150 CAT 2.0 beta testers, feedback reported on this GitHub site, UncleSchnitty's [guide](http://forums.macrumors.com/showpost.php?p=20124161).
 
 **Pros of using USB BT4.0 dongles**: low cost, easy to install, easy to find on the market
+
 **Pros of using AirPort Extreme cards**: authentic Apple hardware, better support for Continuity features, doesn't occupy a USB slot
 
 ### Bluetooth 4.0 USB dongles
@@ -31,9 +32,9 @@ A few important notes about using CAT with USB Bluetooth 4.0 dongles:
 * Bluetooth 4.0 dongles based on the Cambridge Silicon Radio CSR8510 A10 chip (e.g. Inatek Nano) are not compatible with CAT.
 * The recommendation is to look for dongles based on the Broadcom BCM20702 chip, which are similar to the ones used by Apple in their Continuity compatible Macs. A few examples: Asus BT400, IOGEAR GBU521, GMYLE, and many others.
 * Instant Hotspot currently doesn't work reliably when using a dongle. This is a known issue, no workarounds have been identified yet.
-* Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active.
+* Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active. There are no workarounds and no patch is expected to change this, an AirPort card upgrade is required.
 
-### AirPort Express card upgrades
+### AirPort Extreme card upgrades
 
 The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please report them to the guide author and open an issue.
 
