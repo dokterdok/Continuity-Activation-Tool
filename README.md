@@ -25,7 +25,7 @@ Your Mac might require a hardware upgrade to be able to work with Continuity. Se
 **Pros of using AirPort Extreme cards**: real Apple hardware, better support for Continuity features, doesn't occupy a USB slot
 
 ### Bluetooth 4.0 USB dongles
-A few import notes about using CAT with USB Bluetooth 4.0 dongles
+A few important notes about using CAT with USB Bluetooth 4.0 dongles:
 * Bluetooth 4.0 dongles based on the Cambridge Silicon Radio CSR CSR8510 A10 chip (e.g. Inatek Nano) are not compatible with CAT.
 * If you plan to buy a new dongle, I strongly recommend to look at dongles based on the Broadcom BCM20702 chip, which are similar to the ones used by Apple in their Continuity compatible Macs. A few exmaple: Asus BT400, IOGEAR GBU521, GMYLE, and many others.
 * Instant Hotspot currently doesn't work reliably when using a dongle. This is a known issue, no workarounds have been identified yet.
@@ -61,19 +61,19 @@ iMac 2012-2014 | No (works OTB) | No (works OTB)
 
 **From the command line**
 
-The script can also be run right from the command line. It is located in Continuity Activation Tool.app/Contents/MacOS/contitool.sh
+Command line location: ```Continuity Activation Tool.app/Contents/Resources/contitool.sh```
 
-Usage example: "sudo ./contitool.sh activate"
+Usage: ```contitool.sh -a | -d | -f | -h | -r | -z```
 
-Script arguments: 
-* activate : Starts the activation procedure and does compatibility checks.
-* diagnostic : Starts the system compatibility diagnostic.
-* forceHack : Starts the activation procedure and skips compatibility checks.
-* uninstall : Starts the uninstallation
-* uninstallWithRecoveryDisk : Starts the uninstallation, but directly recovers kexts from the OS X Recovery Image
-
-When using the script from the command line, make sure you have the strings binary in the same directory as the script OR, if you have Apple's Command Line Tools installed, edit contitool.sh and set stringsPath="strings".
-
+Options:
+```
+-a               run the compatibility checks and activation procedure
+-d               run the system diagnostic procedure and quit
+-f               force the activation procedure without compatibility checks
+-h               display a help message and quit
+-r               uninstall Continuity mods by directly using OS X recovery disk files
+-z               uninstall Continuity mods
+```
 
 ### Sources
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
@@ -90,9 +90,9 @@ This tool took a lot of research and coding. A small PayPal donation would be mu
 * Added new diagnostics, including a system wide Continuity activation check.
 * Added ability to run the System Diagnostic from the command line without admin privileges.
 * Improved the command line execution and arguments.
-* Improved the layout and diagnostic messages accuracy.
+* Improved the diagnostic messages accuracy.
 * Fixed an issue where OS X kext protection wasn’t disabled is some cases, leading to a loss of Wi-Fi / Bluetooth connectivity.
-* Minor optimisations and bug fixes.
+* Optimisations and bug fixes.
 
 **v.1.1.2 - 2014.11.16**
 * Improved uninstallation reliability. It fixes a bug where the uninstaller could in some cases re-activate OS kext signature protection even if unsigned kexts are installed. Trim Enabler users should not use the uninstallation feature from prior versions to avoid risks of issues at boot-time.
