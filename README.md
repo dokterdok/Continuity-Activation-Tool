@@ -34,7 +34,7 @@ A few important notes about using CAT with USB Bluetooth 4.0 dongles:
 * Instant Hotspot currently doesn't work reliably when using a dongle. This is a known issue, no workarounds have been identified yet.
 * Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active. There are no workarounds and no patch is expected to change this, an AirPort card upgrade is required.
 
-### AirPort Express card upgrades
+### AirPort Extreme card upgrades
 
 The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please report them to the guide author and open an issue.
 
