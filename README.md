@@ -61,7 +61,7 @@ iMac 2012-2014 | No (works OTB) | No (works OTB)
 
 **From the command line**
 
-Command line location: ```Continuity Activation Tool.app/Contents/Resources/contitool.sh```
+Script location: ```Continuity Activation Tool.app/Contents/Resources/contitool.sh```
 
 Usage: ```contitool.sh -a | -d | -f | -h | -r | -z```
 
