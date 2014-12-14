@@ -21,7 +21,7 @@ Your Mac might require a hardware upgrade to be able to work with Continuity. Se
 
 ![Compatibility Chart](https://github.com/dokterdok/Continuity-Activation-Tool/blob/beta/CompatibilityChart-13.12.2014.png)
 
-Chart data sources: * Feedback from >150 CAT 2.0 beta testers, feedback reported on this GitHub page, UncleSchnitty's [guide](http://forums.macrumors.com/showpost.php?p=20124161).
+Chart data sources: Feedback from >150 CAT 2.0 beta testers, feedback reported on this GitHub site, UncleSchnitty's [guide](http://forums.macrumors.com/showpost.php?p=20124161).
 
 **Pros of using USB BT4.0 dongles**: low cost, easy to install, easy to find on the market
 **Pros of using AirPort Extreme cards**: authentic Apple hardware, better support for Continuity features, doesn't occupy a USB slot
