@@ -32,7 +32,7 @@ A few important notes about using CAT with USB Bluetooth 4.0 dongles:
 * Bluetooth 4.0 dongles based on the Cambridge Silicon Radio CSR8510 A10 chip (e.g. Inatek Nano) are not compatible with CAT.
 * The recommendation is to look for dongles based on the Broadcom BCM20702 chip, which are similar to the ones used by Apple in their Continuity compatible Macs. A few examples: Asus BT400, IOGEAR GBU521, GMYLE, and many others.
 * Instant Hotspot currently doesn't work reliably when using a dongle. This is a known issue, no workarounds have been identified yet.
-* Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active.
+* Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active. There are no workarounds and no patch is expected to change this, an AirPort card upgrade is required.
 
 ### AirPort Express card upgrades
 
