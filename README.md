@@ -84,13 +84,14 @@ This tool took a lot of research and coding. A small PayPal donation would be mu
 
 ### Changelog
 
-**v.2.0.0 - 2014.12.13**
+**v.2.0.0 - 2014.12.14**
 * Added compatibility with many older Macs when using a USB Bluetooth 4.0 dongle (see chart).
 * Added the ability to choose the admin user executing the tool ([#14](https://github.com/dokterdok/Continuity-Activation-Tool/issues/14))
 * Added new diagnostics, including a system wide Continuity activation check.
 * Added ability to run the System Diagnostic from the command line without admin privileges.
-* Improved the command line execution and arguments.
+* Improved the command line execution with new options.
 * Improved the diagnostic messages accuracy.
+* Fixed Gatekeeper issues preventing the app to be launched, by codesigning the app
 * Fixed an issue where OS X kext protection wasn’t disabled is some cases, leading to a loss of Wi-Fi / Bluetooth connectivity.
 * Optimisations and bug fixes.
 
