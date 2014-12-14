@@ -3,39 +3,23 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
 
-## News - 2014.12.14
+## News - 2014.11.24
 
-**Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options.
+* **OS X 10.10.1 update**: It is safe to upgrade, but the tool must be re-applied after the upgrade to get Continuity working again. More info and discussion [here](https://github.com/dokterdok/Continuity-Activation-Tool/issues/44).
+* **Continuity Activation Tool 2.0** will include experimental support for 3rd party USB BT4.0 dongles. A solution has been identified to enable Continuity on Macs as far back as 2008. Beta enrollment is closed until further notice - No ETA: I will get back in touch with those who signed up if/when I find a stable enough solution. Many thanks for your support!
 
 ## Features
-* Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
+* Activate Continuity: Does a Continuity compatibility check, backups the Systems kexts before and after patching, disables a Mac-model blacklist in the Bluetooth kext, whitelists the Mac board-id in the Wi-Fi kext, removes a legacy Wi-Fi kext plugin.
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
-* Uninstall: Rolls back any changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are reinstalled. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed and valid, to prevent potential booting issues with 3rd party tools or hardware.
+* Uninstall: Rolls back changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are reinstalled. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed and valid, to prevent potential booting issues with 3rd party tools or hardware.
 
-## Warning
-* You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk. Always use the latest version of the tool to avoid issues.
+##Warning
+* You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk.
+* Always use the latest version of the tool to avoid issues. See the changelog at the bottom to understand what was changed.
 * The tool disables the verification of original Apple drivers in order to work, which lowers the overall system security.
 
 ## Compatibility list
-Your Mac might require a hardware upgrade to be able to work with Continuity. See the chart below to understand what your Mac supports, and use the System Diagnostic feature of the Continuity Activation Tool for a compatibility check of your Mac.
-
-![Compatibility Chart](https://github.com/dokterdok/Continuity-Activation-Tool/blob/beta/CompatibilityChart-13.12.2014.png)
-
-Chart data sources: Feedback from >150 CAT 2.0 beta testers, feedback reported on this GitHub site, UncleSchnitty's [guide](http://forums.macrumors.com/showpost.php?p=20124161).
-
-**Pros of using USB BT4.0 dongles**: low cost, easy to install, easy to find on the market
-**Pros of using AirPort Extreme cards**: authentic Apple hardware, better support for Continuity features, doesn't occupy a USB slot
-
-### Bluetooth 4.0 USB dongles
-A few important notes about using CAT with USB Bluetooth 4.0 dongles:
-* Bluetooth 4.0 dongles based on the Cambridge Silicon Radio CSR8510 A10 chip (e.g. Inatek Nano) are not compatible with CAT.
-* The recommendation is to look for dongles based on the Broadcom BCM20702 chip, which are similar to the ones used by Apple in their Continuity compatible Macs. A few examples: Asus BT400, IOGEAR GBU521, GMYLE, and many others.
-* Instant Hotspot currently doesn't work reliably when using a dongle. This is a known issue, no workarounds have been identified yet.
-* Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active.
-
-### AirPort Express card upgrades
-
-The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please report them to the guide author and open an issue.
+Your Mac might need a hardware upgrade as well to be able to work with Continuity. The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please report them to the guide author and open an issue.
 
 Mac Model | Hardware change required | Software patch required (e.g. via this tool)
 :---|:---|:---
@@ -53,6 +37,8 @@ Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
 iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | No
 iMac 2012-2014 | No (works OTB) | No (works OTB)
 
+**The tool is currently not compatible with BT4 USB Dongles available on the market**, it only works with the right Apple wireless hardware.
+
 ## How to use it
 
 **From Finder**
@@ -63,39 +49,29 @@ iMac 2012-2014 | No (works OTB) | No (works OTB)
 
 **From the command line**
 
-Script location: ```Continuity Activation Tool.app/Contents/Resources/contitool.sh```
+The script can also be run right from the command line. It is located in Continuity Activation Tool.app/Contents/MacOS/contitool.sh
 
-Usage: ```contitool.sh -a | -d | -f | -h | -r | -z```
+Usage example: "sudo ./contitool.sh activate"
 
-Options:
-```
--a               run the compatibility checks and activation procedure
--d               run the system diagnostic procedure and quit
--f               force the activation procedure without compatibility checks
--h               display a help message and quit
--r               uninstall Continuity mods by directly using OS X recovery disk files
--z               uninstall Continuity mods
-```
+Script arguments: 
+* activate : Starts the activation procedure and does compatibility checks.
+* diagnostic : Starts the system compatibility diagnostic.
+* forceHack : Starts the activation procedure and skips compatibility checks.
+* uninstall : Starts the uninstallation
+* uninstallWithRecoveryDisk : Starts the uninstallation, but directly recovers kexts from the OS X Recovery Image
+
+When using the script from the command line, make sure you have the strings binary in the same directory as the script OR, if you have Apple's Command Line Tools installed, edit contitool.sh and set stringsPath="strings".
+
 
 ### Sources
-* [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
-* [Guide to enable Continuity manually (MacRumors Forum Thread)](http://forums.macrumors.com/showpost.php?p=20124161)
+* [Full guide to enable Continuity manually (MacRumors Forum Thread)](http://forums.macrumors.com/showpost.php?p=20124161)
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
+* [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
 
-This tool took a lot of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+This tool is taking me many days and nights of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks!
+[![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
 
 ### Changelog
-
-**v.2.0.0 - 2014.12.14**
-* Added compatibility with many older Macs when using a USB Bluetooth 4.0 dongle (see chart).
-* Added the ability to choose the admin user executing the tool ([#14](https://github.com/dokterdok/Continuity-Activation-Tool/issues/14))
-* Added new diagnostics, including a system wide Continuity activation check.
-* Added ability to run the System Diagnostic from the command line without admin privileges.
-* Improved the command line execution with new options.
-* Improved the diagnostic messages accuracy.
-* Fixed Gatekeeper issues preventing the app to be launched, by codesigning the app
-* Fixed an issue where OS X kext protection wasn’t disabled is some cases, leading to a loss of Wi-Fi / Bluetooth connectivity.
-* Optimisations and bug fixes.
 
 **v.1.1.2 - 2014.11.16**
 * Improved uninstallation reliability. It fixes a bug where the uninstaller could in some cases re-activate OS kext signature protection even if unsigned kexts are installed. Trim Enabler users should not use the uninstallation feature from prior versions to avoid risks of issues at boot-time.
@@ -119,7 +95,7 @@ This tool took a lot of research and coding. A small PayPal donation would be mu
 
 * Fixed a bug that prevented Handoff to be enabled in the System Preferences, even after a successful patch ([#21](https://github.com/dokterdok/Continuity-Activation-Tool/issues/21), [#22](https://github.com/dokterdok/Continuity-Activation-Tool/issues/22), [#31](https://github.com/dokterdok/Continuity-Activation-Tool/issues/31))
 * Added a backup step for freshly patched drivers, potentially useful if a future OS X update disables the patching methods ([#16](https://github.com/dokterdok/Continuity-Activation-Tool/issues/16))
-* Added a prompt in case existing backups are found, asking whether to overwrite the files or skip. Previous behavior was to silently overwrite.
+* Added a prompt in case existing backups are found, asking whether to overwrite the files or skip. Previous behaviour was to silently overwrite.
 * Removed the 13" MacBook Pro 2010 from the compatibility list ([#28](https://github.com/dokterdok/Continuity-Activation-Tool/issues/28), pull [#29](https://github.com/dokterdok/Continuity-Activation-Tool/pull/29))
 * Minor optimisations
 
@@ -137,11 +113,9 @@ This tool took a lot of research and coding. A small PayPal donation would be mu
 * Initial release
 
 ### Thanks
-* To the >150 CAT 2.0 beta testers
-* Skvo
-* toleda
 * Lem3ssie (LAUTRU Mehdi)
 * UncleSchnitty
+* Skvo
 * TealShark
 * Manic Harmonic
 * rob3r7o
