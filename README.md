@@ -1,7 +1,7 @@
 Continuity Activation Tool
 ==========================
 
-This tool makes the necessary changes to enable OS X 10.10 Continuity on compatible hardware. Continuity features activated by this tool include Application Handoff, Instant Hotspot, and Airdrop iOS<->OSX. 
+This tool makes the necessary changes to enable OS X 10.10 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop. 
 
 ## News - 2014.12.14
 
@@ -12,7 +12,7 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity on compati
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
-* Uninstall: Rolls back any changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are reinstalled. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed and valid, to prevent potential booting issues with 3rd party tools or hardware.
+* Uninstall: Rolls back any changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are reinstalled. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed and valid, to prevent potential boot time issues with 3rd party tools or hardware.
 
 ## Warning
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk. Always use the latest version of the tool to avoid issues.
@@ -34,7 +34,7 @@ A few important notes about using CAT with USB Bluetooth 4.0 dongles:
 * Bluetooth 4.0 dongles based on the Cambridge Silicon Radio CSR8510 A10 chip (e.g. Inatek Nano) are not compatible with CAT.
 * The recommendation is to look for dongles based on the Broadcom BCM20702 chip, which are similar to the ones used by Apple in their Continuity compatible Macs. A few examples: Asus BT400, IOGEAR GBU521, GMYLE, and many others.
 * Instant Hotspot currently doesn't work reliably when using a dongle. This is a known issue, no workarounds have been identified yet.
-* Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active. There are no workarounds and no patch is expected to change this, an AirPort card upgrade is required.
+* Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding a Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active. There are no workarounds and no patch is expected to change this, an AirPort card upgrade is required.
 
 ### AirPort Extreme card upgrades
 
