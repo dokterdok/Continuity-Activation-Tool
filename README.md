@@ -9,6 +9,8 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity features o
 
 **[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)**
 
+This tool took a lot of research and coding. A small PayPal donation would be much appreciated to support the maintenance and evolution of the app. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
@@ -32,7 +34,7 @@ Your Mac might require a hardware upgrade to be able to work with Continuity. Se
 ### Bluetooth 4.0 USB dongles
 A few important notes about using CAT with USB Bluetooth 4.0 dongles:
 * Bluetooth 4.0 dongles based on the Cambridge Silicon Radio CSR8510 A10 chip (e.g. Inatek Nano) are not compatible with CAT.
-* The recommendation is to look for dongles based on the Broadcom BCM20702 chip, which are similar to the ones used by Apple in their Continuity compatible Macs. A few examples: Asus BT400, IOGEAR GBU521, GMYLE, and many others.
+* The recommendation is to look for dongles based on the Broadcom BCM20702 chip, which are similar to the ones used by Apple in their Continuity compatible Macs. A few examples: Asus BT400, IOGEAR GBU521, GMYLE, and many others. Compatibility CSR dongles is not guaranteed.
 * Instant Hotspot currently doesn't work reliably when using a dongle. This is a known issue, no workarounds have been identified yet.
 * Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding a Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active. There are no workarounds and no patch is expected to change this, an AirPort card upgrade is required.
 
@@ -85,15 +87,13 @@ Options:
 * [Guide to enable Continuity manually (MacRumors Forum Thread)](http://forums.macrumors.com/showpost.php?p=20124161)
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
-This tool took a lot of research and coding. A small PayPal donation would be much appreciated to help with the maintenance and evolution of the app. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
-
 ### Changelog
 
 **v.2.0.0 - 2014.12.14**
 * Added compatibility with many older Macs when using a USB Bluetooth 4.0 dongle (see chart).
 * Added the ability to choose the admin user executing the tool ([#14](https://github.com/dokterdok/Continuity-Activation-Tool/issues/14))
 * Added new diagnostics, including a system wide Continuity activation check.
-* Added ability to run the System Diagnostic from the command line without admin privileges.
+* Added the ability to run the System Diagnostic from the command line without admin privileges.
 * Improved the command line execution with new options.
 * Improved the diagnostic messages accuracy.
 * Fixed Gatekeeper issues preventing the app to be launched, by codesigning the app
