@@ -47,7 +47,7 @@ Mac Model | Hardware change required | Software patch required (e.g. via this to
 MacBook Air late 2010 | Yes, new wireless card BCM94360CS2, see [here](https://github.com/dokterdok/Continuity-Activation-Tool/issues/41#issuecomment-66827305) | No
 MacBook Air mid 2011 | No | Yes
 MacBook Air 2012-2014 | No (works OTB) | No (works OTB)
-MacBook Pro early 2008 | Yes, new wireless card BCM94360CD + adapter | Yes
+MacBook Pro early 2008 (15" only) | Yes, new wireless card BCM94360CD + adapter | Yes
 MacBook Pro mid 2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX, see [guide](http://forums.macrumors.com/showpost.php?p=20269421&postcount=639) | Yes
 MacBook Pro early 2011 to late 2011 (all models) | Yes, new wireless card BCM94331PCIEBT4CAX | Yes
 MacBook Pro mid 2012 (non-retina) | No (works OTB)| No (works OTB)
