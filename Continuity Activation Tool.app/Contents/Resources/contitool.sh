@@ -1631,6 +1631,13 @@ function showUsage(){
 	echo "  -z               uninstall Continuity mods"
 }
 
+function launchedFromApp() {
+	GPPID=$(ps -fp $PPID | awk "/$PPID/"' { print $3 } ')
+	GGPPID=$(ps -fp $GPPID | awk "/$GPPID/"' { print $3 } ')
+	GGParent=$(ps -ocommand= -p $GGPPID | awk -F/ '{print $NF}' | awk '{print $1}')
+	return $([[ $GGParent =~ .*contitool\.sh.* ]])
+}
+
 #Displays the main menu and asks the user to select an option
 function displayMainMenu(){
 	displaySplash
@@ -1653,7 +1660,9 @@ function displayMainMenu(){
 				;;
 			'Quit')
 				displayThanks
-				osascript -e 'tell application "Terminal" to quit'
+				if launchedFromApp; then
+					osascript -e 'tell application "Terminal" to quit'
+				fi
 				exit;;
 			*)
 		 		echo "Invalid option, enter a number"
