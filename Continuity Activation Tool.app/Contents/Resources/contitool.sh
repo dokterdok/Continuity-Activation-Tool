@@ -1530,7 +1530,7 @@ function checkAndHack(){
 
 	initializeBackupFolders
 	modifyKextDevMode "enableDevMode"
-	#repairDiskPermissions
+	repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
 	patchBluetoothKext
 	patchWifiKext
