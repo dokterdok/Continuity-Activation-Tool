@@ -3,11 +3,12 @@ Continuity Activation Tool
 
 This tool makes the necessary changes to enable OS X 10.10 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop. 
 
-## News - 2014.12.14
+## News
 
-**Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
+* 2014.12.21 - **Continuity Activation Tool 2.0.1 released** : Improved reliability, mainly related to command line execution.
+* 2014.12.14 - **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
 
-**[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)**
+**[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)** (latest version)
 
 This tool took a lot of research and coding. A small PayPal donation would be much appreciated to support the maintenance and evolution of the app. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
 
@@ -89,6 +90,14 @@ Options:
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
 ### Changelog
+
+**v.2.0.1 - 2014.12.21**
+* Fixed: OS X version check typo corrected, which affected execution on case sensitive file systems ([#97](https://github.com/dokterdok/Continuity-Activation-Tool/issues/97))
+* Fixed: rare ioreg crash issue ([#100](https://github.com/dokterdok/Continuity-Activation-Tool/issues/100))
+* Fixed: running the script from the command line no longer kills Terminal when quitting ([#101](https://github.com/dokterdok/Continuity-Activation-Tool/pull/101))
+* Fixed: the ```-f | --forceHack``` command line option now correctly skips the Wi-Fi card device-id(s) injection check and Bluetooth blacklist check
+* Fixed: CAT utilities are now correctly detected when running the tool from the command line
+* Fixed: disk permissions repair is no longer silently skipped in some cases when forcing the activation
 
 **v.2.0.0 - 2014.12.14**
 * Added compatibility with many older Macs when using a USB Bluetooth 4.0 dongle (see chart).

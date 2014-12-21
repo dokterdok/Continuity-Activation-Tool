@@ -15,12 +15,12 @@
 #
 # 
 
-hackVersion="2.0.0"
+hackVersion="2.0.1 beta"
 
 #---- PATH VARIABLES ------
 
 #APP PATHS
-appDir=$(dirname "$0")
+appDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 continuityCheckUtilPath="$appDir/sfDeviceSupportsContinuity"
 backupFolderNameBeforePatch="KextsBackupBeforePatch" #kexts backup folder name, where the original untouched kexts should be placed
 backupFolderNameAfterPatch="KextsBackupAfterPatch" #kexts backup folder name, where the patched kexts should be placed, after a successful backup
@@ -56,7 +56,7 @@ hdiutilPath="/usr/bin/hdiutil"
 headPath="/usr/bin/head"
 hexdumpPath="/usr/bin/hexdump"
 ifconfigPath="/sbin/ifconfig"
-ioregPath="/usr/sbin/ioreg"
+ioregPath="/usr/sbin/ioreg -d 14" #limited to a depth of 14 levels to avoid crashes in rare cases
 kextcachePath="/usr/sbin/kextcache"
 kextstatPath="/usr/sbin/kextstat"
 killallPath="/usr/bin/killall"
@@ -113,7 +113,6 @@ usbBinaryPatchReplaceWith=$(echo ${usbBinaryPatchReplaceWithEscaped} | $trPath -
 #Verifies the presence of the strings binary, necessary to run many checks and patches
 #The 'strings' binutil used with the tool comes from the 'Apple Command Line Utilities' package
 function verifyStringsUtilPresence() {
-		#verify if the Brcm4360 binary exists
 	if [ ! -f "${stringsPath}" ]; then
 		
 		tput clear
@@ -133,7 +132,7 @@ function verifyStringsUtilPresence() {
 function isMyMacOSCompatible() {	
 	echo -n "Verifying OS X version...               "
 	local osVersion=$(sw_vers -productVersion)
-	local buildVersion=$(sw_Vers -buildVersion)
+	local buildVersion=$(sw_vers -buildVersion)
 	local minVersion=10
 	local subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
 	
@@ -655,7 +654,7 @@ function displayBluetoothDonglePrompt(){
 	
 	echo ""
 	echo "If you want to activate Continuity using a USB Bluetooth 4.0 dongle,"
-	echo "then plug-it in now. The script will continue once it's detected."
+	echo "then unplug it and plug it in now. The script will continue once it's detected."
 	echo ""
 
 	if [ -t 0 ]; then stty -echo -icanon -icrnl time 0 min 0; fi
@@ -914,7 +913,7 @@ function activateContinuityFeatureFlags(){
 }
 
 
-#Sets the legacy Broadcom BCM94322 device-id, as well as the Brcm43224 device ids, in the AirPortBrcm4360.kext plugin. Those cards are found in older MacBooks for example.
+#Injects the legacy Broadcom device-id(s) (declared in the global variable legacyBrcmCardIds) in the AirPortBrcm4360.kext plugin. Those cards are found in older MacBooks for example.
 function enableLegacyWifi(){
 
 	echo -n "Applying legacy Wi-Fi card patch...     "
@@ -926,7 +925,7 @@ function enableLegacyWifi(){
 		local output=$("$plistBuddyPath" -c "Print IOKitPersonalities:'Broadcom 802.11 PCI':IONameMatch:0" "$wifiKextPath/Contents/PlugIns/$wifiBrcmKextFilename/Contents/Info.plist") >> /dev/null 2>&1
 		legacyWifiAlreadyEnabled=$(containsElement "$output" "${legacyBrcmCardIds[@]}"; echo $?;)
 
-		if [ "$legacyWifiAlreadyEnabled" == "1" ]; then
+		if [ "$legacyWifiAlreadyEnabled" == "1" -a "$forceHack" == "0" ]; then
 		
 			#entry found
 			echo -e "\rSkipping legacy Wi-Fi cards patch...    OK";
@@ -1295,7 +1294,7 @@ function rebootPrompt(){
 
 #Silently repairs the disk permissions using the Disk Utility. Takes a few minutes.
 function repairDiskPermissions(){
-	sudo $diskutilPath repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
+	$diskutilPath repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
 	echo -e "\rFixing disk permissions...              OK"
 }
 
@@ -1478,7 +1477,6 @@ function verboseCompatibilityCheck(){
 	isMyMacBoardIdCompatible "verbose"
 	isMyMacOSCompatible "verbose"
 	areMyActiveWifiDriversOk "verbose"
-	#isMyAirPortCardALegacyBroadcom "verbose"
 	isAwdlActive "verbose"
 	isABluetoothDongleActive "verbose"
 	isMyBluetoothVersionCompatible "verbose"
@@ -1512,6 +1510,7 @@ function checkAndHack(){
 		compatibilityPrecautions 
 	else
 		doDonglePatch="1"
+		myMacIsBlacklisted="1"
 	fi
 
 	echo ""
@@ -1531,14 +1530,13 @@ function checkAndHack(){
 
 	initializeBackupFolders
 	modifyKextDevMode "enableDevMode"
-	repairDiskPermissions
+	#repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
 	patchBluetoothKext
 	patchWifiKext
 	removeObsoleteWifiDriver
 	enableLegacyWifi
 	initiateDonglePatch
-	applyPermissions
 	updatePrelinkedKernelCache
 	updateSystemCache
 	backupKexts "${backupFolderAfterPatch}"
@@ -1598,21 +1596,11 @@ function applyTerminalTheme(){
 	osascript -e 'tell application "Terminal" to activate'
 }
 
-#Verifies if the current user belongs to the admin group, otherwise warns the user and quits the script. Clears the screen after execution
-function veryifyAdminGroup(){
-	currentUserGroups=($(/usr/bin/id -G -n $(/usr/bin/id -un)))
-	result=$(containsElement "admin" "${currentUserGroups[@]}"; echo $?;)
-	if [ $result = "1" ]; then
+#Verifies if the script is run with sudo privileges otherwise warns the user and quits the script. Clears the screen after execution
+function verifySudoPrivileges(){
+	if [[ -z "$SUDO_COMMAND" ]]; then
 		echo ""
-		echo "You must run this script with admin privileges, please enter your password."
-		echo ""
-		sudo echo -n ""
-		tput clear
-	else
-		currentUser=$(/usr/bin/id -un)
-		echo ""
-		echo "The current user '${currentUser}' doesn't have the admin privileges required to launch the Continuity Activation Tool."
-		echo "You need admin privileges to run this tool. Aborting."
+		echo "You must run this script with admin privileges, please re-run the script with sudo. Aborting."
 		echo ""
 		exit;
 	fi
@@ -1673,20 +1661,20 @@ function displayMainMenu(){
 
 if [ $# -eq 0 ]; then 
 	applyTerminalTheme
-	veryifyAdminGroup
+	verifySudoPrivileges
 	verifyStringsUtilPresence
 	displayMainMenu
 else
 	while [ "$1" != "" ]; do
 	    case $1 in
-	        -a | --activate )       		veryifyAdminGroup
+	        -a | --activate )       		verifySudoPrivileges
 											verifyStringsUtilPresence
 											checkAndHack
 	                                		;;
 	        -d | --diagnostic )     		verifyStringsUtilPresence
 											verboseCompatibilityCheck
 	                                		;;
-	        -f | --forceHack )				veryifyAdminGroup
+	        -f | --forceHack )				verifySudoPrivileges
 											verifyStringsUtilPresence
 											forceHack=1
 											checkAndHack
@@ -1694,12 +1682,12 @@ else
 	        -h | --help )           		showUsage
 	                                		exit
 	                                		;;
-			-r | --uninstallWithRecovery )  veryifyAdminGroup
+			-r | --uninstallWithRecovery )  verifySudoPrivileges
 											verifyStringsUtilPresence
 											forceRecoveryDiskBackup=1
 											uninstall
 											;;
-	        -z | --uninstall )				veryifyAdminGroup
+	        -z | --uninstall )				verifySudoPrivileges
 											verifyStringsUtilPresence
 											uninstall
 											;;
