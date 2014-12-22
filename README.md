@@ -92,7 +92,7 @@ Options:
 ### Changelog
 
 **v.2.0.1 - 2014.12.21**
-* Fixed: OS X version check bug, which affected execution on case sensitive file systems ([#97](https://github.com/dokterdok/Continuity-Activation-Tool/issues/97))
+* Fixed: OS X version check bug, which affected execution on case sensitive file systems ([#96](https://github.com/dokterdok/Continuity-Activation-Tool/issues/96))
 * Fixed: rare ioreg crash issue ([#100](https://github.com/dokterdok/Continuity-Activation-Tool/issues/100))
 * Fixed: running the script from the command line no longer kills Terminal when quitting ([#101](https://github.com/dokterdok/Continuity-Activation-Tool/pull/101))
 * Fixed: the ```-f | --forceHack``` command line option now correctly skips the Wi-Fi card device-id(s) injection check and Bluetooth blacklist check
