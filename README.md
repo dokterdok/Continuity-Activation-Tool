@@ -5,7 +5,7 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity features o
 
 ## News
 
-* **2014.12.21 - v.2.0.1 released** : Improved reliability, mainly related to command line execution. [Changelog](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta#changelog).
+* **2014.12.23 - v.2.0.1 released** : Improved USB Bluetooth dongle detection and command line execution. [Changelog](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta#changelog).
 * **2014.12.14 - v.2.0.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
 
 **[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)** (latest version)
@@ -92,12 +92,12 @@ Options:
 ### Changelog
 
 **v.2.0.1 - 2014.12.21**
-* Fixed: OS X version check bug, which affected execution on case sensitive file systems ([#96](https://github.com/dokterdok/Continuity-Activation-Tool/issues/96))
-* Fixed: rare ioreg crash issue ([#100](https://github.com/dokterdok/Continuity-Activation-Tool/issues/100))
-* Fixed: running the script from the command line no longer kills Terminal when quitting ([#101](https://github.com/dokterdok/Continuity-Activation-Tool/pull/101))
+* Improved USB Bluetooth dongle detection([#103](https://github.com/dokterdok/Continuity-Activation-Tool/issues/103))
+* Fixed an OS X version check bug, which affected execution on case sensitive file systems ([#96](https://github.com/dokterdok/Continuity-Activation-Tool/issues/96))
+* Fixed a rare ioreg crash issue ([#100](https://github.com/dokterdok/Continuity-Activation-Tool/issues/100))
+* Fixed a command line issue which quit the Terminal when quitting the script ([#101](https://github.com/dokterdok/Continuity-Activation-Tool/pull/101))
 * Fixed: the ```-f | --forceHack``` command line option now correctly skips the Wi-Fi card device-id(s) injection check and Bluetooth blacklist check
-* Fixed: CAT utilities are now correctly detected when running the tool from the command line
-* Fixed: disk permissions repair is no longer silently skipped in some cases when forcing the activation
+* Minor optimisations and bug fixes
 
 **v.2.0.0 - 2014.12.14**
 * Added compatibility with many older Macs when using a USB Bluetooth 4.0 dongle (see chart).

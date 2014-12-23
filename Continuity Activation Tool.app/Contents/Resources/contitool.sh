@@ -651,44 +651,81 @@ function isMyMacBlacklisted(){
 function displayBluetoothDonglePrompt(){
 	displaySplash
 
-	
 	echo ""
 	echo "If you want to activate Continuity using a USB Bluetooth 4.0 dongle,"
-	echo "then unplug it and plug it in now. The script will continue once it's detected."
+	echo "then unplug it and plug it in now. The script will continue once it is detected."
 	echo ""
 
 	if [ -t 0 ]; then stty -echo -icanon -icrnl time 0 min 0; fi
 	
 	#detect the dongle presence 
-	local donglePluggedIn=$(quietDongleDetection)
+	local donglePluggedIn=$(isABluetoothDongleActive)
 	local keypress=''
 	while [ "$keypress" = '' -a "$donglePluggedIn" -eq "0" ]; do
-  		echo -ne "\rPress any key to continue without a USB Bluetooth 4.0 dongle..."
+  		echo -ne "\rPress ENTER to continue without a USB Bluetooth 4.0 dongle..."
   		read keypress
-  		donglePluggedIn=$(quietDongleDetection)
+  		donglePluggedIn=$(isABluetoothDongleActive)
 	done
 	if [ -t 0 ]; then stty sane; fi
 	echo ""
 }
 
+#Verifies if a USB Bluetooth dongle is active by comparing the internal Bluetooth controller info with the active Bluetooth controller info. This info is retrieved from the PRAM.
+#The function returns 1 if different internal and external Bluetooth controllers are detected (as expeted when a Dongle is plugged), 0 if it's the same (e.g. MacBook without a dongle).
+#This function temporally sets the nvram bluetoothHostControllerSwitchBehavior to always, forcing plugged in dongles to be detected, then sets it back to its original state after the status check.
+#Optional parameter: "verbose", which displays a status message for the diagnostic.
+function isABluetoothDongleActive(){
 
-#Returns 1 if different internal and external Bluetooth controllers are detected (typical if a Dongle is plugged), 0 if it's the same (e.g. MacBook without a Dongle)
-#This function is similar to the isABluetoothDongleActive function
-function quietDongleDetection(){
+	if [ "$1" == "verbose" ]; then
+		echo -n "Verifying Bluetooth hardware...         "
+	fi
 
-	local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | awk -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
-	local activeBtControllerId=$($nvramPath -p | $grepPath "bluetoothActiveControllerInfo" | awk -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
+	local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
+	local activeBtControllerId=$($nvramPath -p | $grepPath "bluetoothActiveControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
 
+	local currentSwitchSetting=""
+
+	#temporarily set the agressive dongle detection
+	if [[ $($nvramPath -p | $grepPath bluetoothHostControllerSwitchBehavior) == "" ]]; then
+		sudo $nvramPath bluetoothHostControllerSwitchBehavior="always"
+	else 
+		#save the current switch behavior
+		currentSwitchSetting=$($nvramPath -p | $grepPath bluetoothHostControllerSwitchBehavior | $awkPath -F' ' '{print $2}')
+		sudo $nvramPath bluetoothHostControllerSwitchBehavior="always"
+	fi
+
+	#return the dongle status
 	if [ ! -z "${internalBtControllerId}" -a ! -z "${activeBtControllerId}" ]; then
 		if [ "${internalBtControllerId}" != "${activeBtControllerId}" ]; then
-			echo "1" #found a 3rd party dongle
+			
+			#found a 3rd party dongle, different from the internal controller
+			if [ "$1" != "verbose" ]; then echo "1";
+			else 
+				echo "OK. 3rd party Bluetooth hardware detected"; 
+			fi
 		else
-			echo "0"
+
+			#the active bluetooth controller is the internal one
+			if [ "$1" != "verbose" ]; then echo "0";
+			else echo "OK. The internal Bluetooth card is active"; fi
 		fi
 	else
-		echo "0"
+		#error: at least one of the Bluetooth Host Controller's info variable wasn't set in the PRAM
+		if [ "$1" != "verbose" ]; then echo "0";
+		else echo "WARNING. No Bluetooth controller references were found in the PRAM, dongles can't be detected."; fi
 	fi
+
+	#rollback the controllerSwitchBehavior to the initial state
+	if [ -z "$currentSwitchSetting" ]; then
+		#the switch behavior was not set before, go back to that state
+		sudo $nvramPath -d bluetoothHostControllerSwitchBehavior
+	else 
+		#the switch behavior was set before, go back to whatever was set
+		sudo $nvramPath bluetoothHostControllerSwitchBehavior="$currentSwitchSetting"
+	fi	
+
 }
+
 
 #Silent helper funcition that determines whether patching the file is appropriate
 #Returns: 1 if the patch should happen, 0 if not
@@ -828,33 +865,6 @@ function verifyFwVersion(){
 		else echo "WARNING. No Bluetooth Firmware version could be found"; fi
 	fi
 }
-
-#Verifies if a USB Bluetooth dongle is active by comparing the internal Bluetooth controller id with the active Bluetooth controller id
-#Parameters: "verbose", which displays a status message.
-function isABluetoothDongleActive(){
-
-	echo -n "Verifying Bluetooth hardware...         "
-
-	local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | awk -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
-	local activeBtControllerId=$($nvramPath -p | $grepPath "bluetoothActiveControllerInfo" | awk -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
-
-	if [ ! -z "${internalBtControllerId}" -a ! -z "${activeBtControllerId}" ]; then
-		if [ "${internalBtControllerId}" == "${activeBtControllerId}" ]; then
-			
-			if [ "$1" != "verbose" ]; then echo "OK";
-			else echo "OK. The internal Bluetooth card is active"; fi
-		else
-			if [ "$1" != "verbose" ]; then echo "OK";
-			else 
-				echo "OK. 3rd party Bluetooth hardware detected"; 
-			fi
-		fi
-	else
-		if [ "$1" != "verbose" ]; then echo "WARNING: Could not detect Bluetooth hardware";
-		else echo "WARNING: Could not detect Bluetooth hardware."; fi
-	fi
-}
-
 
 #Verifies if the USB Dongle patch has already been applied
 function verifyFeatureFlagsPatch(){
@@ -1636,8 +1646,16 @@ function displayMainMenu(){
 	do
 		case $opt in
 			'Activate Continuity') 
-				displayBluetoothDonglePrompt
-				checkAndHack
+				if [[ $(verifySystemWideContinuityStatus) != "1" ]]; then 
+					displayBluetoothDonglePrompt
+					checkAndHack
+				else
+					displaySplash
+					echo ""
+					echo "OS X reports Continuity as active."
+					echo "No changes were applied."
+					backToMainMenu
+				fi
 				;;
 			'System Diagnostic')
 				verboseCompatibilityCheck
