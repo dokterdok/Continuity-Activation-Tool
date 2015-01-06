@@ -82,6 +82,16 @@ Options:
 -r               uninstall Continuity mods by directly using OS X recovery disk files
 -z               uninstall Continuity mods
 ```
+### Troubleshooting
+
+If you run into issues:
+
+1. Make sure you understand the known limitations by reading the sections above carefully
+2. Go through the official Continuity [troubleshooting steps](http://support.apple.com/kb/TS5458)
+3. Search for similar issues in the [issues section](https://github.com/dokterdok/Continuity-Activation-Tool/issues?q=is%3Aissue) or on [forums](http://forums.macrumors.com/showpost.php?p=20124161), a solution to your problem might exist already
+4. Create a [new issue](https://github.com/dokterdok/Continuity-Activation-Tool/issues/new) and include a description of the problem, the steps to reproduce it, and a System Diagnostic copy/paste from the latest version of the tool.
+
+Developers are more than welcome to contribute with bug fixes or improvements. In that case please upload changes to the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta).
 
 ### Sources
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
@@ -149,3 +159,6 @@ Options:
 * TealShark
 * Manic Harmonic
 * rob3r7o
+
+
+David Dudok de Wit (dokterdok)
