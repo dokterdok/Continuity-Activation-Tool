@@ -133,7 +133,7 @@ function verifyStringsUtilPresence() {
 function isMyMacOSCompatible() {	
 	echo -n "Verifying OS X version...               "
 	local osVersion=$(sw_vers -productVersion)
-	local buildVersion=$(sw_Vers -buildVersion)
+	local buildVersion=$(sw_vers -buildVersion)
 	local minVersion=10
 	local subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
 	
