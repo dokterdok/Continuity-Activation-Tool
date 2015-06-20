@@ -21,7 +21,7 @@ hackVersion="2.1 beta"
 
 #APP PATHS
 appDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-continuityCheckUtilPath="$appDir/sfDeviceSupportsContinuity"
+continuityCheckUtilPath="$appDir/continuityCheck.app/Contents/MacOS/continuityCheck"
 backupFolderNameBeforePatch="KextsBackupBeforePatch" #kexts backup folder name, where the original untouched kexts should be placed
 backupFolderNameAfterPatch="KextsBackupAfterPatch" #kexts backup folder name, where the patched kexts should be placed, after a successful backup
 backupFolderBeforePatch="" #the full path to this backup folder is initialized by the initializeBackupFolders function
@@ -1134,12 +1134,11 @@ function hasTheLegacyWifiPatchBeenApplied(){
 }
 
 
-#Uses a command-line binary that checks the SFDeviceSupportsContinuity flag, used in Apple's Sharing private framework
+#Uses a app that checks the SFDeviceSupportsContinuity flag, used in Apple's Sharing private framework
 #This is indicator is used by System Report to determine whether Handoff and Instant Hotspot are active,
 #meaning that it should be a reliable indicator of Continuity's status system wide
 #This function return 1 if Continuity is active, 0 if not, -1 if there's an error
 function verifySystemWideContinuityStatus(){
-
 	#verify utility file presence
 	$duPath -hs "$continuityCheckUtilPath" >> /dev/null 2>&1
 	local error=$?
@@ -1147,16 +1146,12 @@ function verifySystemWideContinuityStatus(){
 		if [ "$1" == "verbose" ]; then echo -n "Verifying Continuity status...          "; fi
 
 		#call the utility to check system wide Continuity status
-		local doesSupportContinuity=$("$continuityCheckUtilPath") >> /dev/null 2>&1
-
-		if [ "$?" == "0" -a ! -z "$doesSupportContinuity" ]; then
-			if [ "$doesSupportContinuity" == "1" ]; then
-				if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as active"; else echo "1"; fi
-			else
-				if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as inactive"; else echo "0"; fi
-			fi
+		"$continuityCheckUtilPath" >> /dev/null 2>&1
+		local result=$?
+		if [ "$result" == "1" ]; then
+			if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as active"; else echo "1"; fi
 		else
-			if [ "$1" == "verbose" ]; then echo "NOT OK. There was an internal error when running the check."; else echo "-1"; fi
+			if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as inactive"; else echo "0"; fi
 		fi
 	else
 		if [ "$1" == "verbose" ]; then echo "NOT OK. The utility necessary for the check was not found"; else echo "-1"; fi
