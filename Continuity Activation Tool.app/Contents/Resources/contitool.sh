@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.0.1 beta"
+hackVersion="2.1 beta"
 
 #---- PATH VARIABLES ------
 
@@ -159,7 +159,25 @@ function isMyMacOSCompatible() {
 						esac
 					done
 				else
-					echo "Warning: This tool wasn't tested with OS X versions higher than 10.10. Detected OS version: ${osVersion}"
+					echo "Warning: This version of Mac OS X (${osVersion}) is Experimental! Only partially tested on DP1"
+				fi
+			else 
+				if [ "$subVersion" -gt "$minVersion" ]; then
+					if [ "$1" != "verbose" ]; then 
+						echo "Warning: This tool wasn't tested on OS X versions higher than 10.10. Detected OS version: ${osVersion}"
+						echo "Are you sure you want to continue?"
+						select yn in "Yes" "No"; do
+							case $yn in
+								Yes) #continue
+									break;;
+								No) echo "Aborting.";
+									backToMainMenu;;
+								*) echo "Invalid option, enter a number";;
+							esac
+						done
+					else
+						echo "Warning: This tool wasn't tested with OS X versions higher than 10.10. Detected OS version: ${osVersion}"
+					fi
 				fi
 			fi
 		fi
@@ -341,8 +359,8 @@ function isMyMacModelCompatible(){
 #Verifies if the active Bluetooth chip is compatible, by checking if the LMP version is 6
 function isMyBluetoothVersionCompatible(){
 	echo -n "Verifying Bluetooth version...          "
-
-	local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}')
+	
+	local lmpVersion=$($ioregPath -l | $grepPath -m 1 "LMPVersion" | $awkPath -F' = ' '{print $2}')
 
 	if [ ! "${lmpVersion}" == "" ]; then
 		if [ "${lmpVersion}" == "6" ]; then
@@ -503,6 +521,107 @@ function modifyKextDevMode(){
 	fi
 }
 
+function modifyRootless(){
+	
+	local modificationAction="$1"
+	local sedRegEx #regex that can be used to remove the "kext-dev-mode" variable from the boot-args
+	local longSedRegEx #regex that can be used to remove the "-kext-dev-mode" variable from the boot-args. It includes a dash at the beginning.
+
+	#Sanitize the inputs and display the relevent the info message
+	if [ -z "$1" ]; then
+    	echo "Internal error: no OS Kext Protection input argument given. Aborting."; backToMainMenu;
+    else
+		if [ "${modificationAction}" == "enableRootless" ]; then 
+			echo -n "Enabling Rootless security...";
+			longSedRegEx="s#\.*-rootless=0##g;"
+			sedRegEx="s#\.*rootless=0##g" #this rootless string will be removed if it exists
+			okToDisable="1"
+		else 
+			if [ "${modificationAction}" == "disableRootless" ]; then 
+				echo "Are you sure You can to disable Rootless?";
+				select yn in "Yes" "No"; do
+							case $yn in
+								Yes) #continue
+									break;;
+								No) echo "Aborting.";
+									backToMainMenu;;
+								*) echo "Invalid option, enter a number";;
+							esac
+						done
+				echo -n "Disabling OS kext protection...         "
+				longSedRegEx="s#\.*-rootless=1##g"
+				sedRegEx="s#\.*rootless=1##g" #this rootless string will be removed if it exists
+			else echo "Internal error: unknown OS Kext Protection input argument given. Aborting."; backToMainMenu;
+			fi
+		fi
+	fi
+
+	#Check if boot-args variable is set
+	sudo $nvramPath boot-args >> /dev/null 2>&1
+	local bootArgsResult=$?
+	if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
+	
+		#Get the boot-args variable value(s)
+		bootArgsResult=$(sudo $nvramPath boot-args)
+		bootArgsResult=${bootArgsResult:10} #remove boot-args declaration, necessary later
+
+		#Check if rootless is disabled
+		sudo $nvramPath boot-args | $grepPath -F "rootless=0" >> /dev/null 2>&1
+		local rootlessResult=$?
+		if [ $rootlessResult -eq 0 ]; then 
+
+			if [ "${modificationAction}" == "enableRootless" ]; then
+					#Rootless will be removed from the boot-args
+					local strippedBootArgs=$(echo "${bootArgsResult}" | $sedPath "${longSedRegEx}")
+					strippedBootArgs=$(echo "${strippedBootArgs}" | $sedPath "${sedRegEx}")
+					sudo $nvramPath boot-args="${strippedBootArgs}"
+					echo "OK. The Rootless security was reenabled"
+			else
+				echo "OK" #do nothing, rootless was already disabled, as wanted
+			fi
+		else
+			#Verify if the rootless is declared as enabled (rare, by default this variable is not set by OS X)
+			sudo $nvramPath boot-args | $grepPath -F "rootless=1" >> /dev/null 2>&1
+			rootlessResult=$?
+			if [ $rootlessResult -eq 0 ]; then 
+
+				#Dev mode is declared as unset
+				if [ "${modificationAction}" == "disableRootless" ]; then
+
+					#Rootless will be disabled, previous rootless variable is stripped first
+					local strippedBootArgs=$(echo "${bootArgsResult}" | $sedPath "${longSedRegEx}")
+					strippedBootArgs=$(echo "${strippedBootArgs}" | $sedPath "${sedRegEx}")
+					sudo $nvramPath boot-args="${strippedBootArgs} rootless=0"
+
+					#Prompt to reboot now
+					echo "OK"
+				else
+					echo "OK. Rootless was already enabled.." #rootless was already enabled, as wanted.
+				fi
+			else
+				#No rootless variable set
+				if [ "${modificationAction}" == "disableRootless" ]; then
+					#Disable Rootless
+					sudo $nvramPath boot-args="${bootArgsResult} rootless=0"
+					#Prompt to reboot now
+					echo "OK"
+				else 
+					#Do nothing, rootless already enabled
+					echo "OK. Rootless was already enabled"
+				fi	
+			fi
+		fi
+	else
+		#No boot-args are set at all. Only set them in the PRAM if it needs to be activated.
+		if [ "${modificationAction}" == "disableRootless" ]; then
+			sudo $nvramPath boot-args="rootless=0"
+			echo "OK"
+		else
+			echo "OK. Rootless was already enabled!" #do nothing, rootless is enabled, as wanted
+		fi
+	fi
+}
+
 #Verifies if the kext developer mode is active. No changes are applied to the PRAM here.
 function verifyOsKextDevMode(){
 	echo -n "Verifying OS kext protection...         "
@@ -527,6 +646,38 @@ function verifyOsKextDevMode(){
 		#No boot-args are set at all
 		if [ "$1" != "verbose" ]; then echo "OK";
 		else echo "OK. Kext developer mode is not active. This tool can fix this."; fi
+	fi
+}
+
+function verifyOSRootless(){
+	echo -n "Verifying Rootless protection...        "
+
+	#Check if boot-args variable is set
+	$nvramPath boot-args >> /dev/null 2>&1
+	local bootArgsResult=$?
+	if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
+
+		#Verify if Rootless=0 is set aka Rootless disabled
+		$nvramPath boot-args | $grepPath -F "rootless=0" >> /dev/null 2>&1
+		local rootlessResult=$?
+		if [ $rootlessResult -eq 0 ]; then #Rootless is disabled
+			if [ "$1" != "verbose" ]; then echo "OK"; 
+			else echo "Ok. Rootless is already disabled"; fi
+		else
+			$nvramPath boot-args | $grepPath -F "rootless=1" >> /dev/null 2>&1
+			local rootlessResult=$?
+			if [ $rootlessResult -eq 0 ]; then #Rootless is enabled
+				if [ "$1" != "verbose" ]; then echo "OK"; 
+				else echo "Ok. Rootless is enabled. This tool will disable Rootless"; fi
+			else 
+				echo "Ok. Rootless is enabled. This tool will disable Rootless";	
+			fi
+		fi	
+	else
+
+		#No boot-args are set at all
+		if [ "$1" != "verbose" ]; then echo "OK";
+		else echo "OK. Rootless is still active. This tool will disable Rootless1."; fi
 	fi
 }
 
@@ -638,7 +789,7 @@ function isMyMacBlacklisted(){
 			else
 				if [ "$1" != "verbose" ]; then echo "OK";
 				else echo "OK. Warning: Blacklist not found in the Bluetooth drivers. An OS X update might have made this hack useless."
-					 echo "                                           However, your Mac model shouldn't need to be removed from that blacklist."; fi					
+					 echo "                                        However, your Mac model shouldn't need to be removed from that blacklist."; fi					
 			fi
 		fi
     fi
@@ -797,7 +948,7 @@ function disableBthcSwitchBehavior()
 function areMyBtFeatureFlagsCompatible(){
 	echo -n "Verifying Bluetooth features...         "
 
-	local featureFlags=$($ioregPath -l | $grepPath "FeatureFlags" | $awkPath -F' = ' '{print $2}')
+	local featureFlags=$($ioregPath -l | $grepPath -m 1 "FeatureFlags" | $awkPath -F' = ' '{print $2}')
 
 	if [ ! "${featureFlags}" == "" ]; then
 		if [ "${featureFlags}" == "15" ]; then
@@ -1459,6 +1610,7 @@ function compatibilityPrecautions(){
 	displaySplash
 	echo '--- Initiating system compatibility check ---'
 	echo ''
+	verifyOSRootless
 	initializeBackupFolders
 	isMyMacModelCompatible
 	isMyMacBoardIdCompatible
@@ -1495,6 +1647,7 @@ function verboseCompatibilityCheck(){
 	echo ''
 	echo '--- Modifications check ---'
 	verifyOsKextDevMode "verbose"
+	verifyOSRootless "verbose"
 	canMyKextsBeModded "verbose"
 	isMyMacBlacklisted "verbose"
 	isMyMacWhitelisted "verbose"
@@ -1540,6 +1693,7 @@ function checkAndHack(){
 
 	initializeBackupFolders
 	modifyKextDevMode "enableDevMode"
+	modifyRootless "disableRootless"
 	repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
 	patchBluetoothKext
@@ -1557,6 +1711,7 @@ function checkAndHack(){
 	echo "3) On iOS go to SETTINGS> GENERAL> HANDOFF & SUGGESTED APPS> and ENABLE HANDOFF."
 	echo "4) On OS X, sign out and then sign in again to your iCloud account."
 	echo "Troubleshooting: support.apple.com/kb/TS5458"
+	echo "After verifying that Continuity works, you can come back and reenable Rootless.";
 	displayThanks
 	rebootPrompt
 }
@@ -1585,6 +1740,7 @@ function displaySplash(){
 	tput clear
 	echo "--- OS X Continuity Activation Tool ${hackVersion} ---"
 	echo "                 by dokterdok                 "
+	echo "           modded for 10.11 DP1 by r4ndy      "
 	echo ""	
 }
 
@@ -1641,7 +1797,7 @@ function displayMainMenu(){
 	displaySplash
 	echo "Select an option:"
 	echo ""
-	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Quit")
+	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Enable Rootless" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
@@ -1663,6 +1819,9 @@ function displayMainMenu(){
 				;;
 			'Uninstall') 
 				uninstall
+				;;
+			'Enable Rootless') 
+				modifyRootless "enableRootless"
 				;;
 			'Quit')
 				displayThanks
