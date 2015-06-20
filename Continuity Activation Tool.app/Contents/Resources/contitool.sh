@@ -91,7 +91,7 @@ nbOfInvalidKexts=""
 macCompatibilityList=("iMac10,1" "iMac11,1" "iMac11,2" "iMac11,3" "iMac12,1" "iMac12,2" "iMac13,2" "iMac14,2" "iMac7,1" "iMac9,1" "MacPro5,1" "MacBook5,1" "MacBook5,2" "MacBook6,1" "MacBook7,1" "MacBookAir3,1" "MacBookAir3,2" "MacBookAir4,1" "MacBookAir6,1" "MacBookPro11,1" "MacBookPro5,1" "MacBookPro5,2" "MacBookPro5,3" "MacBookPro5,4" "MacBookPro5,5" "MacBookPro6,1" "MacBookPro6,2" "MacBookPro7,1" "MacBookPro8,1" "MacBookPro8,2" "MacBookPro8,3" "MacBookPro9,2" "Macmini3,1" "Macmini4,1" "MacPro3,1" "MacPro4,1") #Macs that were tested successfully (may require a hardware upgrade) 
 blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 legacyBrcmCardIds=("pci14e4,432b") #includes the legacy broadcom AirPort card pci identifiers from the Brcm4331 kext. Additional brcm pci identifiers can be injected in this array for compatibility tests.
-
+autoCheckAppEnabled="0" #automatically set to 1 if the login item for the Continuity Check app is present.
 
 #---- CAT 2 Binary patches ----
 #3rd party BT 4.0 patchfor IOBluetoothFamily, working with OS X 10.10.0 and 10.10.1
@@ -1454,6 +1454,51 @@ function repairDiskPermissions(){
 	echo -e "\rFixing disk permissions...              OK"
 }
 
+function autoCheckApp(){
+	if [ -z "$1" ]; then
+    	echo "Internal error: No login item argument given."; backToMainMenu;
+    else
+    	if [ "$1" == "enable" ]; then
+			echo "Do you want to enable a Automatic check for Continuity each boot?";
+			select yn in "Yes" "No"; do
+				case $yn in
+					Yes) #continue
+						break;;
+					No) echo "OK.";
+						return;;
+					*) echo "Invalid option, enter a number";;
+				esac
+			done
+			osascript -e 'tell application "System Events" to make login item at end with properties {path:"$appDir/continuityCheck.app", hidden:false}'  > /dev/null
+			echo "OK. Automatic continuity check enabled."
+		else
+			if [ "$1" == "disable" ]; then
+				osascript -e 'tell application "System Events" to delete login item "continuityCheck"' > /dev/null
+				echo "OK. Automatic continuity check disabled."	
+			else 
+				echo "Internal error: Wrong login item argument given."
+			fi
+		fi
+	fi				
+}
+
+
+function checkLoginItem(){
+	echo -n "Verifying Login Item...                 "
+	result="$(osascript -e 'tell application "System Events" to return the name of every login item')" >> /dev/null 2>&1
+	if [[ $result == *"continuityCheck"* ]]; then
+		autoCheckAppEnabled="1"
+		if [ "$1" != "verbose" ]; then echo "OK. Auto Continuity Check on";
+		else echo "OK. Login item for Auto Continuity Check is set."; 
+		fi
+	else 
+		autoCheckAppEnabled="0"
+		if [ "$1" != "verbose" ]; then echo "OK. Auto Continuity Check off";
+		else echo "OK. Login item for Auto Continuity Check is not set."; 
+		fi
+	fi
+}
+
 #Verifies if the kexts from a previous backup can be restored, otherwise use those from the Recovery Disk
 function startTheKextsReplacement(){
 
@@ -1618,7 +1663,7 @@ function compatibilityPrecautions(){
 	isMyMacWhitelisted
 	hasTheLegacyWifiPatchBeenApplied
 	detectLegacyWifiDriver
-
+	checkLoginItem
 }
 
 #Initiates the system compatibility checks, displays detailed interpretations of each test's result.
@@ -1639,6 +1684,7 @@ function verboseCompatibilityCheck(){
 	isMyBluetoothVersionCompatible "verbose"
 	areMyBtFeatureFlagsCompatible "verbose"
 	verifyFwVersion "verbose"
+	checkLoginItem "verbose"
 	echo ''
 	echo '--- Modifications check ---'
 	verifyOsKextDevMode "verbose"
@@ -1649,7 +1695,6 @@ function verboseCompatibilityCheck(){
 	detectLegacyWifiDriver "verbose"
 	hasTheLegacyWifiPatchBeenApplied "verbose"
 	verifyFeatureFlagsPatch "verbose"
-
 }
 
 #Initiates the backup, patching and clean-up.
@@ -1699,6 +1744,9 @@ function checkAndHack(){
 	updatePrelinkedKernelCache
 	updateSystemCache
 	backupKexts "${backupFolderAfterPatch}"
+	if [ "${autoCheckAppEnabled}" == 0]; then
+		autoCheckApp "enable"
+	fi
 	echo ""
 	echo "ALMOST DONE! After rebooting:"
 	echo "1) Make sure that both your Mac and iOS device have Bluetooth turned on, and are on the same Wi-Fi network."
@@ -1793,7 +1841,7 @@ function displayMainMenu(){
 	displaySplash
 	echo "Select an option:"
 	echo ""
-	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Enable Rootless" "Quit")
+	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Enable Rootless" "Disable Auto Check App" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
@@ -1818,6 +1866,9 @@ function displayMainMenu(){
 				;;
 			'Enable Rootless') 
 				modifyRootless "enableRootless"
+				;;
+			'Disable Auto Check App')
+				autoCheckApp "disable"
 				;;
 			'Quit')
 				displayThanks
