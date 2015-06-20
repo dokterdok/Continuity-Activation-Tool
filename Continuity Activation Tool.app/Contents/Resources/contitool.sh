@@ -524,12 +524,12 @@ function modifyKextDevMode(){
 function modifyRootless(){
 	
 	local modificationAction="$1"
-	local sedRegEx #regex that can be used to remove the "kext-dev-mode" variable from the boot-args
-	local longSedRegEx #regex that can be used to remove the "-kext-dev-mode" variable from the boot-args. It includes a dash at the beginning.
+	local sedRegEx #regex that can be used to remove the "rootless" variable from the boot-args
+	local longSedRegEx #regex that can be used to remove the "-rootless" variable from the boot-args. It includes a dash at the beginning.
 
 	#Sanitize the inputs and display the relevent the info message
 	if [ -z "$1" ]; then
-    	echo "Internal error: no OS Kext Protection input argument given. Aborting."; backToMainMenu;
+    	echo "Internal error: no OS Rootless input argument given. Aborting."; backToMainMenu;
     else
 		if [ "${modificationAction}" == "enableRootless" ]; then 
 			echo -n "Enabling Rootless security...";
@@ -548,10 +548,10 @@ function modifyRootless(){
 								*) echo "Invalid option, enter a number";;
 							esac
 						done
-				echo -n "Disabling OS kext protection...         "
+				echo -n "Disabling OS Rootless protection...         "
 				longSedRegEx="s#\.*-rootless=1##g"
 				sedRegEx="s#\.*rootless=1##g" #this rootless string will be removed if it exists
-			else echo "Internal error: unknown OS Kext Protection input argument given. Aborting."; backToMainMenu;
+			else echo "Internal error: unknown OS Rootless input argument given. Aborting."; backToMainMenu;
 			fi
 		fi
 	fi
@@ -1740,7 +1740,7 @@ function displaySplash(){
 	tput clear
 	echo "--- OS X Continuity Activation Tool ${hackVersion} ---"
 	echo "                 by dokterdok                 "
-	echo "           modded for 10.11 DP1 by r4ndy      "
+	echo "        modded for 10.11 DP1 by sysfloat      "
 	echo ""	
 }
 
@@ -1748,6 +1748,7 @@ function displaySplash(){
 function displayThanks(){
 	echo ""
 	echo "Thanks to Lem3ssie, UncleSchnitty, Skvo, toleda, TealShark, Manic Harmonic, rob3r7o and the many beta testers for their support."
+	echo "Modded by randy, thanks to dokterdok for the good commenting of the code"
 	echo ""
 	echo ""
 }
