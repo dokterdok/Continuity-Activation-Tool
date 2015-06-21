@@ -92,7 +92,7 @@ macCompatibilityList=("iMac10,1" "iMac11,1" "iMac11,2" "iMac11,3" "iMac12,1" "iM
 blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 legacyBrcmCardIds=("pci14e4,432b") #includes the legacy broadcom AirPort card pci identifiers from the Brcm4331 kext. Additional brcm pci identifiers can be injected in this array for compatibility tests.
 autoCheckAppEnabled="0" #automatically set to 1 if the login item for the Continuity Check app is present.
-osVersion="0"
+subVersion="0"
 
 #---- CAT 2 Binary patches ----
 #3rd party BT 4.0 patchfor IOBluetoothFamily, working with OS X 10.10.0 and 10.10.1
@@ -132,10 +132,10 @@ function verifyStringsUtilPresence() {
 #Quits the script if the OS X version is lower than 10.10, displays warning if higher
 function isMyMacOSCompatible() {	
 	echo -n "Verifying OS X version...               "
-	osVersion=$(sw_vers -productVersion)
+	local osVersion=$(sw_vers -productVersion)
 	local buildVersion=$(sw_vers -buildVersion)
 	local minVersion=10
-	local subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
+	subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
 	
 	if [ "$subVersion" -lt "$minVersion" ]; then 
 		if [ "$1" != "verbose" ]; then echo "NOT OK. Your OS X version is too old to work with this hack. Aborting."; exit;
@@ -1147,7 +1147,7 @@ function verifySystemWideContinuityStatus(){
 		if [ "$1" == "verbose" ]; then echo -n "Verifying Continuity status...          "; fi
 
 		#call the utility to check system wide Continuity status
-		"$continuityCheckUtilPath" >> /dev/null 2>&1
+		"$continuityCheckUtilPath" -silent >> /dev/null 2>&1
 		local result=$?
 		if [ "$result" == "1" ]; then
 			if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as active"; else echo "1"; fi
@@ -1651,7 +1651,9 @@ function compatibilityPrecautions(){
 	displaySplash
 	echo '--- Initiating system compatibility check ---'
 	echo ''
-	verifyOSRootless
+	if [ "$subVersion" -eq 11 ]; then
+		verifyOSRootless
+	fi
 	initializeBackupFolders
 	isMyMacModelCompatible
 	isMyMacBoardIdCompatible
@@ -1689,13 +1691,17 @@ function verboseCompatibilityCheck(){
 	echo ''
 	echo '--- Modifications check ---'
 	verifyOsKextDevMode "verbose"
-	verifyOSRootless "verbose"
+	if [ "$subVersion" -eq 11 ]; then
+		verifyOSRootless "verbose"
+	fi
 	canMyKextsBeModded "verbose"
-	isMyMacBlacklisted "verbose"
 	isMyMacWhitelisted "verbose"
+	if [ "$subVersion" -ne 11 ]; then
+		isMyMacBlacklisted "verbose"
+		verifyFeatureFlagsPatch "verbose"
+	fi
 	detectLegacyWifiDriver "verbose"
 	hasTheLegacyWifiPatchBeenApplied "verbose"
-	verifyFeatureFlagsPatch "verbose"
 }
 
 #Initiates the backup, patching and clean-up.
@@ -1722,7 +1728,7 @@ function checkAndHack(){
 	echo ""
 
 	#prevent patching if all the patches were detected to be already applied
-	if [ "${doDonglePatch}" == "0" ] && [ "$osVersion" -ne 11 ]; then
+	if [ "${doDonglePatch}" == "0" ] && [ "$subVersion" -ne 11 ]; then
 		doDonglePatch=$(shouldDoDonglePatch)
 	fi
 
@@ -1734,12 +1740,12 @@ function checkAndHack(){
 
 	initializeBackupFolders
 	modifyKextDevMode "enableDevMode"
-	if [ "$osVersion" -eq 11 ]; then
+	if [ "$subVersion" -eq 11 ]; then
 		modifyRootless "disableRootless"
 	fi	
 	repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
-	if [ "$osVersion" -ne 11 ]; then
+	if [ "$subVersion" -ne 11 ]; then
 		patchBluetoothKext
 		initiateDonglePatch
 	fi	
@@ -1852,7 +1858,9 @@ function displayMainMenu(){
 		case $opt in
 			'Activate Continuity') 
 				if [[ $(verifySystemWideContinuityStatus) != "1" ]]; then 
-					displayBluetoothDonglePrompt
+					if [ "%subVersion" -ne 11 ]; then
+						displayBluetoothDonglePrompt
+					fi	
 					checkAndHack
 				else
 					displaySplash
