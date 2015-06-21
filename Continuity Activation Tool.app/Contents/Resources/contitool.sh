@@ -92,6 +92,7 @@ macCompatibilityList=("iMac10,1" "iMac11,1" "iMac11,2" "iMac11,3" "iMac12,1" "iM
 blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 legacyBrcmCardIds=("pci14e4,432b") #includes the legacy broadcom AirPort card pci identifiers from the Brcm4331 kext. Additional brcm pci identifiers can be injected in this array for compatibility tests.
 autoCheckAppEnabled="0" #automatically set to 1 if the login item for the Continuity Check app is present.
+osVersion="0"
 
 #---- CAT 2 Binary patches ----
 #3rd party BT 4.0 patchfor IOBluetoothFamily, working with OS X 10.10.0 and 10.10.1
@@ -131,7 +132,7 @@ function verifyStringsUtilPresence() {
 #Quits the script if the OS X version is lower than 10.10, displays warning if higher
 function isMyMacOSCompatible() {	
 	echo -n "Verifying OS X version...               "
-	local osVersion=$(sw_vers -productVersion)
+	osVersion=$(sw_vers -productVersion)
 	local buildVersion=$(sw_vers -buildVersion)
 	local minVersion=10
 	local subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
@@ -145,9 +146,9 @@ function isMyMacOSCompatible() {
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Mac OS X ${osVersion} (${buildVersion}) detected"; fi
 		else
-			if [ "$subVersion" -gt "$minVersion" ]; then
+			if [ "$subVersion" -eq "11" ]; then
 				if [ "$1" != "verbose" ]; then 
-					echo "Warning: This tool wasn't tested on OS X versions higher than 10.10. Detected OS version: ${osVersion}"
+					echo "Warning: This version of Mac OS X (${osVersion}) is Experimental! Only partially tested on DP1"
 					echo "Are you sure you want to continue?"
 					select yn in "Yes" "No"; do
 						case $yn in
@@ -1721,7 +1722,7 @@ function checkAndHack(){
 	echo ""
 
 	#prevent patching if all the patches were detected to be already applied
-	if [ "${doDonglePatch}" == "0" ]; then
+	if [ "${doDonglePatch}" == "0" ] && [ "$osVersion" -ne 11 ]; then
 		doDonglePatch=$(shouldDoDonglePatch)
 	fi
 
@@ -1733,14 +1734,18 @@ function checkAndHack(){
 
 	initializeBackupFolders
 	modifyKextDevMode "enableDevMode"
-	modifyRootless "disableRootless"
+	if [ "$osVersion" -eq 11 ]; then
+		modifyRootless "disableRootless"
+	fi	
 	repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
-	patchBluetoothKext
+	if [ "$osVersion" -ne 11 ]; then
+		patchBluetoothKext
+		initiateDonglePatch
+	fi	
 	patchWifiKext
 	removeObsoleteWifiDriver
 	enableLegacyWifi
-	initiateDonglePatch
 	updatePrelinkedKernelCache
 	updateSystemCache
 	backupKexts "${backupFolderAfterPatch}"
