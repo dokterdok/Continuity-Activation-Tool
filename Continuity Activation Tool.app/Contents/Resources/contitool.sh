@@ -72,7 +72,7 @@ sedPath="/usr/bin/sed"
 sleepPath="/bin/sleep"
 shutdownPath="/sbin/shutdown"
 statPath="/usr/bin/stat"
-stringsPath="$appDir/strings" #the OS X "strings" utility, from Apple's Command Line Tools, must be bundled with this tool. This avoids prompting to download a ~5 GB Xcode package just to use a 40 KB tool (!).
+stringsPath="$appDir/findString"
 trPath="/usr/bin/tr"
 wcPath="/usr/bin/wc"
 xxdPath="/usr/bin/xxd"
@@ -692,7 +692,7 @@ function isMyMacWhitelisted(){
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; #Continue the verification. A brcm AirPort driver was found.
     	fi
-     	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
+     	local whitelist=($("${stringsPath}" ${wifiBrcmBinPath} "Mac-" | $awkPath -F" " '{print $2}'))
 		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
     	local foundCount=0
     	local element
@@ -706,8 +706,8 @@ function isMyMacWhitelisted(){
 			if [ "${foundCount}" -gt "0" -a "${foundCount}" -lt "${#whitelist[@]}" ]; then
 				if [ "$1" != "verbose" ]; then echo "OK";
 				else 
-					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2;exit;}')
-					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{a=$0} END{print $2;exit;}')
+					firstWhitelistedBoardId=$("${stringsPath}" ${wifiBrcmBinPath} "Mac-" | $awkPath -F" " '{print $2;exit;}')
+					lastWhitelistedBoardId=$("${stringsPath}" ${wifiBrcmBinPath} "Mac-" | $awkPath -F" " '{a=$0} END{print $2;exit;}')
 					#Increase checks if the Mac is blacklisted (2011 MacBook Airs, Minis). Purely for reporting info.
 					if [ "${myMacIsBlacklisted}" == "1" ]; then
 						if [ "${myMacIdPattern}" == "${firstWhitelistedBoardId}" -a "${myMacIdPattern}" == "${lastWhitelistedBoardId}" ]; then
@@ -752,7 +752,7 @@ function isMyMacBlacklisted(){
     	else echo "NOT OK. Bluetooth drivers not found. Please use the uninstaller and run the tool again."; fi
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; fi #Continue, the bluetooth binary was found
-    	local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
+    	local blacklist=($("${stringsPath}" ${btBinPath} "Mac" | $awkPath -F"'" '{print $2}'))
 		local myMacModel=$($ioregPath -l | $grepPath "model" | $awkPath -F\" '{print $4;exit;}')
     	local foundCount=0
     	local element
@@ -1240,7 +1240,7 @@ function patchStringsInFile() {
     local REPLACEMENT="$3"
 
     #Find all unique strings in FILE that contain the pattern 
-    STRINGS=$("${stringsPath}" "${FILE}" | $grepPath "${PATTERN}" | sort -u -r)
+    STRINGS=$("${stringsPath}" "${FILE}" "${PATTERN}" | sort -u -r)
 
     if [ "${STRINGS}" != "" ] ; then
         #echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
@@ -1335,7 +1335,7 @@ function patchBluetoothKext(){
 		echo -n "Patching blacklist..."
 		
 		#(re)populate blacklist
-		blacklistedMacs=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
+		blacklistedMacs=($("${stringsPath}" ${btBinPath} "Mac" | $awkPath -F"'" '{print $2}'))
 
     	#build a disabled blacklist
     	local disabledBlacklist=()
@@ -1375,7 +1375,7 @@ function patchWifiKext(){
 	fi
 
 	#populate whitelist
-	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
+	local whitelist=($("${stringsPath}" ${wifiBrcmBinPath} "Mac-" | $awkPath -F" " '{print $2}'))
 
 	#check if it needs patching: will do it if the whitelist is not full of own board id
 	local occurence=0
