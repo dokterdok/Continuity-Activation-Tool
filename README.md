@@ -5,12 +5,21 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity features o
 
 ## News
 
+* **2014.12.23 - v.2.1 released** : Works with El Capitan DP1. Does **NOT** work with Dogles yet. (Take a look below)
 * **2014.12.23 - v.2.0.1 released** : Improved USB Bluetooth dongle detection and command line execution. [Changelog](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta#changelog).
 * **2014.12.14 - v.2.0.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
 
 **[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)** (latest version)
 
 This tool took a lot of research and coding. A small PayPal donation would be much appreciated to support the maintenance and evolution of the app. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+
+##El Capitan DP 1 & dongles
+
+Apple has done some changes in IOBluetoothFamily in El Capitan.
+Unfortunately I know next to nothing about kernel extensions and patching them. I tried to apply the logic of the original patch to the new functions but that didn't work. If you know anything about kernel extension patching and/or asm, please take a look at and help out. 
+Dokterdok previously patched IOBluetoothHCIController::SetControllerFeatureFlags to always return 15. In El Capitan the old function seems to be split up in AppleBroadcomHostController::SetControllerFeatureFlags and IOBluetoothHostController::SetControllerFeatureFlags. I guess the new patch would have to be applied there.
+
+
 
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
@@ -98,6 +107,12 @@ If you run into issues:
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
 ### Changelog
+
+**v2.1 - 2015-06-20**
+* Works with El Capitan DP1
+* New AppleScript, allows renaming the app
+* switched from apples strings utility to a new selfmade app that does pretty much the same job for this purpose, but does not use any apple code.
+* speed up some parts of the code
 
 **v.2.0.1 - 2014.12.21**
 * Improved USB Bluetooth dongle detection([#103](https://github.com/dokterdok/Continuity-Activation-Tool/issues/103))
