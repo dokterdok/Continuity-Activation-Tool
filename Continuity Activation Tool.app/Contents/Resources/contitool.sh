@@ -148,7 +148,7 @@ function isMyMacOSCompatible() {
 		else
 			if [ "$subVersion" -eq "11" ]; then
 				if [ "$1" != "verbose" ]; then 
-					echo "Warning: This version of Mac OS X (${osVersion}) is Experimental! Only partially tested on DP1"
+					echo "Warning: This version of Mac OS X (${osVersion}) is Experimental! Only partially tested on El Capitan"
 					echo "Are you sure you want to continue?"
 					select yn in "Yes" "No"; do
 						case $yn in
@@ -160,7 +160,7 @@ function isMyMacOSCompatible() {
 						esac
 					done
 				else
-					echo "Warning: This version of Mac OS X (${osVersion}) is Experimental! Only partially tested on DP1"
+					echo "Warning: This version of Mac OS X (${osVersion}) is Experimental! Only partially tested on El Capitan"
 				fi
 			else 
 				if [ "$subVersion" -gt "$minVersion" ]; then
@@ -1787,7 +1787,7 @@ function displaySplash(){
 	tput clear
 	echo "--- OS X Continuity Activation Tool ${hackVersion} ---"
 	echo "                 by dokterdok                 "
-	echo "        modded for 10.11 DP1 by sysfloat      "
+	echo "          modded for 10.11 by sysfloat        "
 	echo ""	
 }
 
