@@ -539,16 +539,6 @@ function modifyRootless(){
 			okToDisable="1"
 		else 
 			if [ "${modificationAction}" == "disableRootless" ]; then 
-				echo "Are you sure You can to disable Rootless?";
-				select yn in "Yes" "No"; do
-							case $yn in
-								Yes) #continue
-									break;;
-								No) echo "Aborting.";
-									backToMainMenu;;
-								*) echo "Invalid option, enter a number";;
-							esac
-						done
 				echo -n "Disabling OS Rootless protection...         "
 				longSedRegEx="s#\.*-rootless=1##g"
 				sedRegEx="s#\.*rootless=1##g" #this rootless string will be removed if it exists
@@ -586,9 +576,18 @@ function modifyRootless(){
 			rootlessResult=$?
 			if [ $rootlessResult -eq 0 ]; then 
 
-				#Dev mode is declared as unset
+				#rootless is declared as unset
 				if [ "${modificationAction}" == "disableRootless" ]; then
-
+					echo "Are you sure You can to disable Rootless?";
+					select yn in "Yes" "No"; do
+						case $yn in
+							Yes) #continue
+								break;;
+							No) echo "Aborting.";
+								backToMainMenu;;
+							*) echo "Invalid option, enter a number";;
+						esac
+					done
 					#Rootless will be disabled, previous rootless variable is stripped first
 					local strippedBootArgs=$(echo "${bootArgsResult}" | $sedPath "${longSedRegEx}")
 					strippedBootArgs=$(echo "${strippedBootArgs}" | $sedPath "${sedRegEx}")
@@ -602,6 +601,16 @@ function modifyRootless(){
 			else
 				#No rootless variable set
 				if [ "${modificationAction}" == "disableRootless" ]; then
+					echo "Are you sure You can to disable Rootless?";
+					select yn in "Yes" "No"; do
+						case $yn in
+							Yes) #continue
+								break;;
+							No) echo "Aborting.";
+								backToMainMenu;;
+							*) echo "Invalid option, enter a number";;
+						esac
+					done
 					#Disable Rootless
 					sudo $nvramPath boot-args="${bootArgsResult} rootless=0"
 					#Prompt to reboot now
@@ -615,6 +624,16 @@ function modifyRootless(){
 	else
 		#No boot-args are set at all. Only set them in the PRAM if it needs to be activated.
 		if [ "${modificationAction}" == "disableRootless" ]; then
+			echo "Are you sure You can to disable Rootless?";
+			select yn in "Yes" "No"; do
+				case $yn in
+					Yes) #continue
+						break;;
+					No) echo "Aborting.";
+						backToMainMenu;;
+					*) echo "Invalid option, enter a number";;
+				esac
+			done
 			sudo $nvramPath boot-args="rootless=0"
 			echo "OK"
 		else
@@ -1729,7 +1748,7 @@ function checkAndHack(){
 	updatePrelinkedKernelCache
 	updateSystemCache
 	backupKexts "${backupFolderAfterPatch}"
-	if [ "${autoCheckAppEnabled}" == 0]; then
+	if [ "${autoCheckAppEnabled}" == 0 ]; then
 		autoCheckApp "enable"
 	fi
 	echo ""
