@@ -129,6 +129,16 @@ function verifyStringsUtilPresence() {
 	fi
 }
 
+#Prompts to reboot your system, e.g. after patching
+function rebootPrompt(){
+	echo ""
+	$readPath -n 1 -p "Press any key to reboot or CTRL-C to cancel..."
+	echo ""
+	osascript -e 'tell app "System Events" to restart'
+	$killallPath "Terminal"
+	exit;
+}
+
 #Quits the script if the OS X version is lower than 10.10, displays warning if higher
 function isMyMacOSCompatible() {	
 	echo -n "Verifying OS X version...               "
@@ -592,9 +602,10 @@ function modifyRootless(){
 					local strippedBootArgs=$(echo "${bootArgsResult}" | $sedPath "${longSedRegEx}")
 					strippedBootArgs=$(echo "${strippedBootArgs}" | $sedPath "${sedRegEx}")
 					sudo $nvramPath boot-args="${strippedBootArgs} rootless=0"
-
-					#Prompt to reboot now
 					echo "OK"
+					#Prompt to reboot now
+					echo "You have to reboot now for the changes to take effect."
+					rebootPrompt
 				else
 					echo "OK. Rootless was already enabled.." #rootless was already enabled, as wanted.
 				fi
@@ -613,8 +624,10 @@ function modifyRootless(){
 					done
 					#Disable Rootless
 					sudo $nvramPath boot-args="${bootArgsResult} rootless=0"
-					#Prompt to reboot now
 					echo "OK"
+					#Prompt to reboot now
+					echo "You have to reboot now for the changes to take effect."
+					rebootPrompt
 				else 
 					#Do nothing, rootless already enabled
 					echo "OK. Rootless was already enabled"
@@ -636,6 +649,9 @@ function modifyRootless(){
 			done
 			sudo $nvramPath boot-args="rootless=0"
 			echo "OK"
+			#Prompt to reboot now
+			echo "You have to reboot now for the changes to take effect."
+			rebootPrompt
 		else
 			echo "OK. Rootless was already enabled!" #do nothing, rootless is enabled, as wanted
 		fi
@@ -1432,16 +1448,6 @@ function updateSystemCache(){
 	echo -e "\rUpdating system caches...               OK"
 }
 
-#Prompts to reboot your system, e.g. after patching
-function rebootPrompt(){
-	echo ""
-	$readPath -n 1 -p "Press any key to reboot or CTRL-C to cancel..."
-	echo ""
-	osascript -e 'tell app "System Events" to restart'
-	$killallPath "Terminal"
-	exit;
-}
-
 #Silently repairs the disk permissions using the Disk Utility. Takes a few minutes.
 function repairDiskPermissions(){
 	$diskutilPath repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
@@ -1768,7 +1774,11 @@ function uninstall(){
 	displaySplash
 	echo '--- Initiating uninstallation ---'
 	echo ''
-
+	
+	if [ "$subVersion" -eq 11 ]; then
+		modifyRootless "disableRootless"
+	fi	
+	
 	initializeBackupFolders
 	startTheKextsReplacement
 	applyPermissions
@@ -1779,6 +1789,7 @@ function uninstall(){
 	echo ""
 	echo ""
 	echo "DONE. Please reboot now to complete the uninstallation."
+	echo "You can come back after the reboot and disable rootless if you want to."
 	echo ""
 	rebootPrompt
 }
