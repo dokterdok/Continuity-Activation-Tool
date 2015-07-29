@@ -19,7 +19,7 @@ Do the following to fix that:
 
 1. Boot into Recovery Mode (CMD + R)
 2. Open Terminal (Utility - Terminal)
-3. run the follow:
+3. run the following:
 	rm -rf "/Volumes/Macintosh HDD/System/Library/Extensions/\*Bluetooth\*"
 	kextcache -update-volume "/Volumes/Macintosh HDD"
 4. reboot your mac
