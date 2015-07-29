@@ -13,9 +13,10 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity features o
 
 This tool took a lot of research and coding. A small PayPal donation would be much appreciated to support the maintenance and evolution of the app. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
 
-#WARNING:
+##Warning:
 There have been some problems on DP5 where the machine would not boot anymore. Please be extra careful when using on DP5+ and create backups of IOBluetoothFamily.kext and AppleBluetoothRemote.kext manually!!
 Do the following to fix that:
+
 1. Boot into Recovery Mode (CMD + R)
 2. Open Terminal (Utility - Terminal)
 3. run the follow:
