@@ -342,7 +342,7 @@ function isMyMacModelCompatible(){
 function isMyBluetoothVersionCompatible(){
 	echo -n "Verifying Bluetooth version...          "
 
-	local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}')
+	local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}' | $headPath -n 1)
 
 	if [ ! "${lmpVersion}" == "" ]; then
 		if [ "${lmpVersion}" == "6" ]; then
