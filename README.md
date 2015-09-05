@@ -5,7 +5,7 @@ This tool makes the necessary changes to enable OS X 10.10 Continuity features o
 
 ## News
 
-2015-08-13 : **New active lead** : I (sysfloat) will now be the main constributer and manager of the project, since dokterdok is not able to support this project anymore. He supported me with a lot of stuff and his research into enabling Continuity with dongles. I will contact some old beta testers and will do my best to get the dongles working on El Capitan and merge my fork with the beta branch.
+2015-08-13 : **New active lead** : I (sysfloat) will now be the main contributer and manager of the project, since dokterdok is not able to support this project anymore. He supported me with a lot of stuff and his research into enabling Continuity with dongles. I will contact some old beta testers and will do my best to get the dongles working on El Capitan and merge my fork with the beta branch.
 
 Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
 
