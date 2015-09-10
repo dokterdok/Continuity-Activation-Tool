@@ -8,12 +8,12 @@
 # Continuity features activated by this tool include Application Handoff, Instant Hotspot, and New Airdrop.
 # The tool has no influence over Call/SMS Handoff.
 #
-# Before the actual patching happens, a system compatibility test is made, 
+# Before the actual patching happens, a system compatibility test is made,
 # as well as a backup of the bluetooth and wifi kexts. A backup of the patched kexts is also made.
 # The System Diagnostic produces a report of typical parameters influencing Continuity.
 # An uninstaller is available as well, which restores the original drivers, or, if not present, the drivers from the OS X recovery disk.
 #
-# 
+#
 
 hackVersion="2.0.0"
 
@@ -88,7 +88,7 @@ myMacIsBlacklisted="0" #automatically set to 1 when detected that the Mac model 
 legacyWifiKextsRemoved="0" #automatically set to 1 when the older Broadcom 4331 Wi-Fi kext plugin can't be found in the Wi-Fi drivers
 forceRecoveryDiskBackup="0" #automatically set to 1 when backups made by the Continuity Activation Tool can't be found. It's a flag used to determine if kext from the Recovery Disk are to be used during the uninstallation process.
 nbOfInvalidKexts=""
-macCompatibilityList=("iMac10,1" "iMac11,1" "iMac11,2" "iMac11,3" "iMac12,1" "iMac12,2" "iMac13,2" "iMac14,2" "iMac7,1" "iMac9,1" "MacPro5,1" "MacBook5,1" "MacBook5,2" "MacBook6,1" "MacBook7,1" "MacBookAir3,1" "MacBookAir3,2" "MacBookAir4,1" "MacBookAir6,1" "MacBookPro11,1" "MacBookPro5,1" "MacBookPro5,2" "MacBookPro5,3" "MacBookPro5,4" "MacBookPro5,5" "MacBookPro6,1" "MacBookPro6,2" "MacBookPro7,1" "MacBookPro8,1" "MacBookPro8,2" "MacBookPro8,3" "MacBookPro9,2" "Macmini3,1" "Macmini4,1" "MacPro3,1" "MacPro4,1") #Macs that were tested successfully (may require a hardware upgrade) 
+macCompatibilityList=("iMac10,1" "iMac11,1" "iMac11,2" "iMac11,3" "iMac12,1" "iMac12,2" "iMac13,2" "iMac14,2" "iMac7,1" "iMac9,1" "MacPro5,1" "MacBook5,1" "MacBook5,2" "MacBook6,1" "MacBook7,1" "MacBookAir3,1" "MacBookAir3,2" "MacBookAir4,1" "MacBookAir6,1" "MacBookPro11,1" "MacBookPro5,1" "MacBookPro5,2" "MacBookPro5,3" "MacBookPro5,4" "MacBookPro5,5" "MacBookPro6,1" "MacBookPro6,2" "MacBookPro7,1" "MacBookPro8,1" "MacBookPro8,2" "MacBookPro8,3" "MacBookPro9,2" "Macmini3,1" "Macmini4,1" "MacPro3,1" "MacPro4,1") #Macs that were tested successfully (may require a hardware upgrade)
 blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 legacyBrcmCardIds=("pci14e4,432b") #includes the legacy broadcom AirPort card pci identifiers from the Brcm4331 kext. Additional brcm pci identifiers can be injected in this array for compatibility tests.
 
@@ -115,7 +115,7 @@ usbBinaryPatchReplaceWith=$(echo ${usbBinaryPatchReplaceWithEscaped} | $trPath -
 function verifyStringsUtilPresence() {
 		#verify if the Brcm4360 binary exists
 	if [ ! -f "${stringsPath}" ]; then
-		
+
 		tput clear
 		echo ""
 		echo "Error: the 'strings' command line utility was not found and is necessary to run the script."
@@ -130,24 +130,24 @@ function verifyStringsUtilPresence() {
 }
 
 #Quits the script if the OS X version is lower than 10.10, displays warning if higher
-function isMyMacOSCompatible() {	
+function isMyMacOSCompatible() {
 	echo -n "Verifying OS X version...               "
 	local osVersion=$(sw_vers -productVersion)
 	local buildVersion=$(sw_Vers -buildVersion)
 	local minVersion=10
 	local subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
-	
-	if [ "$subVersion" -lt "$minVersion" ]; then 
+
+	if [ "$subVersion" -lt "$minVersion" ]; then
 		if [ "$1" != "verbose" ]; then echo "NOT OK. Your OS X version is too old to work with this hack. Aborting."; exit;
 		else echo "NOT OK. Your OS X version is too old to work with this hack. Version detected: ${osVersion}"; fi
 		exit;
 	else
-		if [ "$subVersion" -eq "$minVersion" ]; then 
+		if [ "$subVersion" -eq "$minVersion" ]; then
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Mac OS X ${osVersion} (${buildVersion}) detected"; fi
 		else
 			if [ "$subVersion" -gt "$minVersion" ]; then
-				if [ "$1" != "verbose" ]; then 
+				if [ "$1" != "verbose" ]; then
 					echo "Warning: This tool wasn't tested on OS X versions higher than 10.10. Detected OS version: ${osVersion}"
 					echo "Are you sure you want to continue?"
 					select yn in "Yes" "No"; do
@@ -177,7 +177,7 @@ function canMyKextsBeModded(){
 		permissionsError=$((btPermissionsError + wifiPermissionsError))
 		if [ "${permissionsError}" -gt "0" ]; then
 			if [ "$1" != "verbose" ]; then echo "NOT OK. ${btKextFilename} and/or ${wifiKextFilename} are missing or corrupt in ${driverPath}"; echo ""; echo "   To fix this:"; echo "1) delete these files in ${driverPath}"; echo "2) find the original untouched kext backups (check in ${backupFolderBeforePatch})"; echo "3) reinstall them using the Kext Drop app (search online for it)"; echo "4) reboot."; echo ""; backToMainMenu
-			else echo "NOT OK. ${btKextFilename} and/or ${wifiKextFilename} are missing or corrupt in ${driverPath}."; echo ""; echo "   To fix this:"; echo "1) delete these files in ${driverPath}"; echo "2) find the original untouched kext backups (check in ${backupFolderBeforePatch})"; echo "3) reinstall them using the Kext Drop app (search online for it)"; echo "4) reboot."; echo ""; fi 
+			else echo "NOT OK. ${btKextFilename} and/or ${wifiKextFilename} are missing or corrupt in ${driverPath}."; echo ""; echo "   To fix this:"; echo "1) delete these files in ${driverPath}"; echo "2) find the original untouched kext backups (check in ${backupFolderBeforePatch})"; echo "3) reinstall them using the Kext Drop app (search online for it)"; echo "4) reboot."; echo ""; fi
 		else
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Wi-Fi and Bluetooth kexts were found and could be read"; fi
@@ -228,7 +228,7 @@ function areMyActiveWifiDriversOk(){
 			else echo "NOT OK. No active AirPort card was detected. Continuity will not work.";
 			fi
 		else
-			if [ "$1" != "verbose" ]; then echo "OK"; 
+			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. AirPort driver ${loadedWifiDrivers[*]} was detected. The tool will try to fix this.";
 			fi
 		fi
@@ -239,7 +239,7 @@ function areMyActiveWifiDriversOk(){
 			#case 2A: an Atheros driver is loaded
 			if [ "$loadedWifiDrivers" == "Atheros40" ]; then
 				if [ "$1" != "verbose" ]; then echo "NOT OK. An Atheros AirPort card is used. An upgrade to a Broadcom one is required to make Continuity work."; backToMainMenu;
-				else echo "NOT OK. An Atheros AirPort card is used, Continuity will not work. An upgrade to a compatible Broadcom card is necessary."; 
+				else echo "NOT OK. An Atheros AirPort card is used, Continuity will not work. An upgrade to a compatible Broadcom card is necessary.";
 				fi
 			else
 				if [ "$loadedWifiDrivers" == "Brcm4360" ]; then
@@ -267,13 +267,13 @@ function areMyActiveWifiDriversOk(){
 					fi
 				fi
 			fi
-		else 
+		else
 
 			#More than 1 driver is active, see if there's a compatible Broadcom one
 			local element
 			local activeCards=()
 			for element in "${loadedWifiDrivers[@]}";
-				do 
+				do
 				if [ "${element}" == "Brcm4331" ]; then
 					activeCards+=($(echo "${element}")) #store the kext name
 				else
@@ -287,7 +287,7 @@ function areMyActiveWifiDriversOk(){
 			if [ "${#activeCards[@]}" -gt 1 ]; then
 				if [ "$1" != "verbose" ]; then echo "OK"
 				else echo "OK. Compatible Broadcom AirPort drivers ${activeCards[*]} are active"; fi
-			else 
+			else
 				#Verify if at least one usable Broadcom driver is running
 				if [ "${#activeCards[@]}" -eq 1 ]; then
 					if [ "$1" != "verbose" ]; then echo "OK"
@@ -306,8 +306,8 @@ function areMyActiveWifiDriversOk(){
 #Verifies if an array contains a value. Usage: containsElement "blabla" "${array[@]}"; echo $?
 function containsElement () {
 	local element
-	for element in "${@:2}"; 
-		do [[ "$element" == "$1" ]] && return 1; 
+	for element in "${@:2}";
+		do [[ "$element" == "$1" ]] && return 1;
 	done
 	return 0
 }
@@ -324,8 +324,8 @@ function isMyMacModelCompatible(){
 		else echo "OK. Known compatible Mac Model detected: ${myMacModel}"; fi
 	else
 		#Set prompt in case user wants to try with iMacs / Mac Pro's etc.
-		if [ "$1" != "verbose" ]; then 
-			echo "WARNING. The compatibility of this Mac Model (${myMacModel}) with this mod is unknown and may have unpredictable results"; 
+		if [ "$1" != "verbose" ]; then
+			echo "WARNING. The compatibility of this Mac Model (${myMacModel}) with this mod is unknown and may have unpredictable results";
 			echo "Do you want to proceed anyways?"
 					select yn in "Yes" "No"; do
 						case $yn in
@@ -376,15 +376,15 @@ function isMyBluetoothVersionCompatible(){
 function countInvalidKexts(){
 	folderToVerify=$1
 	if [ -z "$folderToVerify" ]; then echo "-1"; #no argument given
-    else 
-    	if [ ! -d "$folderToVerify" ]; then echo "-2"; #folder not found
-    	else
-    		if [ $(ls -1 "${folderToVerify}"/*.kext 2>/dev/null | $wcPath -l) -eq 0 ]; then echo "-3"; #no kexts were found in this directory
-    		else
-    			cd $folderToVerify
-    		 	echo "$($findPath $folderToVerify/*.kext -prune -type d | while read kext; do
-    			codesign -v "$kext" 2>&1 | grep -E 'invalid signature|not signed at all'
-    			done | $wcPath -l | $trPath -d ' ')"
+		else
+			if [ ! -d "$folderToVerify" ]; then echo "-2"; #folder not found
+			else
+				if [ $(ls -1 "${folderToVerify}"/*.kext 2>/dev/null | $wcPath -l) -eq 0 ]; then echo "-3"; #no kexts were found in this directory
+				else
+					cd $folderToVerify
+					echo "$($findPath $folderToVerify/*.kext -prune -type d | while read kext; do
+					codesign -v "$kext" 2>&1 | grep -E 'invalid signature|not signed at all'
+					done | $wcPath -l | $trPath -d ' ')"
 			fi
 		fi
 	fi
@@ -395,7 +395,7 @@ function countInvalidKexts(){
 #Arguments: disableDevMode or enableDevMode
 #Warning: this function relies entirely on the PRAM, not on the boot plist.
 function modifyKextDevMode(){
-	
+
 	local modificationAction="$1"
 	local sedRegEx #regex that can be used to remove the "kext-dev-mode" variable from the boot-args
 	local longSedRegEx #regex that can be used to remove the "-kext-dev-mode" variable from the boot-args. It includes a dash at the beginning.
@@ -403,9 +403,9 @@ function modifyKextDevMode(){
 
 	#Sanitize the inputs and display the relevent the info message
 	if [ -z "$1" ]; then
-    	echo "Internal error: no OS Kext Protection input argument given. Aborting."; backToMainMenu;
-    else
-		if [ "${modificationAction}" == "disableDevMode" ]; then 
+			echo "Internal error: no OS Kext Protection input argument given. Aborting."; backToMainMenu;
+		else
+		if [ "${modificationAction}" == "disableDevMode" ]; then
 
 			#first we need to be sure that no other unsigned kexts are found in the Extensions folder
 			#otherwise, disabling dev mode might prevent the system from booting.
@@ -421,8 +421,8 @@ function modifyKextDevMode(){
 				sedRegEx="s#\kext-dev-mode=1##g" #this kext-dev-mode string will be removed if it exists
 				okToDisable="1"
 			fi
-		else 
-			if [ "${modificationAction}" == "enableDevMode" ]; then 
+		else
+			if [ "${modificationAction}" == "enableDevMode" ]; then
 				echo -n "Disabling OS kext protection...         "
 				longSedRegEx="s#\-kext-dev-mode=0##g"
 				sedRegEx="s#\kext-dev-mode=0##g" #this kext-dev-mode string will be removed if it exists
@@ -443,7 +443,7 @@ function modifyKextDevMode(){
 		#Verify if the kext-dev-mode is declared as active
 		sudo $nvramPath boot-args | $grepPath -F "kext-dev-mode=1" >> /dev/null 2>&1
 		local devModeResult=$?
-		if [ $devModeResult -eq 0 ]; then 
+		if [ $devModeResult -eq 0 ]; then
 
 			if [ "${modificationAction}" == "disableDevMode" ]; then
 				if [ "${okToDisable}" == "1" ]; then #re-activate the OS kext protection, because no irregular kexts were found
@@ -463,7 +463,7 @@ function modifyKextDevMode(){
 			#Verify if the kext-dev-mode is declared as disabled (rare, by default this variable is not set by OS X)
 			sudo $nvramPath boot-args | $grepPath -F "kext-dev-mode=0" >> /dev/null 2>&1
 			devModeResult=$?
-			if [ $devModeResult -eq 0 ]; then 
+			if [ $devModeResult -eq 0 ]; then
 
 				#Dev mode is declared as unset
 				if [ "${modificationAction}" == "enableDevMode" ]; then
@@ -481,10 +481,10 @@ function modifyKextDevMode(){
 			else
 				#No kext-dev-mode boot-args are set.
 				if [ "${modificationAction}" == "enableDevMode" ]; then
-					
+
 					#Activate the kext-dev-mode
 					sudo $nvramPath boot-args="${bootArgsResult} kext-dev-mode=1"
-					
+
 					#Prompt to reboot now
 					echo "OK"
 				else
@@ -517,7 +517,7 @@ function verifyOsKextDevMode(){
 		$nvramPath boot-args | $grepPath -F "kext-dev-mode=1" >> /dev/null 2>&1
 		local devModeResult=$?
 		if [ $devModeResult -eq 0 ]; then #Dev mode is active
-			if [ "$1" != "verbose" ]; then echo "OK"; 
+			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Kext developer mode is already active"; fi
 		else
 			if [ "$1" != "verbose" ]; then echo "OK";
@@ -537,25 +537,25 @@ function isMyMacWhitelisted(){
 	echo -n "Verifying Wi-Fi whitelist status...     "
 	#verify if the Brcm4360 binary exists
 	if [ ! -f "${wifiBrcmBinPath}" ]; then
-    	if [ "$1" != "verbose" ]; then echo "NOT OK. Wi-Fi drivers not found. Please use the uninstaller and run the tool again. Aborting."; backToMainMenu;
-    	else echo "NOT OK. Wi-Fi drivers not found. Please use the uninstaller and run the tool again."; fi
-    else
-    	if [ "$1" != "verbose" ]; then echo -n ""; #Continue the verification. A brcm AirPort driver was found.
-    	fi
-     	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
+			if [ "$1" != "verbose" ]; then echo "NOT OK. Wi-Fi drivers not found. Please use the uninstaller and run the tool again. Aborting."; backToMainMenu;
+			else echo "NOT OK. Wi-Fi drivers not found. Please use the uninstaller and run the tool again."; fi
+		else
+			if [ "$1" != "verbose" ]; then echo -n ""; #Continue the verification. A brcm AirPort driver was found.
+			fi
+			local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
 		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
-    	local foundCount=0
-    	local element
-    	if [[ $whitelist ]]; then
+			local foundCount=0
+			local element
+			if [[ $whitelist ]]; then
 			for element in "${whitelist[@]}";
-				do 
+				do
 				if [ "${myMacIdPattern}" == "${element}" ]; then
 					((foundCount+=1))
 				fi
 			done
 			if [ "${foundCount}" -gt "0" -a "${foundCount}" -lt "${#whitelist[@]}" ]; then
 				if [ "$1" != "verbose" ]; then echo "OK";
-				else 
+				else
 					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2;exit;}')
 					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{a=$0} END{print $2;exit;}')
 					#Increase checks if the Mac is blacklisted (2011 MacBook Airs, Minis). Purely for reporting info.
@@ -589,7 +589,7 @@ function isMyMacWhitelisted(){
 			fi
 		else
 			if [ "$1" != "verbose" ]; then echo "NOT OK. No whitelist detected in the Wi-Fi drivers, this tool won't be able to patch it. Aborting."; backToMainMenu
-			else echo "NOT OK. No whitelist detected in the Wi-Fi drivers, this tool won't be able to patch it"; fi			
+			else echo "NOT OK. No whitelist detected in the Wi-Fi drivers, this tool won't be able to patch it"; fi
 		fi
 	fi
 }
@@ -599,16 +599,16 @@ function isMyMacBlacklisted(){
 	echo -n "Verifying Bluetooth blacklist status... "
 	if [ ! -f "${btBinPath}" ]; then
 		if [ "$1" != "verbose" ]; then echo "NOT OK. Bluetooth drivers not found. Please use the uninstaller and run the tool again. Aborting."; backToMainMenu;
-    	else echo "NOT OK. Bluetooth drivers not found. Please use the uninstaller and run the tool again."; fi
-    else
-    	if [ "$1" != "verbose" ]; then echo -n ""; fi #Continue, the bluetooth binary was found
-    	local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
+			else echo "NOT OK. Bluetooth drivers not found. Please use the uninstaller and run the tool again."; fi
+		else
+			if [ "$1" != "verbose" ]; then echo -n ""; fi #Continue, the bluetooth binary was found
+			local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
 		local myMacModel=$($ioregPath -l | $grepPath "model" | $awkPath -F\" '{print $4;exit;}')
-    	local foundCount=0
-    	local element
-    	if [[ $blacklist ]]; then
-    		for element in "${blacklist[@]}";
-				do 
+			local foundCount=0
+			local element
+			if [[ $blacklist ]]; then
+				for element in "${blacklist[@]}";
+				do
 				if [ "${myMacModel}" == "${element}" ]; then
 					((foundCount+=1))
 				fi
@@ -616,7 +616,7 @@ function isMyMacBlacklisted(){
 			if [ "${foundCount}" -gt "0" ]; then
 				myMacIsBlacklisted="1";
 				if [ "$1" != "verbose" ]; then echo "OK"
-				else echo "OK. Your Mac model is blacklisted. This tool can fix this."; 
+				else echo "OK. Your Mac model is blacklisted. This tool can fix this.";
 				fi
 			else
 				if [ "$1" != "verbose" ]; then echo "OK";
@@ -625,7 +625,7 @@ function isMyMacBlacklisted(){
 		else
 			#no blacklist found - find out if that's a problem for the user's Mac
 			local originallyBlacklistedMac
-			for originallyBlacklistedMac in "{blacklistedMacs[@]}"; 
+			for originallyBlacklistedMac in "{blacklistedMacs[@]}";
 				do
 				if [ "${myMacModel}" == "${originallyBlacklistedMac}" ]; then
 					((foundCount+=1))
@@ -633,13 +633,13 @@ function isMyMacBlacklisted(){
 			done
 			if [ "${foundCount}" -gt "0" ]; then
 				myMacIsBlacklisted="1";
-				if [ "$1" != "verbose" ]; then 
+				if [ "$1" != "verbose" ]; then
 				echo "NOT OK. Blacklist not found, and your Mac model is known to be blacklisted. Aborting."; backToMainMenu;
 				else echo "NOT OK. Blacklist not found (OSX update breaking the hack?), and your Mac model is known to be blacklisted"; fi
 			else
 				if [ "$1" != "verbose" ]; then echo "OK";
 				else echo "OK. Warning: Blacklist not found in the Bluetooth drivers. An OS X update might have made this hack useless."
-					 echo "                                           However, your Mac model shouldn't need to be removed from that blacklist."; fi					
+					 echo "                                           However, your Mac model shouldn't need to be removed from that blacklist."; fi
 			fi
 		fi
     fi
@@ -652,21 +652,21 @@ function isMyMacBlacklisted(){
 function displayBluetoothDonglePrompt(){
 	displaySplash
 
-	
+
 	echo ""
 	echo "If you want to activate Continuity using a USB Bluetooth 4.0 dongle,"
 	echo "then plug-it in now. The script will continue once it's detected."
 	echo ""
 
 	if [ -t 0 ]; then stty -echo -icanon -icrnl time 0 min 0; fi
-	
-	#detect the dongle presence 
+
+	#detect the dongle presence
 	local donglePluggedIn=$(quietDongleDetection)
 	local keypress=''
 	while [ "$keypress" = '' -a "$donglePluggedIn" -eq "0" ]; do
 			echo ""
 			$readPath -n 1 -s -p "Press any key to continue without a USB Bluetooth 4.0 dongle..." keypress
-  		donglePluggedIn=$(quietDongleDetection)
+			donglePluggedIn=$(quietDongleDetection)
 	done
 	if [ -t 0 ]; then stty sane; fi
 	echo ""
@@ -698,7 +698,7 @@ function shouldDoDonglePatch(){
 	#check the if the patching should be forced
 	if [ "${forceHack}" == "1" ]; then
 		echo "1"
-	else 
+	else
 		local featureFlags=$($ioregPath -l | $grepPath "FeatureFlags" | $awkPath -F' = ' '{print $2}')
 		local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}')
 		local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
@@ -707,8 +707,8 @@ function shouldDoDonglePatch(){
 		local patchableFileOutput=$($hexdumpPath -ve '1/1 "%.2X"' "${btBinPath}" | $grepPath "${usbBinaryPatchFind}")
 		local donglePresent="0"
 
-		if [ ! -z "${internalBtControllerId}" -a ! -z "${activeBtControllerId}" -a ! -z "${activeBtControllerId}" -a ! -z "${internalBtControllerId}" -a "${activeBtControllerId}" != "${internalBtControllerId}" ]; 
-			then donglePresent="1"; 
+		if [ ! -z "${internalBtControllerId}" -a ! -z "${activeBtControllerId}" -a ! -z "${activeBtControllerId}" -a ! -z "${internalBtControllerId}" -a "${activeBtControllerId}" != "${internalBtControllerId}" ];
+			then donglePresent="1";
 		fi
 
 		if [ "${lmpVersion}" == "6" -a "${donglePresent}" == "1" -a ! -z "${brcmKext}" -a ! -z "${patchableFileOutput}" ]; then
@@ -718,7 +718,7 @@ function shouldDoDonglePatch(){
 			#check didn't pass, patching would not be effective
 			echo "0"
 		fi
-	fi	
+	fi
 }
 
 #Checks if the dongle patch should be done, then proceeds with the patching
@@ -728,7 +728,7 @@ function initiateDonglePatch(){
 
 	echo -n "Verifying BT4 dongle patch status...    "
 
-	if [ -z "${doDonglePatch}" ]; then 
+	if [ -z "${doDonglePatch}" ]; then
 		doDonglePatch=$(shouldDoDonglePatch)
 	fi
 	if [ "${doDonglePatch}" == "1" ]; then
@@ -786,7 +786,7 @@ function areMyBtFeatureFlagsCompatible(){
 #Verifies if the Wi-Fi features support Continuity (AWDL)
 function isAwdlActive(){
 
-	echo -n "Verifying AWDL status...                "	
+	echo -n "Verifying AWDL status...                "
 	local awdlOutput=$($ifconfigPath -u | $grepPath awdl)
 
 	if [ ! -z "${awdlOutput}" ]; then
@@ -794,7 +794,7 @@ function isAwdlActive(){
 		if [ "$1" != "verbose" ]; then echo "OK";
 		else echo "OK. An AWDL interface is up, Wi-Fi is ready for Continuity"; fi
 	else
-		#no AWDL interface is up 
+		#no AWDL interface is up
 		#verify if the right driver is in use, as the hardware might still be compatible
 		local wifiDriverOutput=$($kextstatPath | $grepPath "Brcm4360")
 		if [ ! -z "${wifiDriverOutput}" ]; then
@@ -807,8 +807,8 @@ function isAwdlActive(){
 				else echo "OK. No AWDL is active, but the hardware seems to be able to support it. This tool can try to fix this."; fi
 			else
 				if [ "$1" != "verbose" ]; then echo "NOT OK"; #unknown driver, not upgradable
-				else echo "NOT OK. Your Wi-Fi card doesn't support AWDL, and therefore doesn't work with Continuity."; fi	
-			fi	
+				else echo "NOT OK. Your Wi-Fi card doesn't support AWDL, and therefore doesn't work with Continuity."; fi
+			fi
 		fi
 	fi
 }
@@ -841,13 +841,13 @@ function isABluetoothDongleActive(){
 
 	if [ ! -z "${internalBtControllerId}" -a ! -z "${activeBtControllerId}" ]; then
 		if [ "${internalBtControllerId}" == "${activeBtControllerId}" ]; then
-			
+
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. The internal Bluetooth card is active"; fi
 		else
 			if [ "$1" != "verbose" ]; then echo "OK";
-			else 
-				echo "OK. 3rd party Bluetooth hardware detected"; 
+			else
+				echo "OK. 3rd party Bluetooth hardware detected";
 			fi
 		fi
 	else
@@ -859,7 +859,7 @@ function isABluetoothDongleActive(){
 
 #Verifies if the USB Dongle patch has already been applied
 function verifyFeatureFlagsPatch(){
-	
+
 	echo -n "Verifying BT4 dongles compatibility...  "
 
 	#verify if the Bluetooth binary can be found
@@ -869,7 +869,7 @@ function verifyFeatureFlagsPatch(){
 		local output=$($hexdumpPath -ve '1/1 "%.2X"' "${btBinPath}" | $grepPath "${usbBinaryPatchFind}")
 
 		if [ -z "${output}" ]; then
-		
+
 			#the file doesn't contain the pattern to replace
 			#verify if the file was already patched
 			local output=$($hexdumpPath -ve '1/1 "%.2X"' "${btBinPath}" | $grepPath "${usbBinaryPatchReplaceWith}")
@@ -886,7 +886,7 @@ function verifyFeatureFlagsPatch(){
 			#not yet patched (non-patched pattern found)
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Compatibility with BT4 USB dongles is not enabled, this tool can fix this if a dongle is plugged in"; fi
-			
+
 		fi
 	else
 		echo "NOT OK. Bluetooth drivers not found. Please use the uninstaller to restore drivers."
@@ -896,13 +896,13 @@ function verifyFeatureFlagsPatch(){
 
 #Sets the IOBluetoothHCIController::FeatureFlags getter to always return 0xf, compatible with Continuity
 function activateContinuityFeatureFlags(){
-	
+
 	echo -n "Patching Bluetooth feature flags...     "
 
 	sudo $perlPath -i.bak -pe "s|${usbBinaryPatchFindEscaped}|${usbBinaryPatchReplaceWithEscaped}|sg" "${btBinPath}"
 	#echo "$perlPath -i.bak -pe 's|${usbBinaryPatchFindEscaped}|${usbBinaryPatchReplaceWithEscaped}|sg' '${btBinPath}'"
 	sudo $rmPath "${btBinPath}.bak"
-	
+
 	#Confirm if the patching was done
 	local output=$($hexdumpPath -ve '1/1 "%.2X"' "${btBinPath}" | $grepPath "${usbBinaryPatchReplaceWith}")
 
@@ -919,15 +919,15 @@ function enableLegacyWifi(){
 
 	echo -n "Applying legacy Wi-Fi card patch...     "
 
-	if [ -f "$wifiKextPath/Contents/PlugIns/$wifiBrcmKextFilename/Contents/Info.plist" ]; then 
-		
+	if [ -f "$wifiKextPath/Contents/PlugIns/$wifiBrcmKextFilename/Contents/Info.plist" ]; then
+
 		#verify if the card is already whitelisted (only checks the first entry, where it is set by CAT)
 		#gets the card on top of the IOPersonalities list of the Brcm4360 driver. e.g. pci14e4,43ba
 		local output=$("$plistBuddyPath" -c "Print IOKitPersonalities:'Broadcom 802.11 PCI':IONameMatch:0" "$wifiKextPath/Contents/PlugIns/$wifiBrcmKextFilename/Contents/Info.plist") >> /dev/null 2>&1
 		legacyWifiAlreadyEnabled=$(containsElement "$output" "${legacyBrcmCardIds[@]}"; echo $?;)
 
 		if [ "$legacyWifiAlreadyEnabled" == "1" ]; then
-		
+
 			#entry found
 			echo -e "\rSkipping legacy Wi-Fi cards patch...    OK";
 		else
@@ -954,7 +954,7 @@ function hasTheLegacyWifiPatchBeenApplied(){
 	echo -n "Verifying legacy Wi-Fi card patch...    "
 
 	#verify if the card is already whitelisted (only checks the first entry, where it is set by CAT)
-	
+
 	#verify if the Wi-Fi driver is present
 	if [ -f "$wifiKextPath/Contents/PlugIns/$wifiBrcmKextFilename/Contents/Info.plist" ]; then
 
@@ -1034,7 +1034,7 @@ function backupKexts(){
 		local skipBackup="0" #set to "1" if the user requests the backup to be skipped
 
 		#Verify if the system kexts are there
-		if [ ! -d "${btKextPath}" -o ! -d "${wifiKextPath}" ]; then 
+		if [ ! -d "${btKextPath}" -o ! -d "${wifiKextPath}" ]; then
 			echo "NOT OK. ${btKextFilename} or ${wifiKextFilename} could not be found. Aborting."
 			backToMainMenu
 		else
@@ -1080,60 +1080,60 @@ function backupKexts(){
 
 #Replaces a string in a binary file by the one given. Usage : patchStringsInFile foo "old_string" "new_string"
 function patchStringsInFile() {
-    local FILE="$1"
-    local PATTERN="$2"
-    local REPLACEMENT="$3"
+		local FILE="$1"
+		local PATTERN="$2"
+		local REPLACEMENT="$3"
 
-    #Find all unique strings in FILE that contain the pattern 
-    STRINGS=$("${stringsPath}" "${FILE}" | $grepPath "${PATTERN}" | sort -u -r)
+		#Find all unique strings in FILE that contain the pattern
+		STRINGS=$("${stringsPath}" "${FILE}" | $grepPath "${PATTERN}" | sort -u -r)
 
-    if [ "${STRINGS}" != "" ] ; then
-        #echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
+		if [ "${STRINGS}" != "" ] ; then
+				#echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
 
-        for OLD_STRING in ${STRINGS} ; do
-            # Create the new string with a simple bash-replacement
-            NEW_STRING=${OLD_STRING//${PATTERN}/${REPLACEMENT}}
+				for OLD_STRING in ${STRINGS} ; do
+						# Create the new string with a simple bash-replacement
+						NEW_STRING=${OLD_STRING//${PATTERN}/${REPLACEMENT}}
 
-            # Create null terminated ASCII HEX representations of the strings
-            OLD_STRING_HEX="$(echo -n "${OLD_STRING}" | $xxdPath -g 0 -u -ps -c 256)00"
-            NEW_STRING_HEX="$(echo -n "${NEW_STRING}" | $xxdPath -g 0 -u -ps -c 256)00"
+						# Create null terminated ASCII HEX representations of the strings
+						OLD_STRING_HEX="$(echo -n "${OLD_STRING}" | $xxdPath -g 0 -u -ps -c 256)00"
+						NEW_STRING_HEX="$(echo -n "${NEW_STRING}" | $xxdPath -g 0 -u -ps -c 256)00"
 
-            if [ ${#NEW_STRING_HEX} -le ${#OLD_STRING_HEX} ] ; then
-                # Pad the replacement string with null terminations so the
-                # length matches the original string
-                while [ ${#NEW_STRING_HEX} -lt ${#OLD_STRING_HEX} ] ; do
-                    NEW_STRING_HEX="${NEW_STRING_HEX}00"
-                done
+						if [ ${#NEW_STRING_HEX} -le ${#OLD_STRING_HEX} ] ; then
+								# Pad the replacement string with null terminations so the
+								# length matches the original string
+								while [ ${#NEW_STRING_HEX} -lt ${#OLD_STRING_HEX} ] ; do
+										NEW_STRING_HEX="${NEW_STRING_HEX}00"
+								done
 
-                #now, replace every occurrence of OLD_STRING with NEW_STRING 
-                #echo -n "Replacing ${OLD_STRING} with ${NEW_STRING}... "
-                $hexdumpPath -ve '1/1 "%.2X"' "${FILE}" | \
-                $sedPath "s/${OLD_STRING_HEX}/${NEW_STRING_HEX}/g" | \
-                $xxdPath -r -p > "${FILE}.tmp"
-                SAVEMOD=$($statPath -r "$FILE" | $cutPath -f3 -d' ')
-                $chmodPath "${SAVEMOD}" "${FILE}.tmp"
-                $mvPath "${FILE}.tmp" "${FILE}"
-            else
-                echo "NOT OK. New string '${NEW_STRING}' is longer than old" \
-                     "string '${OLD_STRING}'. Skipping."
-            fi
-        done
-    else
-    	echo "NOT OK. No filepath given for the hacking. Aborting."
-    	backToMainMenu
-    fi
+								#now, replace every occurrence of OLD_STRING with NEW_STRING
+								#echo -n "Replacing ${OLD_STRING} with ${NEW_STRING}... "
+								$hexdumpPath -ve '1/1 "%.2X"' "${FILE}" | \
+								$sedPath "s/${OLD_STRING_HEX}/${NEW_STRING_HEX}/g" | \
+								$xxdPath -r -p > "${FILE}.tmp"
+								SAVEMOD=$($statPath -r "$FILE" | $cutPath -f3 -d' ')
+								$chmodPath "${SAVEMOD}" "${FILE}.tmp"
+								$mvPath "${FILE}.tmp" "${FILE}"
+						else
+								echo "NOT OK. New string '${NEW_STRING}' is longer than old" \
+										 "string '${OLD_STRING}'. Skipping."
+						fi
+				done
+		else
+			echo "NOT OK. No filepath given for the hacking. Aborting."
+			backToMainMenu
+		fi
 }
 
 
 #Detects the presence of an obsolete Broadcom 4331 Wi-Fi kext.
 #That driver can in some cases override the Continuity enabled 4360 kext (not wanted).
 function detectLegacyWifiDriver(){
-	
+
 	echo -n "Verifying old Wi-Fi kext presence...    "
 
 		#detect the presence of the legacy Broadcom 4331 driver
 	if [ -d "${wifiObsoleteBrcmKextPath}" ]; then
-		#kext exists 
+		#kext exists
 		if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Legacy Brcm4331 Wi-Fi driver is present. This tool can fix this."; fi
 	else
@@ -1147,7 +1147,7 @@ function detectLegacyWifiDriver(){
 #Removes the AirPortBrcm4331 and AppleAirPortBrcm43224 legacy Wi-Fi kext that could load and override the Continuity enabled Brcm4360 driver
 #Note: it's important to backup the Wi-Fi kext before doing this
 function removeObsoleteWifiDriver(){
-	
+
 	#verify if the Brcm4331 kext needs to be removed
 	#detect the presence of the legacy 4331 driver
 	if [ -d "${wifiObsoleteBrcmKextPath}" ]; then
@@ -1178,32 +1178,32 @@ function patchBluetoothKext(){
 	#verify if mac is blacklisted, if not skip
 	if [ "${myMacIsBlacklisted}" == "1" ]; then
 		echo -n "Patching blacklist..."
-		
+
 		#(re)populate blacklist
 		blacklistedMacs=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
 
-    	#build a disabled blacklist
-    	local disabledBlacklist=()
-    	local blacklistedMac
-    	for blacklistedMac in "${blacklistedMacs[@]}";
-    	do
-    		#replace the last three chars of the mac model with "1,1", e.g. MacBookAir4,2 -> MacBookAir1,1
-    		disabledBlacklist+=($(echo $blacklistedMac | $revPath | $cutPath -c 4- | $revPath | $awkPath '{print $1"1,1"}'))
-    	done
+			#build a disabled blacklist
+			local disabledBlacklist=()
+			local blacklistedMac
+			for blacklistedMac in "${blacklistedMacs[@]}";
+			do
+				#replace the last three chars of the mac model with "1,1", e.g. MacBookAir4,2 -> MacBookAir1,1
+				disabledBlacklist+=($(echo $blacklistedMac | $revPath | $cutPath -c 4- | $revPath | $awkPath '{print $1"1,1"}'))
+			done
 
-    	#verify that the disabled blacklist is correctly built (last chance before applying the hack)
-    	if [ "${#disabledBlacklist[@]}" -gt "0" -a "${#disabledBlacklist[@]}" -eq "${#blacklistedMacs[@]}" ]; then
+			#verify that the disabled blacklist is correctly built (last chance before applying the hack)
+			if [ "${#disabledBlacklist[@]}" -gt "0" -a "${#disabledBlacklist[@]}" -eq "${#blacklistedMacs[@]}" ]; then
 
-    		#use the helper function to apply the hack
-    		for (( i = 0; i < ${#blacklistedMacs[@]}; i++ )); do
-    			#patchStringsInFile foo "old string" "new string"
-    			patchStringsInFile "${btBinPath}" "${blacklistedMacs[i]}" "${disabledBlacklist[i]}"
-    			echo -n "."
-    		done
-    		echo "              OK"
-    	else
-    		echo "NOT OK. Failed to disable the blacklist - no changes were applied. Aborting."; backToMainMenu
-    	fi
+				#use the helper function to apply the hack
+				for (( i = 0; i < ${#blacklistedMacs[@]}; i++ )); do
+					#patchStringsInFile foo "old string" "new string"
+					patchStringsInFile "${btBinPath}" "${blacklistedMacs[i]}" "${disabledBlacklist[i]}"
+					echo -n "."
+				done
+				echo "              OK"
+			else
+				echo "NOT OK. Failed to disable the blacklist - no changes were applied. Aborting."; backToMainMenu
+			fi
 	else
 		echo "Skipping blacklist patch...             OK"
 	fi
@@ -1226,7 +1226,7 @@ function patchWifiKext(){
 	local occurence=0
 	local whitelistedBoardId
 	for whitelistedBoardId in "${whitelist[@]}"; do
-  		if [ "${whitelistedBoardId}" == "${myMacIdPattern}" ]; then ((occurence+=1)); fi
+			if [ "${whitelistedBoardId}" == "${myMacIdPattern}" ]; then ((occurence+=1)); fi
 	done
 	#only skip the wifi patching if the wifi kext is not exactly patched as this script does: with all board-ids replaced by own board-id
 	if [ "${occurence}" -eq "${#whitelist[@]}" ]; then
@@ -1247,7 +1247,7 @@ function patchWifiKext(){
 #Applies permissions known to work for the Wi-Fi and Bluetooth Kexts.
 function applyPermissions(){
 	echo -n "Applying correct permissions...         "
-	
+
 	sudo $chownPath -R root:wheel "${btKextPath}"
 	sudo $chownPath -R root:wheel "${wifiKextPath}"
 	sudo $chmodPath -R 755 "${btKextPath}"
@@ -1265,9 +1265,9 @@ function spinner(){
 	i=0
 	while kill -0 "$pid" 2>/dev/null
 	do
-  		i=$(( (i+1) %4 ))
-  		printf "\r$1${spin:$i:1}"
-  		sleep .1
+			i=$(( (i+1) %4 ))
+			printf "\r$1${spin:$i:1}"
+			sleep .1
 	done
 }
 
@@ -1290,7 +1290,7 @@ function rebootPrompt(){
 	$readPath -n1 -s -p "Press the 'R' key to IMMEDIATELY reboot or any other key to exit... " keypress
 	echo ""
 	if [ "$keypress" == "R" -o "$keypress" == "r" ]; then
-	osascript -e 'tell app "System Events" to restart'
+		osascript -e 'tell app "System Events" to restart'
 	else
 		echo ""
 		echo " * * * * * * * * * * * * WARNING * * * * * * * * * * * *"
@@ -1331,7 +1331,7 @@ function startTheKextsReplacement(){
 		local permissionsError=$((btPermissionsError + wifiPermissionsError))
 
 		#presence detection of CAT <=1.0.1 backups is deprecacted
-		
+
 		if [ "${permissionsError}" -eq "0" ]; then
 			#a kext backup made with a recent CAT version exists, recover those
 			#silently remove any existing previous kext backups (doesn't care if the old kexts were found or not)
@@ -1348,7 +1348,7 @@ function startTheKextsReplacement(){
 
 			if sudo $cpPath -R "${backupFolderBeforePatch}/${wifiKextFilename}/" "${driverPath}/${wifiKextFilename}"; then ((uninstallOk+=1)); else errorOutput="Failed to restore ${wifiKextFilename} from ${backupFolderBeforePatch}."; fi
 			if sudo $cpPath -R "${backupFolderBeforePatch}/${btKextFilename}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} Failed to restore ${btKextFilename} from ${backupFolderBeforePatch}."; fi
-		
+
 			if [ "${uninstallOk}" -eq "2" ]; then
 				echo "OK. Restored backup drivers found in '${backupFolderBeforePatch}'"
 			else
@@ -1411,7 +1411,7 @@ function replaceKextsWithRecoveryDiskOnes(){
 
 		if sudo $cpPath -R "${osxBaseSystemPath}/${wifiKextPath}/" "${driverPath}/${wifiKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${wifiKextFilename} uninstallation failed."; fi
 		if sudo $cpPath -R "${osxBaseSystemPath}/${btKextPath}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} ${btKextFilename} uninstallation failed."; fi
-		
+
 		if [ "${uninstallOk}" -eq "2" ]; then
 			$hdiutilPath detach -force -quiet "/Volumes/Recovery HD"
 			echo "OK"
@@ -1510,9 +1510,9 @@ function verboseCompatibilityCheck(){
 
 #Initiates the backup, patching and clean-up.
 function checkAndHack(){
-	
+
 	if [ "${forceHack}" != "1" ]; then
-		
+
 		#reset the patching flags in case they were set in a previous hack/diagnostic in the same session. They will be set again.
 		whitelistAlreadyPatched=0
 		myMacIsBlacklisted=0
@@ -1521,7 +1521,7 @@ function checkAndHack(){
 		legacyWifiPatchApplied=0
 
 		#run the checks
-		compatibilityPrecautions 
+		compatibilityPrecautions
 	else
 		doDonglePatch="1"
 	fi
@@ -1589,7 +1589,7 @@ function displaySplash(){
 	tput clear
 	echo "--- OS X Continuity Activation Tool ${hackVersion} ---"
 	echo "                 by dokterdok                 "
-	echo ""	
+	echo ""
 }
 
 #Displays credits, people who helped make it happen
@@ -1652,7 +1652,7 @@ function displayMainMenu(){
 	select opt in "${options[@]}"
 	do
 		case $opt in
-			'Activate Continuity') 
+			'Activate Continuity')
 				displayBluetoothDonglePrompt
 				checkAndHack
 				;;
@@ -1660,7 +1660,7 @@ function displayMainMenu(){
 				verboseCompatibilityCheck
 				backToMainMenu
 				;;
-			'Uninstall') 
+			'Uninstall')
 				uninstall
 				;;
 			'Quit')
@@ -1668,48 +1668,54 @@ function displayMainMenu(){
 				osascript -e 'tell application "Terminal" to quit'
 				exit;;
 			*)
-		 		echo "Invalid option, enter a number"
-		 		;;
+				echo "Invalid option, enter a number"
+				;;
 		esac
 	done
 }
 
-if [ $# -eq 0 ]; then 
+if [ $# -eq 0 ]; then
 	applyTerminalTheme
 	veryifyAdminGroup
 	verifyStringsUtilPresence
 	displayMainMenu
 else
 	while [ "$1" != "" ]; do
-	    case $1 in
-	        -a | --activate )       		veryifyAdminGroup
-											verifyStringsUtilPresence
-											checkAndHack
-	                                		;;
-	        -d | --diagnostic )     		verifyStringsUtilPresence
-											verboseCompatibilityCheck
-	                                		;;
-	        -f | --forceHack )				veryifyAdminGroup
-											verifyStringsUtilPresence
-											forceHack=1
-											checkAndHack
-											;;
-	        -h | --help )           		showUsage
-	                                		exit
-	                                		;;
-			-r | --uninstallWithRecovery )  veryifyAdminGroup
-											verifyStringsUtilPresence
-											forceRecoveryDiskBackup=1
-											uninstall
-											;;
-	        -z | --uninstall )				veryifyAdminGroup
-											verifyStringsUtilPresence
-											uninstall
-											;;
-	        * )                     		showUsage
-	                                		exit 1
-	    esac
-	    shift
+			case $1 in
+					-a | --activate )
+							veryifyAdminGroup
+							verifyStringsUtilPresence
+							checkAndHack
+							;;
+					-d | --diagnostic )
+							verifyStringsUtilPresence
+							verboseCompatibilityCheck
+							;;
+					-f | --forceHack )
+							veryifyAdminGroup
+							verifyStringsUtilPresence
+							forceHack=1
+							checkAndHack
+							;;
+					-h | --help )
+							showUsage
+							exit
+							;;
+					-r | --uninstallWithRecovery )
+							veryifyAdminGroup
+							verifyStringsUtilPresence
+							forceRecoveryDiskBackup=1
+							uninstall
+							;;
+					-z | --uninstall )
+							veryifyAdminGroup
+							verifyStringsUtilPresence
+							uninstall
+							;;
+					* )	showUsage
+							exit 1
+			esac
+			shift
 	done
 fi
 
