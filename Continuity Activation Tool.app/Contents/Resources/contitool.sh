@@ -65,7 +65,7 @@ mvPath="/bin/mv"
 nvramPath="/usr/sbin/nvram"
 perlPath="/usr/bin/perl"
 plistBuddyPath="/usr/libexec/PlistBuddy"
-readPath="/usr/bin/read"
+readPath="builtin read"
 revPath="/usr/bin/rev"
 rmPath="/bin/rm"
 sedPath="/usr/bin/sed"
@@ -664,8 +664,8 @@ function displayBluetoothDonglePrompt(){
 	local donglePluggedIn=$(quietDongleDetection)
 	local keypress=''
 	while [ "$keypress" = '' -a "$donglePluggedIn" -eq "0" ]; do
-  		echo -ne "\rPress any key to continue without a USB Bluetooth 4.0 dongle..."
-  		read keypress
+			echo ""
+			$readPath -n 1 -s -p "Press any key to continue without a USB Bluetooth 4.0 dongle..." keypress
   		donglePluggedIn=$(quietDongleDetection)
 	done
 	if [ -t 0 ]; then stty sane; fi
@@ -1286,9 +1286,21 @@ function updateSystemCache(){
 #Prompts to reboot your system, e.g. after patching
 function rebootPrompt(){
 	echo ""
-	$readPath -n 1 -p "Press any key to reboot or CTRL-C to cancel..."
+	local keypress
+	$readPath -n1 -s -p "Press the 'R' key to IMMEDIATELY reboot or any other key to exit... " keypress
 	echo ""
+	if [ "$keypress" == "R" -o "$keypress" == "r" ]; then
 	osascript -e 'tell app "System Events" to restart'
+	else
+		echo ""
+		echo " * * * * * * * * * * * * WARNING * * * * * * * * * * * *"
+		echo ""
+		echo "Your system has been patched and may not be safe to continue using it."
+		echo "Quit all other applications and reboot as soon as possible!"
+		echo ""
+		echo "The CAT and Terminal applications will quit in a few seconds."
+		sleep 15
+	fi
 	$killallPath "Terminal"
 	exit;
 }
