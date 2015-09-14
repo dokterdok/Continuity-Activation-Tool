@@ -76,6 +76,7 @@ stringsPath="$appDir/findString"
 trPath="/usr/bin/tr"
 wcPath="/usr/bin/wc"
 xxdPath="/usr/bin/xxd"
+csrutilPath="/usr/bin/csrutil"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -532,132 +533,6 @@ function modifyKextDevMode(){
 	fi
 }
 
-function modifyRootless(){
-	
-	local modificationAction="$1"
-	local sedRegEx #regex that can be used to remove the "rootless" variable from the boot-args
-	local longSedRegEx #regex that can be used to remove the "-rootless" variable from the boot-args. It includes a dash at the beginning.
-
-	#Sanitize the inputs and display the relevent the info message
-	if [ -z "$1" ]; then
-    	echo "Internal error: no OS Rootless input argument given. Aborting."; backToMainMenu;
-    else
-		if [ "${modificationAction}" == "enableRootless" ]; then 
-			echo -n "Enabling Rootless security...";
-			longSedRegEx="s#\.*-rootless=0##g;"
-			sedRegEx="s#\.*rootless=0##g" #this rootless string will be removed if it exists
-			okToDisable="1"
-		else 
-			if [ "${modificationAction}" == "disableRootless" ]; then 
-				echo -n "Disabling OS Rootless protection...         "
-				longSedRegEx="s#\.*-rootless=1##g"
-				sedRegEx="s#\.*rootless=1##g" #this rootless string will be removed if it exists
-			else echo "Internal error: unknown OS Rootless input argument given. Aborting."; backToMainMenu;
-			fi
-		fi
-	fi
-
-	#Check if boot-args variable is set
-	sudo $nvramPath boot-args >> /dev/null 2>&1
-	local bootArgsResult=$?
-	if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
-	
-		#Get the boot-args variable value(s)
-		bootArgsResult=$(sudo $nvramPath boot-args)
-		bootArgsResult=${bootArgsResult:10} #remove boot-args declaration, necessary later
-
-		#Check if rootless is disabled
-		sudo $nvramPath boot-args | $grepPath -F "rootless=0" >> /dev/null 2>&1
-		local rootlessResult=$?
-		if [ $rootlessResult -eq 0 ]; then 
-
-			if [ "${modificationAction}" == "enableRootless" ]; then
-					#Rootless will be removed from the boot-args
-					local strippedBootArgs=$(echo "${bootArgsResult}" | $sedPath "${longSedRegEx}")
-					strippedBootArgs=$(echo "${strippedBootArgs}" | $sedPath "${sedRegEx}")
-					sudo $nvramPath boot-args="${strippedBootArgs}"
-					echo "OK. The Rootless security was reenabled"
-			else
-				echo "OK" #do nothing, rootless was already disabled, as wanted
-			fi
-		else
-			#Verify if the rootless is declared as enabled (rare, by default this variable is not set by OS X)
-			sudo $nvramPath boot-args | $grepPath -F "rootless=1" >> /dev/null 2>&1
-			rootlessResult=$?
-			if [ $rootlessResult -eq 0 ]; then 
-
-				#rootless is declared as unset
-				if [ "${modificationAction}" == "disableRootless" ]; then
-					echo "Are you sure You can to disable Rootless?";
-					select yn in "Yes" "No"; do
-						case $yn in
-							Yes) #continue
-								break;;
-							No) echo "Aborting.";
-								backToMainMenu;;
-							*) echo "Invalid option, enter a number";;
-						esac
-					done
-					#Rootless will be disabled, previous rootless variable is stripped first
-					local strippedBootArgs=$(echo "${bootArgsResult}" | $sedPath "${longSedRegEx}")
-					strippedBootArgs=$(echo "${strippedBootArgs}" | $sedPath "${sedRegEx}")
-					sudo $nvramPath boot-args="${strippedBootArgs} rootless=0"
-					echo "OK"
-					#Prompt to reboot now
-					echo "You have to reboot now for the changes to take effect."
-					rebootPrompt
-				else
-					echo "OK. Rootless was already enabled.." #rootless was already enabled, as wanted.
-				fi
-			else
-				#No rootless variable set
-				if [ "${modificationAction}" == "disableRootless" ]; then
-					echo "Are you sure You can to disable Rootless?";
-					select yn in "Yes" "No"; do
-						case $yn in
-							Yes) #continue
-								break;;
-							No) echo "Aborting.";
-								backToMainMenu;;
-							*) echo "Invalid option, enter a number";;
-						esac
-					done
-					#Disable Rootless
-					sudo $nvramPath boot-args="${bootArgsResult} rootless=0"
-					echo "OK"
-					#Prompt to reboot now
-					echo "You have to reboot now for the changes to take effect."
-					rebootPrompt
-				else 
-					#Do nothing, rootless already enabled
-					echo "OK. Rootless was already enabled"
-				fi	
-			fi
-		fi
-	else
-		#No boot-args are set at all. Only set them in the PRAM if it needs to be activated.
-		if [ "${modificationAction}" == "disableRootless" ]; then
-			echo "Are you sure You can to disable Rootless?";
-			select yn in "Yes" "No"; do
-				case $yn in
-					Yes) #continue
-						break;;
-					No) echo "Aborting.";
-						backToMainMenu;;
-					*) echo "Invalid option, enter a number";;
-				esac
-			done
-			sudo $nvramPath boot-args="rootless=0"
-			echo "OK"
-			#Prompt to reboot now
-			echo "You have to reboot now for the changes to take effect."
-			rebootPrompt
-		else
-			echo "OK. Rootless was already enabled!" #do nothing, rootless is enabled, as wanted
-		fi
-	fi
-}
-
 #Verifies if the kext developer mode is active. No changes are applied to the PRAM here.
 function verifyOsKextDevMode(){
 	echo -n "Verifying OS kext protection...         "
@@ -685,36 +560,39 @@ function verifyOsKextDevMode(){
 	fi
 }
 
-function verifyOSRootless(){
-	echo -n "Verifying Rootless protection...        "
-
-	#Check if boot-args variable is set
-	$nvramPath boot-args >> /dev/null 2>&1
-	local bootArgsResult=$?
-	if [ $bootArgsResult -eq 0 ]; then #Yes, boot-args exists
-
-		#Verify if Rootless=0 is set aka Rootless disabled
-		$nvramPath boot-args | $grepPath -F "rootless=0" >> /dev/null 2>&1
-		local rootlessResult=$?
-		if [ $rootlessResult -eq 0 ]; then #Rootless is disabled
+function verifySIP(){
+	echo -n "Verifying SIP...						 "
+	#Check csrutil status
+	$csrutilPath status | $grepPath -F "status: disabled" >> /dev/null 2>&1
+	local SIPresult=$?
+	
+	if [ $SIPresult -eq 0 ]; then #SIP is disabled
 			if [ "$1" != "verbose" ]; then echo "OK"; 
-			else echo "Ok. Rootless is already disabled"; fi
-		else
-			$nvramPath boot-args | $grepPath -F "rootless=1" >> /dev/null 2>&1
-			local rootlessResult=$?
-			if [ $rootlessResult -eq 0 ]; then #Rootless is enabled
-				if [ "$1" != "verbose" ]; then echo "OK"; 
-				else echo "Ok. Rootless is enabled. This tool will disable Rootless"; fi
-			else 
-				echo "Ok. Rootless is enabled. This tool will disable Rootless";	
+			else echo "Ok. System Integrity Protection is already disabled"; 
+			return 1
 			fi
-		fi	
 	else
-
-		#No boot-args are set at all
-		if [ "$1" != "verbose" ]; then echo "OK";
-		else echo "OK. Rootless is still active. This tool will disable Rootless1."; fi
-	fi
+			#Extra check needed, csrutil lists that SIP is enabled and all of it's options are disabled instead of just labeling it as disabled.
+			local SIPresult=$($csrutilPath status | $grepPath -c ": disabled")
+			if [ "${SIPresult}" -eq 6 ]; then
+				if [ "$1" != "verbose" ]; then echo "OK"; 
+				else echo "Ok. System Integrity Protection is already disabled"; 
+				return 1
+				fi
+			else 	
+				$csrutilPath status | $grepPath -F "status: enabled" >> /dev/null 2>&1
+				local SIPresult=$?
+				if [ $SIPresult -eq 0 ]; then #SIP is enabled
+					if [ "$1" != "verbose" ]; then echo "NOT OK."; 
+					else echo "NOT OK. System Integrity Protection is still enabled"; 
+					return 0
+				fi
+				else 
+					echo "NOT OK. Unknown System Integrity Protection state."
+					return 0
+				fi
+			fi	
+	fi	
 }
 
 
@@ -1651,7 +1529,7 @@ function compatibilityPrecautions(){
 	echo '--- Initiating system compatibility check ---'
 	echo ''
 	if [ "$subVersion" -eq 11 ]; then
-		verifyOSRootless
+		verifySIP
 	fi
 	initializeBackupFolders
 	isMyMacModelCompatible
@@ -1660,6 +1538,15 @@ function compatibilityPrecautions(){
 	areMyActiveWifiDriversOk
 	isMyBluetoothVersionCompatible
 	areMyBtFeatureFlagsCompatible
+	verifySIP
+	if [ $? -eq 0 ]; then
+		echo "To continue you need to disable System Integrity Protection and come back here."
+		echo "1. Reboot and hold CMD + R"
+		echo "2. Utilities - Terminal"
+		echo "3. enter 'csrutil disable'"
+		echo "4. reboot"
+		exit;
+	fi
 	canMyKextsBeModded
 	isMyMacBlacklisted
 	isMyMacWhitelisted
@@ -1691,7 +1578,7 @@ function verboseCompatibilityCheck(){
 	echo '--- Modifications check ---'
 	verifyOsKextDevMode "verbose"
 	if [ "$subVersion" -eq 11 ]; then
-		verifyOSRootless "verbose"
+		verifySIP "verbose"
 	fi
 	canMyKextsBeModded "verbose"
 	isMyMacWhitelisted "verbose"
@@ -1739,9 +1626,6 @@ function checkAndHack(){
 
 	initializeBackupFolders
 	modifyKextDevMode "enableDevMode"
-	if [ "$subVersion" -eq 11 ]; then
-		modifyRootless "disableRootless"
-	fi	
 	repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
 	if [ "$subVersion" -ne 11 ]; then
@@ -1764,7 +1648,7 @@ function checkAndHack(){
 	echo "3) On iOS go to SETTINGS> GENERAL> HANDOFF & SUGGESTED APPS> and ENABLE HANDOFF."
 	echo "4) On OS X, sign out and then sign in again to your iCloud account."
 	echo "Troubleshooting: support.apple.com/kb/TS5458"
-	echo "After verifying that Continuity works, you can come back and reenable Rootless.";
+	echo "After verifying that Continuity works, you can reenable SIP via the Recovery OS";
 	displayThanks
 	rebootPrompt
 }
@@ -1774,11 +1658,6 @@ function uninstall(){
 	displaySplash
 	echo '--- Initiating uninstallation ---'
 	echo ''
-	
-	if [ "$subVersion" -eq 11 ]; then
-		modifyRootless "disableRootless"
-	fi	
-	
 	initializeBackupFolders
 	startTheKextsReplacement
 	applyPermissions
@@ -1788,8 +1667,14 @@ function uninstall(){
 	modifyKextDevMode "disableDevMode"
 	echo ""
 	echo ""
-	echo "DONE. Please reboot now to complete the uninstallation."
-	echo "You can come back after the reboot and disable rootless if you want to."
+	echo "DONE. Please reboot now to complete the uninstallation."	
+	if [ "$subVersion" -eq 11 ]; then
+		echo "If you have not done already, you can reenable the SIP"
+		echo "1. Reboot and hold CMD + R"
+		echo "2. Utilities - Terminal"
+		echo "3. enter 'csrutil enable'"
+		echo "4. reboot"
+	fi	
 	echo ""
 	rebootPrompt
 }
@@ -1856,7 +1741,7 @@ function displayMainMenu(){
 	displaySplash
 	echo "Select an option:"
 	echo ""
-	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Enable Rootless" "Disable Auto Check App" "Quit")
+	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Disable Auto Check App" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
@@ -1880,9 +1765,6 @@ function displayMainMenu(){
 				;;
 			'Uninstall') 
 				uninstall
-				;;
-			'Enable Rootless') 
-				modifyRootless "enableRootless"
 				;;
 			'Disable Auto Check App')
 				autoCheckApp "disable"
