@@ -577,8 +577,8 @@ function verifySIP(){
 			if [ "${SIPresult}" -eq 6 ]; then
 				if [ "$1" != "verbose" ]; then echo "OK"; 
 				else echo "Ok. System Integrity Protection is already disabled"; 
-				return 1
 				fi
+			return 1
 			else 	
 				$csrutilPath status | $grepPath -F "status: enabled" >> /dev/null 2>&1
 				local SIPresult=$?
