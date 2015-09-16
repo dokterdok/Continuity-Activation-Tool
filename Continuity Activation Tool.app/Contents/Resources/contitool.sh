@@ -41,6 +41,7 @@ btBinPath="$driverPath/$btKextFilename/Contents/MacOS/$btBinFilename"
 recoveryHdName="Recovery HD"
 recoveryDmgPath="/Volumes/Recovery HD/com.apple.recovery.boot/BaseSystem.dmg"
 osxBaseSystemPath="/Volumes/OS X Base System"
+systemParameters="/System/Library/Frameworks/IOBluetooth.framework/Versions/A/Resources/SystemParameters.plist"
 
 #UTILITIES PATHS
 awkPath="/usr/bin/awk"
@@ -77,6 +78,7 @@ trPath="/usr/bin/tr"
 wcPath="/usr/bin/wc"
 xxdPath="/usr/bin/xxd"
 csrutilPath="/usr/bin/csrutil"
+plistBuddy="/usr/libexec/PlistBuddy"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -211,6 +213,40 @@ function canMyKextsBeModded(){
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Wi-Fi and Bluetooth kexts were found and could be read"; fi
 		fi
+}
+
+#Checks the status of the ContinuitySupport bool for the given mac 
+function checkContinuitySupport(){
+	echo -n "Verifying ContinuitySupport...          "
+	local contiSupport=$($plistBuddy -c "Print :${myMacIdPattern}:ContinuitySupport" "${systemParameters}")
+	if [[ "${contiSupport}" == "true" ]]; then
+		if [ "$1" != "verbose" ]; then echo "OK.";
+		else echo "OK. Already patched.";
+		fi
+	else 
+		if [[ "${contiSupport}" == "false" ]]; then
+			if [ "$1" != "verbose" ]; then echo "OK.";
+			else echo "OK. This tool can fix this.";
+			fi
+		else 
+			echo "NOT OK. Unknown state. Your Mac might not be compatible."
+		fi
+	fi
+}
+
+function patchContinuitySupport(){
+	local action="$1"
+	echo -n "Patching ContinuitySupport...           "
+	if [[ "${action}" == "enable" ]]; then
+		$plistBuddy -c "Set :${myMacIdPattern}:ContinuitySupport true" "${systemParameters}";
+	else 
+		if [[ "${action}" == "disable" ]]; then
+			$plistBuddy -c "Set :${myMacIdPattern}:ContinuitySupport false" "${systemParameters}";
+		else
+			echo "Internal error. Unknown patch action."
+		fi
+	fi
+	echo "OK."
 }
 
 #Verifies that the board-id has an acceptable length
@@ -561,7 +597,7 @@ function verifyOsKextDevMode(){
 }
 
 function verifySIP(){
-	echo -n "Verifying SIP...						 "
+	echo -n "Verifying SIP...                        "
 	#Check csrutil status
 	$csrutilPath status | $grepPath -F "status: disabled" >> /dev/null 2>&1
 	local SIPresult=$?
@@ -1550,6 +1586,7 @@ function compatibilityPrecautions(){
 	canMyKextsBeModded
 	isMyMacBlacklisted
 	isMyMacWhitelisted
+	checkContinuitySupport
 	hasTheLegacyWifiPatchBeenApplied
 	detectLegacyWifiDriver
 	checkLoginItem
@@ -1586,6 +1623,7 @@ function verboseCompatibilityCheck(){
 		isMyMacBlacklisted "verbose"
 		verifyFeatureFlagsPatch "verbose"
 	fi
+	checkContinuitySupport "verbose"
 	detectLegacyWifiDriver "verbose"
 	hasTheLegacyWifiPatchBeenApplied "verbose"
 }
@@ -1641,6 +1679,7 @@ function checkAndHack(){
 	if [ "${autoCheckAppEnabled}" == 0 ]; then
 		autoCheckApp "enable"
 	fi
+	patchContinuitySupport "enable"
 	echo ""
 	echo "ALMOST DONE! After rebooting:"
 	echo "1) Make sure that both your Mac and iOS device have Bluetooth turned on, and are on the same Wi-Fi network."
@@ -1665,6 +1704,7 @@ function uninstall(){
 	updateSystemCache
 	disableBthcSwitchBehavior
 	modifyKextDevMode "disableDevMode"
+	patchContinuitySupport "disable"
 	echo ""
 	echo ""
 	echo "DONE. Please reboot now to complete the uninstallation."	
