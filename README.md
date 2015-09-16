@@ -4,39 +4,15 @@ Continuity Activation Tool
 This tool makes the necessary changes to enable OS X 10.10 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop. 
 
 ## News
-
+* **2015-09-16 - 2.1.1 released** : Adds compability with El Capitan.
+* **2015-08-13 - New active lead** : I (sysfloat) will now be the main contributer and manager of the project, since dokterdok is not able to support this project anymore. He supported me with a lot of stuff and his research into enabling Continuity with dongles. I will contact some old beta testers and will do my best to get the dongles working on El Capitan and merge my fork with the beta branch.
 * **2014.12.23 - v.2.1 released** : Works with El Capitan DP1. Does **NOT** work with Dogles yet. (Take a look below)
 * **2014.12.23 - v.2.0.1 released** : Improved USB Bluetooth dongle detection and command line execution. [Changelog](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta#changelog).
 * **2014.12.14 - v.2.0.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
 
-**[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)** (latest version)
+**[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/beta.zip)** (latest version)
 
 This tool took a lot of research and coding. A small PayPal donation would be much appreciated to support the maintenance and evolution of the app. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
-
-##Warning:
-There have been some problems on DP5 where the machine would not boot anymore. Please be extra careful when using on DP5+ and create backups of IOBluetoothFamily.kext and AppleBluetoothRemote.kext manually!!
-Do the following to fix that:
-
-1. Boot into Recovery Mode (CMD + R)
-2. Open Terminal (Utility - Terminal)
-3. run the following:
-	rm -rf "/Volumes/Macintosh HDD/System/Library/Extensions/\*Bluetooth\*"
-	kextcache -update-volume "/Volumes/Macintosh HDD"
-4. reboot your mac
-5. run the following:
-	diskutil mount "Recovery HD"
-	hdiutil attach "/Volumes/Recovery HD/com.apple.recovery.boot/BaseSystem.dmg"
-6. install the files AppleBluetoothMultitouch.kext, AppleMIDIBluetoothDriver.plugin from the recovery image and IOBluetoothFamily.kext, AppleBluetoothRemote.kext from your backup directory via kext drop.
-7. reboot 
-8. if everything works now run CAT as usual.
-
-##El Capitan DP 1 & dongles
-
-Apple has done some changes in IOBluetoothFamily in El Capitan.
-Unfortunately I know next to nothing about kernel extensions and patching them. I tried to apply the logic of the original patch to the new functions but that didn't work. If you know anything about kernel extension patching and/or asm, please take a look at and help out. 
-Dokterdok previously patched IOBluetoothHCIController::SetControllerFeatureFlags to always return 15. In El Capitan the old function seems to be split up in AppleBroadcomHostController::SetControllerFeatureFlags and IOBluetoothHostController::SetControllerFeatureFlags. I guess the new patch would have to be applied there.
-
-
 
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
