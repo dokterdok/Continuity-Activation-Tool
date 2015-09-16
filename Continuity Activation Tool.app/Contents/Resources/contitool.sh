@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.1 beta"
+hackVersion="2.1.1"
 
 #---- PATH VARIABLES ------
 
@@ -1723,7 +1723,7 @@ function displaySplash(){
 	tput clear
 	echo "--- OS X Continuity Activation Tool ${hackVersion} ---"
 	echo "                 by dokterdok                 "
-	echo "          modded for 10.11 by sysfloat        "
+	echo "                                              "
 	echo ""	
 }
 
@@ -1731,7 +1731,7 @@ function displaySplash(){
 function displayThanks(){
 	echo ""
 	echo "Thanks to Lem3ssie, UncleSchnitty, Skvo, toleda, TealShark, Manic Harmonic, rob3r7o and the many beta testers for their support."
-	echo "Modded by randy, thanks to dokterdok for the good commenting of the code"
+	echo "Updated for El Capitan by sysfloat"
 	echo ""
 	echo ""
 }
