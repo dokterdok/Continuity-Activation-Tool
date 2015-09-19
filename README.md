@@ -1,7 +1,9 @@
 Continuity Activation Tool
 ==========================
 
-This tool makes the necessary changes to enable OS X 10.10 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop. 
+This tool makes the necessary changes to enable OS X 10.10 and 10.11 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop. 
+Support for OS X 10.11 (El Capitan) is currently experimental and does not support dongles yet. 
+Use the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta) if you're interested.
 
 ## News
 
