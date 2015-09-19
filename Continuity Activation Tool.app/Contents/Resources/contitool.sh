@@ -4,7 +4,7 @@
 #
 # Continuity Activation Tool 2 - built by dokterdok
 #
-# Description: This script enables OS X 10.10 Continuity features when compatible hardware is detected.
+# Description: This script enables OS X 10.10 and 10.11 Continuity features when compatible hardware is detected.
 # Continuity features activated by this tool include Application Handoff, Instant Hotspot, and New Airdrop.
 # The tool has no influence over Call/SMS Handoff.
 #
@@ -121,7 +121,7 @@ function verifyStringsUtilPresence() {
 		
 		tput clear
 		echo ""
-		echo "Error: the 'strings' command line utility was not found and is necessary to run the script."
+		echo "Error: the 'findString' command line utility was not found and is necessary to run the script."
 		echo ""
 		echo "It is expected to be bundled with the app and located at :"
 		echo "'${appDir}/'"
@@ -215,7 +215,7 @@ function canMyKextsBeModded(){
 		fi
 }
 
-#Checks the status of the ContinuitySupport bool for the given mac 
+#Verifies the status of the ContinuitySupport bool for the given mac 
 function checkContinuitySupport(){
 	echo -n "Verifying ContinuitySupport...          "
 	local contiSupport=$($plistBuddy -c "Print :${myMacIdPattern}:ContinuitySupport" "${systemParameters}")
@@ -233,7 +233,7 @@ function checkContinuitySupport(){
 		fi
 	fi
 }
-
+#Patches the ContinuitySupport bool to true for the given Mac boad-id
 function patchContinuitySupport(){
 	local action="$1"
 	echo -n "Patching ContinuitySupport...           "
@@ -595,6 +595,8 @@ function verifyOsKextDevMode(){
 	fi
 }
 
+#Verifies the current status of the System Integrity Protection.
+#This is only needed in OS X 10.11 and can be reenabled after the patching is done.
 function verifySIP(){
 	echo -n "Verifying SIP...                        "
 	#Check csrutil status
@@ -629,7 +631,6 @@ function verifySIP(){
 			fi	
 	fi	
 }
-
 
 #Verifies if the Mac board id is correctly whitelisted in the Wi-Fi drivers
 function isMyMacWhitelisted(){
@@ -1082,6 +1083,7 @@ function hasTheLegacyWifiPatchBeenApplied(){
 	fi
 }
 
+#------------ BT USB Specific Procedures End ------------------
 
 #Uses a app that checks the SFDeviceSupportsContinuity flag, used in Apple's Sharing private framework
 #This is indicator is used by System Report to determine whether Handoff and Instant Hotspot are active,
@@ -1106,9 +1108,6 @@ function verifySystemWideContinuityStatus(){
 		if [ "$1" == "verbose" ]; then echo "NOT OK. The utility necessary for the check was not found"; else echo "-1"; fi
 	fi
 }
-
-#------------ BT USB Specific Procedures End ------------------
-
 
 #Makes a backup of the Wifi kext and Bluetooth kext, in a "Backup" folder located in the directory declared as argument
 #Any existing copies of these kexts in the backup dir will be silently replaced
@@ -1183,6 +1182,7 @@ function backupKexts(){
 }
 
 #Replaces a string in a binary file by the one given. Usage : patchStringsInFile foo "old_string" "new_string"
+#Used to replace strings in a file, used for patching the kext.
 function patchStringsInFile() {
     local FILE="$1"
     local PATTERN="$2"
@@ -1367,6 +1367,8 @@ function repairDiskPermissions(){
 	echo -e "\rFixing disk permissions...              OK"
 }
 
+#A utility to check for the System Continuity and kext-dev-mode status. 
+#Will warn the user after logging in if Continuity is not active.
 function autoCheckApp(){
 	if [ -z "$1" ]; then
     	echo "Internal error: No login item argument given."; backToMainMenu;
@@ -1395,7 +1397,7 @@ function autoCheckApp(){
 	fi				
 }
 
-
+#Verfies if autoCheckApp is already installed.
 function checkLoginItem(){
 	echo -n "Verifying Login Item...                 "
 	result="$(osascript -e 'tell application "System Events" to return the name of every login item')" >> /dev/null 2>&1
@@ -1573,19 +1575,23 @@ function compatibilityPrecautions(){
 	areMyActiveWifiDriversOk
 	isMyBluetoothVersionCompatible
 	areMyBtFeatureFlagsCompatible
-	verifySIP
-	if [ $? -eq 0 ]; then
-		echo "To continue you need to disable System Integrity Protection and come back here."
-		echo "1. Reboot and hold CMD + R"
-		echo "2. Utilities - Terminal"
-		echo "3. enter 'csrutil disable'"
-		echo "4. reboot"
-		exit;
+	if [ "$subVersion" -eq 11 ]; then
+		checkContinuitySupport
+		verifySIP
+		if [ $? -eq 0 ]; then
+			echo "To continue you need to disable System Integrity Protection and come back here."
+			echo "1. Reboot and hold CMD + R"
+			echo "2. Utilities - Terminal"
+			echo "3. enter 'csrutil disable'"
+			echo "4. reboot"
+			exit;
+		fi
 	fi
 	canMyKextsBeModded
-	isMyMacBlacklisted
+	if [ "$subVersion" -ne 11 ]; then
+		isMyMacBlacklisted "verbose"
+	fi
 	isMyMacWhitelisted
-	checkContinuitySupport
 	hasTheLegacyWifiPatchBeenApplied
 	detectLegacyWifiDriver
 	checkLoginItem
@@ -1615,6 +1621,7 @@ function verboseCompatibilityCheck(){
 	verifyOsKextDevMode "verbose"
 	if [ "$subVersion" -eq 11 ]; then
 		verifySIP "verbose"
+		checkContinuitySupport "verbose"
 	fi
 	canMyKextsBeModded "verbose"
 	isMyMacWhitelisted "verbose"
@@ -1622,9 +1629,9 @@ function verboseCompatibilityCheck(){
 		isMyMacBlacklisted "verbose"
 		verifyFeatureFlagsPatch "verbose"
 	fi
-	checkContinuitySupport "verbose"
 	detectLegacyWifiDriver "verbose"
 	hasTheLegacyWifiPatchBeenApplied "verbose"
+	echo '--- Modifications check ---'
 }
 
 #Initiates the backup, patching and clean-up.
@@ -1665,20 +1672,28 @@ function checkAndHack(){
 	modifyKextDevMode "enableDevMode"
 	repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
+	
 	if [ "$subVersion" -ne 11 ]; then
 		patchBluetoothKext
 		initiateDonglePatch
-	fi	
+	fi
+		
 	patchWifiKext
 	removeObsoleteWifiDriver
 	enableLegacyWifi
+	
+	if [ "$subVersion" -eq 11 ]; then 
+		patchContinuitySupport "enable"
+	fi
+	
 	updatePrelinkedKernelCache
 	updateSystemCache
 	backupKexts "${backupFolderAfterPatch}"
+	
 	if [ "${autoCheckAppEnabled}" == 0 ]; then
 		autoCheckApp "enable"
 	fi
-	patchContinuitySupport "enable"
+	
 	echo ""
 	echo "ALMOST DONE! After rebooting:"
 	echo "1) Make sure that both your Mac and iOS device have Bluetooth turned on, and are on the same Wi-Fi network."
@@ -1696,6 +1711,19 @@ function uninstall(){
 	displaySplash
 	echo '--- Initiating uninstallation ---'
 	echo ''
+	
+	if [ "$subVersion" -eq 11 ]; then
+		verifySIP
+		if [ $? -eq 0 ]; then
+			echo "To continue you need to disable System Integrity Protection and come back here."
+			echo "1. Reboot and hold CMD + R"
+			echo "2. Utilities - Terminal"
+			echo "3. enter 'csrutil disable'"
+			echo "4. reboot"
+			exit;
+		fi
+	fi
+	
 	initializeBackupFolders
 	startTheKextsReplacement
 	applyPermissions
@@ -1708,7 +1736,7 @@ function uninstall(){
 	echo ""
 	echo "DONE. Please reboot now to complete the uninstallation."	
 	if [ "$subVersion" -eq 11 ]; then
-		echo "If you have not done already, you can reenable the SIP"
+		echo "You can reenable the SIP if you want to."
 		echo "1. Reboot and hold CMD + R"
 		echo "2. Utilities - Terminal"
 		echo "3. enter 'csrutil enable'"
