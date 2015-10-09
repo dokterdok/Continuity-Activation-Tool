@@ -2,27 +2,18 @@ Continuity Activation Tool
 ==========================
 
 This tool makes the necessary changes to enable OS X 10.10 and 10.11 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop. 
-Support for OS X 10.11 (El Capitan) is currently experimental and does not support dongles yet. 
-Use the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta) if you're interested.
+OS X 10.11 (El Capitan) does not support dongles yet. 
+
 
 ## News
+2015-10-09 : **Version 2.1.3** Merged with the beta version. Should now work on 10.10 - 10.11 
+
 2015-08-13 : **New active lead** : I (sysfloat) will now be the main contributer and manager of the project, since dokterdok is not able to support this project anymore. He supported me with a lot of stuff and his research into enabling Continuity with dongles. I will contact some old beta testers and will do my best to get the dongles working on El Capitan and merge my fork with the beta branch.
 
 Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
 
 **[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)**
 =======
-* **2015-09-16 - 2.1.1 released** : Adds compability with El Capitan.
-* **2015-08-13 - New active lead** : I (sysfloat) will now be the main contributer and manager of the project, since dokterdok is not able to support this project anymore. He supported me with a lot of stuff and his research into enabling Continuity with dongles. I will contact some old beta testers and will do my best to get the dongles working on El Capitan and merge my fork with the beta branch.
-* **2014.12.23 - v.2.1 released** : Works with El Capitan DP1. Does **NOT** work with Dogles yet. (Take a look below)
-* **2014.12.23 - v.2.0.1 released** : Improved USB Bluetooth dongle detection and command line execution. [Changelog](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta#changelog).
-* **2014.12.14 - v.2.0.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
-
-**[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/beta.zip)** (latest version)
-
-May 5 2015 : **Shameless self promotion**: How you can prevent being overcharged for data when using a mobile hotspot with your Mac: checkout my latest OS X app, [TripMode](http://www.tripmode.ch).
-
-[![TripMode](http://tripmode.ch/TripModeLogoSmall.png)](http://www.TripMode.ch)
 
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
@@ -110,7 +101,6 @@ If you run into issues:
 Developers are more than welcome to contribute with bug fixes or improvements. In that case please upload changes to the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta).
 =======
 4. Create a [new issue](https://github.com/dokterdok/Continuity-Activation-Tool/issues/new) and include a description of the problem, the steps to reproduce it, and a System Diagnostic copy/paste from the latest version of the tool
->>>>>>> origin/beta
 
 ### Sources
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
@@ -118,6 +108,16 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
 ### Changelog
+
+**v2.1.3 - 2015-10-09** 
+*Fixed a bug where CAT would not work on some models and disable WiFi.
+*Fixed a bug where "Space bar" would not be recognized in the dongle detection promt.
+
+**v2.1.2**
+*Minor improvemnts with El Capitan final
+
+**v2.1.1 - 2015-09-16** : 
+*Adds compability with El Capitan.
 
 **v2.1 - 2015-06-20**
 * Works with El Capitan DP1
