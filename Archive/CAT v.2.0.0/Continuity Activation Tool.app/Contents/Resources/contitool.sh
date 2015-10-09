@@ -4,7 +4,7 @@
 #
 # Continuity Activation Tool 2 - built by dokterdok
 #
-# Description: This script enables OS X 10.10 and 10.11 Continuity features when compatible hardware is detected.
+# Description: This script enables OS X 10.10 Continuity features when compatible hardware is detected.
 # Continuity features activated by this tool include Application Handoff, Instant Hotspot, and New Airdrop.
 # The tool has no influence over Call/SMS Handoff.
 #
@@ -15,13 +15,13 @@
 #
 # 
 
-hackVersion="2.1.3"
+hackVersion="2.0.0"
 
 #---- PATH VARIABLES ------
 
 #APP PATHS
-appDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-continuityCheckUtilPath="$appDir/continuityCheck.app/Contents/MacOS/continuityCheck"
+appDir=$(dirname "$0")
+continuityCheckUtilPath="$appDir/sfDeviceSupportsContinuity"
 backupFolderNameBeforePatch="KextsBackupBeforePatch" #kexts backup folder name, where the original untouched kexts should be placed
 backupFolderNameAfterPatch="KextsBackupAfterPatch" #kexts backup folder name, where the patched kexts should be placed, after a successful backup
 backupFolderBeforePatch="" #the full path to this backup folder is initialized by the initializeBackupFolders function
@@ -41,7 +41,6 @@ btBinPath="$driverPath/$btKextFilename/Contents/MacOS/$btBinFilename"
 recoveryHdName="Recovery HD"
 recoveryDmgPath="/Volumes/Recovery HD/com.apple.recovery.boot/BaseSystem.dmg"
 osxBaseSystemPath="/Volumes/OS X Base System"
-systemParameters="/System/Library/Frameworks/IOBluetooth.framework/Versions/A/Resources/SystemParameters.plist"
 
 #UTILITIES PATHS
 awkPath="/usr/bin/awk"
@@ -57,7 +56,7 @@ hdiutilPath="/usr/bin/hdiutil"
 headPath="/usr/bin/head"
 hexdumpPath="/usr/bin/hexdump"
 ifconfigPath="/sbin/ifconfig"
-ioregPath="/usr/sbin/ioreg -d 14" #limited to a depth of 14 levels to avoid crashes in rare cases
+ioregPath="/usr/sbin/ioreg"
 kextcachePath="/usr/sbin/kextcache"
 kextstatPath="/usr/sbin/kextstat"
 killallPath="/usr/bin/killall"
@@ -73,12 +72,10 @@ sedPath="/usr/bin/sed"
 sleepPath="/bin/sleep"
 shutdownPath="/sbin/shutdown"
 statPath="/usr/bin/stat"
-stringsPath="$appDir/findString"
+stringsPath="$appDir/strings" #the OS X "strings" utility, from Apple's Command Line Tools, must be bundled with this tool. This avoids prompting to download a ~5 GB Xcode package just to use a 40 KB tool (!).
 trPath="/usr/bin/tr"
 wcPath="/usr/bin/wc"
 xxdPath="/usr/bin/xxd"
-csrutilPath="/usr/bin/csrutil"
-plistBuddy="/usr/libexec/PlistBuddy"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -94,8 +91,7 @@ nbOfInvalidKexts=""
 macCompatibilityList=("iMac10,1" "iMac11,1" "iMac11,2" "iMac11,3" "iMac12,1" "iMac12,2" "iMac13,2" "iMac14,2" "iMac7,1" "iMac9,1" "MacPro5,1" "MacBook5,1" "MacBook5,2" "MacBook6,1" "MacBook7,1" "MacBookAir3,1" "MacBookAir3,2" "MacBookAir4,1" "MacBookAir6,1" "MacBookPro11,1" "MacBookPro5,1" "MacBookPro5,2" "MacBookPro5,3" "MacBookPro5,4" "MacBookPro5,5" "MacBookPro6,1" "MacBookPro6,2" "MacBookPro7,1" "MacBookPro8,1" "MacBookPro8,2" "MacBookPro8,3" "MacBookPro9,2" "Macmini3,1" "Macmini4,1" "MacPro3,1" "MacPro4,1") #Macs that were tested successfully (may require a hardware upgrade) 
 blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macmini5,3") #compatible without hardware changes. This list is used during the diagnostic only. The patch actually gets an up-to-date list in the kext.
 legacyBrcmCardIds=("pci14e4,432b") #includes the legacy broadcom AirPort card pci identifiers from the Brcm4331 kext. Additional brcm pci identifiers can be injected in this array for compatibility tests.
-autoCheckAppEnabled="0" #automatically set to 1 if the login item for the Continuity Check app is present.
-subVersion="0"
+
 
 #---- CAT 2 Binary patches ----
 #3rd party BT 4.0 patchfor IOBluetoothFamily, working with OS X 10.10.0 and 10.10.1
@@ -117,11 +113,12 @@ usbBinaryPatchReplaceWith=$(echo ${usbBinaryPatchReplaceWithEscaped} | $trPath -
 #Verifies the presence of the strings binary, necessary to run many checks and patches
 #The 'strings' binutil used with the tool comes from the 'Apple Command Line Utilities' package
 function verifyStringsUtilPresence() {
+		#verify if the Brcm4360 binary exists
 	if [ ! -f "${stringsPath}" ]; then
 		
 		tput clear
 		echo ""
-		echo "Error: the 'findString' command line utility was not found and is necessary to run the script."
+		echo "Error: the 'strings' command line utility was not found and is necessary to run the script."
 		echo ""
 		echo "It is expected to be bundled with the app and located at :"
 		echo "'${appDir}/'"
@@ -132,23 +129,13 @@ function verifyStringsUtilPresence() {
 	fi
 }
 
-#Prompts to reboot your system, e.g. after patching
-function rebootPrompt(){
-	echo ""
-	$readPath -n 1 -p "Press any key to reboot or CTRL-C to cancel..."
-	echo ""
-	osascript -e 'tell app "System Events" to restart'
-	$killallPath "Terminal"
-	exit;
-}
-
 #Quits the script if the OS X version is lower than 10.10, displays warning if higher
 function isMyMacOSCompatible() {	
 	echo -n "Verifying OS X version...               "
 	local osVersion=$(sw_vers -productVersion)
-	local buildVersion=$(sw_vers -buildVersion)
+	local buildVersion=$(sw_Vers -buildVersion)
 	local minVersion=10
-	subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
+	local subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
 	
 	if [ "$subVersion" -lt "$minVersion" ]; then 
 		if [ "$1" != "verbose" ]; then echo "NOT OK. Your OS X version is too old to work with this hack. Aborting."; exit;
@@ -159,9 +146,9 @@ function isMyMacOSCompatible() {
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Mac OS X ${osVersion} (${buildVersion}) detected"; fi
 		else
-			if [ "$subVersion" -eq "11" ]; then
+			if [ "$subVersion" -gt "$minVersion" ]; then
 				if [ "$1" != "verbose" ]; then 
-					echo "Warning: This version of Mac OS X (${osVersion}) is Experimental! Only partially tested on El Capitan"
+					echo "Warning: This tool wasn't tested on OS X versions higher than 10.10. Detected OS version: ${osVersion}"
 					echo "Are you sure you want to continue?"
 					select yn in "Yes" "No"; do
 						case $yn in
@@ -173,25 +160,7 @@ function isMyMacOSCompatible() {
 						esac
 					done
 				else
-					echo "Warning: This version of Mac OS X (${osVersion}) is Experimental! Only partially tested on El Capitan"
-				fi
-			else 
-				if [ "$subVersion" -gt "$minVersion" ]; then
-					if [ "$1" != "verbose" ]; then 
-						echo "Warning: This tool wasn't tested on OS X versions higher than 10.10. Detected OS version: ${osVersion}"
-						echo "Are you sure you want to continue?"
-						select yn in "Yes" "No"; do
-							case $yn in
-								Yes) #continue
-									break;;
-								No) echo "Aborting.";
-									backToMainMenu;;
-								*) echo "Invalid option, enter a number";;
-							esac
-						done
-					else
-						echo "Warning: This tool wasn't tested with OS X versions higher than 10.10. Detected OS version: ${osVersion}"
-					fi
+					echo "Warning: This tool wasn't tested with OS X versions higher than 10.10. Detected OS version: ${osVersion}"
 				fi
 			fi
 		fi
@@ -213,40 +182,6 @@ function canMyKextsBeModded(){
 			if [ "$1" != "verbose" ]; then echo "OK";
 			else echo "OK. Wi-Fi and Bluetooth kexts were found and could be read"; fi
 		fi
-}
-
-#Verifies the status of the ContinuitySupport bool for the given mac 
-function checkContinuitySupport(){
-	echo -n "Verifying ContinuitySupport...          "
-	local contiSupport=$($plistBuddy -c "Print :${myMacIdPattern}:ContinuitySupport" "${systemParameters}")
-	if [[ "${contiSupport}" == "true" ]]; then
-		if [ "$1" != "verbose" ]; then echo "OK.";
-		else echo "OK. Already patched.";
-		fi
-	else 
-		if [[ "${contiSupport}" == "false" ]]; then
-			if [ "$1" != "verbose" ]; then echo "OK.";
-			else echo "OK. This tool can fix this.";
-			fi
-		else 
-			echo "NOT OK. Unknown state. Your Mac might not be compatible."
-		fi
-	fi
-}
-#Patches the ContinuitySupport bool to true for the given Mac boad-id
-function patchContinuitySupport(){
-	local action="$1"
-	echo -n "Patching ContinuitySupport...           "
-	if [[ "${action}" == "enable" ]]; then
-		$plistBuddy -c "Set :${myMacIdPattern}:ContinuitySupport true" "${systemParameters}";
-	else 
-		if [[ "${action}" == "disable" ]]; then
-			$plistBuddy -c "Set :${myMacIdPattern}:ContinuitySupport false" "${systemParameters}";
-		else
-			echo "Internal error. Unknown patch action."
-		fi
-	fi
-	echo "OK."
 }
 
 #Verifies that the board-id has an acceptable length
@@ -407,7 +342,8 @@ function isMyMacModelCompatible(){
 #Verifies if the active Bluetooth chip is compatible, by checking if the LMP version is 6
 function isMyBluetoothVersionCompatible(){
 	echo -n "Verifying Bluetooth version...          "
-	local lmpVersion=$($ioregPath -l | $grepPath -m 1 "LMPVersion" | $awkPath -F' = ' '{print $2}')
+
+	local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}')
 
 	if [ ! "${lmpVersion}" == "" ]; then
 		if [ "${lmpVersion}" == "6" ]; then
@@ -595,42 +531,6 @@ function verifyOsKextDevMode(){
 	fi
 }
 
-#Verifies the current status of the System Integrity Protection.
-#This is only needed in OS X 10.11 and can be reenabled after the patching is done.
-function verifySIP(){
-	echo -n "Verifying SIP...                        "
-	#Check csrutil status
-	$csrutilPath status | $grepPath -F "status: disabled" >> /dev/null 2>&1
-	local SIPresult=$?
-	
-	if [ $SIPresult -eq 0 ]; then #SIP is disabled
-			if [ "$1" != "verbose" ]; then echo "OK"; 
-			else echo "Ok. System Integrity Protection is already disabled"; 
-			return 1
-			fi
-	else
-			#Extra check needed, csrutil lists that SIP is enabled and all of it's options are disabled instead of just labeling it as disabled.
-			local SIPresult=$($csrutilPath status | $grepPath -c ": disabled")
-			if [ "${SIPresult}" -eq 6 ]; then
-				if [ "$1" != "verbose" ]; then echo "OK"; 
-				else echo "Ok. System Integrity Protection is already disabled"; 
-				fi
-			return 1
-			else 	
-				$csrutilPath status | $grepPath -F "status: enabled" >> /dev/null 2>&1
-				local SIPresult=$?
-				if [ $SIPresult -eq 0 ]; then #SIP is enabled
-					if [ "$1" != "verbose" ]; then echo "NOT OK."; 
-					else echo "NOT OK. System Integrity Protection is still enabled"; 
-					return 0
-				fi
-				else 
-					echo "NOT OK. Unknown System Integrity Protection state."
-					return 0
-				fi
-			fi	
-	fi	
-}
 
 #Verifies if the Mac board id is correctly whitelisted in the Wi-Fi drivers
 function isMyMacWhitelisted(){
@@ -642,7 +542,7 @@ function isMyMacWhitelisted(){
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; #Continue the verification. A brcm AirPort driver was found.
     	fi
-     	local whitelist=($("${stringsPath}" ${wifiBrcmBinPath} "Mac-" | $awkPath -F" " '{print $2}'))
+     	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
 		myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}')
     	local foundCount=0
     	local element
@@ -656,8 +556,8 @@ function isMyMacWhitelisted(){
 			if [ "${foundCount}" -gt "0" -a "${foundCount}" -lt "${#whitelist[@]}" ]; then
 				if [ "$1" != "verbose" ]; then echo "OK";
 				else 
-					firstWhitelistedBoardId=$("${stringsPath}" ${wifiBrcmBinPath} "Mac-" | $awkPath -F" " '{print $2;exit;}')
-					lastWhitelistedBoardId=$("${stringsPath}" ${wifiBrcmBinPath} "Mac-" | $awkPath -F" " '{a=$0} END{print $2;exit;}')
+					firstWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2;exit;}')
+					lastWhitelistedBoardId=$("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{a=$0} END{print $2;exit;}')
 					#Increase checks if the Mac is blacklisted (2011 MacBook Airs, Minis). Purely for reporting info.
 					if [ "${myMacIsBlacklisted}" == "1" ]; then
 						if [ "${myMacIdPattern}" == "${firstWhitelistedBoardId}" -a "${myMacIdPattern}" == "${lastWhitelistedBoardId}" ]; then
@@ -702,7 +602,7 @@ function isMyMacBlacklisted(){
     	else echo "NOT OK. Bluetooth drivers not found. Please use the uninstaller and run the tool again."; fi
     else
     	if [ "$1" != "verbose" ]; then echo -n ""; fi #Continue, the bluetooth binary was found
-    	local blacklist=($("${stringsPath}" ${btBinPath} "Mac" | $awkPath -F"'" '{print $2}'))
+    	local blacklist=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
 		local myMacModel=$($ioregPath -l | $grepPath "model" | $awkPath -F\" '{print $4;exit;}')
     	local foundCount=0
     	local element
@@ -739,7 +639,7 @@ function isMyMacBlacklisted(){
 			else
 				if [ "$1" != "verbose" ]; then echo "OK";
 				else echo "OK. Warning: Blacklist not found in the Bluetooth drivers. An OS X update might have made this hack useless."
-					 echo "                                        However, your Mac model shouldn't need to be removed from that blacklist."; fi					
+					 echo "                                           However, your Mac model shouldn't need to be removed from that blacklist."; fi					
 			fi
 		fi
     fi
@@ -752,81 +652,44 @@ function isMyMacBlacklisted(){
 function displayBluetoothDonglePrompt(){
 	displaySplash
 
+	
 	echo ""
 	echo "If you want to activate Continuity using a USB Bluetooth 4.0 dongle,"
-	echo "then unplug it and plug it in now. The script will continue once it is detected."
+	echo "then plug-it in now. The script will continue once it's detected."
 	echo ""
 
 	if [ -t 0 ]; then stty -echo -icanon -icrnl time 0 min 0; fi
 	
 	#detect the dongle presence 
-	local donglePluggedIn=$(isABluetoothDongleActive)
+	local donglePluggedIn=$(quietDongleDetection)
 	local keypress=''
 	while [ "$keypress" = '' -a "$donglePluggedIn" -eq "0" ]; do
   		echo -ne "\rPress any key to continue without a USB Bluetooth 4.0 dongle..."
-  		IFS= read keypress
-  		donglePluggedIn=$(isABluetoothDongleActive)
+  		read keypress
+  		donglePluggedIn=$(quietDongleDetection)
 	done
 	if [ -t 0 ]; then stty sane; fi
 	echo ""
 }
 
-#Verifies if a USB Bluetooth dongle is active by comparing the internal Bluetooth controller info with the active Bluetooth controller info. This info is retrieved from the PRAM.
-#The function returns 1 if different internal and external Bluetooth controllers are detected (as expeted when a Dongle is plugged), 0 if it's the same (e.g. MacBook without a dongle).
-#This function temporally sets the nvram bluetoothHostControllerSwitchBehavior to always, forcing plugged in dongles to be detected, then sets it back to its original state after the status check.
-#Optional parameter: "verbose", which displays a status message for the diagnostic.
-function isABluetoothDongleActive(){
 
-	if [ "$1" == "verbose" ]; then
-		echo -n "Verifying Bluetooth hardware...         "
-	fi
+#Returns 1 if different internal and external Bluetooth controllers are detected (typical if a Dongle is plugged), 0 if it's the same (e.g. MacBook without a Dongle)
+#This function is similar to the isABluetoothDongleActive function
+function quietDongleDetection(){
 
-	local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
-	local activeBtControllerId=$($nvramPath -p | $grepPath "bluetoothActiveControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
+	local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | awk -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
+	local activeBtControllerId=$($nvramPath -p | $grepPath "bluetoothActiveControllerInfo" | awk -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
 
-	local currentSwitchSetting=""
-
-	#temporarily set the agressive dongle detection
-	if [[ $($nvramPath -p | $grepPath bluetoothHostControllerSwitchBehavior) == "" ]]; then
-		sudo $nvramPath bluetoothHostControllerSwitchBehavior="always"
-	else 
-		#save the current switch behavior
-		currentSwitchSetting=$($nvramPath -p | $grepPath bluetoothHostControllerSwitchBehavior | $awkPath -F' ' '{print $2}')
-		sudo $nvramPath bluetoothHostControllerSwitchBehavior="always"
-	fi
-
-	#return the dongle status
 	if [ ! -z "${internalBtControllerId}" -a ! -z "${activeBtControllerId}" ]; then
 		if [ "${internalBtControllerId}" != "${activeBtControllerId}" ]; then
-			
-			#found a 3rd party dongle, different from the internal controller
-			if [ "$1" != "verbose" ]; then echo "1";
-			else 
-				echo "OK. 3rd party Bluetooth hardware detected"; 
-			fi
+			echo "1" #found a 3rd party dongle
 		else
-
-			#the active bluetooth controller is the internal one
-			if [ "$1" != "verbose" ]; then echo "0";
-			else echo "OK. The internal Bluetooth card is active"; fi
+			echo "0"
 		fi
 	else
-		#error: at least one of the Bluetooth Host Controller's info variable wasn't set in the PRAM
-		if [ "$1" != "verbose" ]; then echo "0";
-		else echo "WARNING. No Bluetooth controller references were found in the PRAM, dongles can't be detected."; fi
+		echo "0"
 	fi
-
-	#rollback the controllerSwitchBehavior to the initial state
-	if [ -z "$currentSwitchSetting" ]; then
-		#the switch behavior was not set before, go back to that state
-		sudo $nvramPath -d bluetoothHostControllerSwitchBehavior
-	else 
-		#the switch behavior was set before, go back to whatever was set
-		sudo $nvramPath bluetoothHostControllerSwitchBehavior="$currentSwitchSetting"
-	fi	
-
 }
-
 
 #Silent helper funcition that determines whether patching the file is appropriate
 #Returns: 1 if the patch should happen, 0 if not
@@ -898,7 +761,7 @@ function disableBthcSwitchBehavior()
 function areMyBtFeatureFlagsCompatible(){
 	echo -n "Verifying Bluetooth features...         "
 
-	local featureFlags=$($ioregPath -l | $grepPath -m 1 "FeatureFlags" | $awkPath -F' = ' '{print $2}')
+	local featureFlags=$($ioregPath -l | $grepPath "FeatureFlags" | $awkPath -F' = ' '{print $2}')
 
 	if [ ! "${featureFlags}" == "" ]; then
 		if [ "${featureFlags}" == "15" ]; then
@@ -967,6 +830,33 @@ function verifyFwVersion(){
 	fi
 }
 
+#Verifies if a USB Bluetooth dongle is active by comparing the internal Bluetooth controller id with the active Bluetooth controller id
+#Parameters: "verbose", which displays a status message.
+function isABluetoothDongleActive(){
+
+	echo -n "Verifying Bluetooth hardware...         "
+
+	local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | awk -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
+	local activeBtControllerId=$($nvramPath -p | $grepPath "bluetoothActiveControllerInfo" | awk -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
+
+	if [ ! -z "${internalBtControllerId}" -a ! -z "${activeBtControllerId}" ]; then
+		if [ "${internalBtControllerId}" == "${activeBtControllerId}" ]; then
+			
+			if [ "$1" != "verbose" ]; then echo "OK";
+			else echo "OK. The internal Bluetooth card is active"; fi
+		else
+			if [ "$1" != "verbose" ]; then echo "OK";
+			else 
+				echo "OK. 3rd party Bluetooth hardware detected"; 
+			fi
+		fi
+	else
+		if [ "$1" != "verbose" ]; then echo "WARNING: Could not detect Bluetooth hardware";
+		else echo "WARNING: Could not detect Bluetooth hardware."; fi
+	fi
+}
+
+
 #Verifies if the USB Dongle patch has already been applied
 function verifyFeatureFlagsPatch(){
 	
@@ -1024,7 +914,7 @@ function activateContinuityFeatureFlags(){
 }
 
 
-#Injects the legacy Broadcom device-id(s) (declared in the global variable legacyBrcmCardIds) in the AirPortBrcm4360.kext plugin. Those cards are found in older MacBooks for example.
+#Sets the legacy Broadcom BCM94322 device-id, as well as the Brcm43224 device ids, in the AirPortBrcm4360.kext plugin. Those cards are found in older MacBooks for example.
 function enableLegacyWifi(){
 
 	echo -n "Applying legacy Wi-Fi card patch...     "
@@ -1036,7 +926,7 @@ function enableLegacyWifi(){
 		local output=$("$plistBuddyPath" -c "Print IOKitPersonalities:'Broadcom 802.11 PCI':IONameMatch:0" "$wifiKextPath/Contents/PlugIns/$wifiBrcmKextFilename/Contents/Info.plist") >> /dev/null 2>&1
 		legacyWifiAlreadyEnabled=$(containsElement "$output" "${legacyBrcmCardIds[@]}"; echo $?;)
 
-		if [ "$legacyWifiAlreadyEnabled" == "1" -a "$forceHack" == "0" ]; then
+		if [ "$legacyWifiAlreadyEnabled" == "1" ]; then
 		
 			#entry found
 			echo -e "\rSkipping legacy Wi-Fi cards patch...    OK";
@@ -1083,13 +973,13 @@ function hasTheLegacyWifiPatchBeenApplied(){
 	fi
 }
 
-#------------ BT USB Specific Procedures End ------------------
 
-#Uses a app that checks the SFDeviceSupportsContinuity flag, used in Apple's Sharing private framework
+#Uses a command-line binary that checks the SFDeviceSupportsContinuity flag, used in Apple's Sharing private framework
 #This is indicator is used by System Report to determine whether Handoff and Instant Hotspot are active,
 #meaning that it should be a reliable indicator of Continuity's status system wide
 #This function return 1 if Continuity is active, 0 if not, -1 if there's an error
 function verifySystemWideContinuityStatus(){
+
 	#verify utility file presence
 	$duPath -hs "$continuityCheckUtilPath" >> /dev/null 2>&1
 	local error=$?
@@ -1097,17 +987,24 @@ function verifySystemWideContinuityStatus(){
 		if [ "$1" == "verbose" ]; then echo -n "Verifying Continuity status...          "; fi
 
 		#call the utility to check system wide Continuity status
-		"$continuityCheckUtilPath" -silent >> /dev/null 2>&1
-		local result=$?
-		if [ "$result" == "1" ]; then
-			if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as active"; else echo "1"; fi
+		local doesSupportContinuity=$("$continuityCheckUtilPath") >> /dev/null 2>&1
+
+		if [ "$?" == "0" -a ! -z "$doesSupportContinuity" ]; then
+			if [ "$doesSupportContinuity" == "1" ]; then
+				if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as active"; else echo "1"; fi
+			else
+				if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as inactive"; else echo "0"; fi
+			fi
 		else
-			if [ "$1" == "verbose" ]; then echo "OK. OS X reports Continuity as inactive"; else echo "0"; fi
+			if [ "$1" == "verbose" ]; then echo "NOT OK. There was an internal error when running the check."; else echo "-1"; fi
 		fi
 	else
 		if [ "$1" == "verbose" ]; then echo "NOT OK. The utility necessary for the check was not found"; else echo "-1"; fi
 	fi
 }
+
+#------------ BT USB Specific Procedures End ------------------
+
 
 #Makes a backup of the Wifi kext and Bluetooth kext, in a "Backup" folder located in the directory declared as argument
 #Any existing copies of these kexts in the backup dir will be silently replaced
@@ -1182,20 +1079,44 @@ function backupKexts(){
 }
 
 #Replaces a string in a binary file by the one given. Usage : patchStringsInFile foo "old_string" "new_string"
-#Used to replace strings in a file, used for patching the kext.
 function patchStringsInFile() {
     local FILE="$1"
     local PATTERN="$2"
     local REPLACEMENT="$3"
+
     #Find all unique strings in FILE that contain the pattern 
-    STRINGS=$("${stringsPath}" "${FILE}" "${PATTERN}" | awk -F" " '{print $1}' | sort -u -r)
+    STRINGS=$("${stringsPath}" "${FILE}" | $grepPath "${PATTERN}" | sort -u -r)
 
     if [ "${STRINGS}" != "" ] ; then
         #echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
-        for OFFSET in ${STRINGS} ; do
+
+        for OLD_STRING in ${STRINGS} ; do
             # Create the new string with a simple bash-replacement
-            printf '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' | dd of="$FILE" bs=1 seek="0x""$OFFSET" conv=notrunc >> /dev/null 2>&1
-            printf "%s" $REPLACEMENT | dd of="$FILE" bs=1 seek="0x""$OFFSET" conv=notrunc >> /dev/null 2>&1
+            NEW_STRING=${OLD_STRING//${PATTERN}/${REPLACEMENT}}
+
+            # Create null terminated ASCII HEX representations of the strings
+            OLD_STRING_HEX="$(echo -n "${OLD_STRING}" | $xxdPath -g 0 -u -ps -c 256)00"
+            NEW_STRING_HEX="$(echo -n "${NEW_STRING}" | $xxdPath -g 0 -u -ps -c 256)00"
+
+            if [ ${#NEW_STRING_HEX} -le ${#OLD_STRING_HEX} ] ; then
+                # Pad the replacement string with null terminations so the
+                # length matches the original string
+                while [ ${#NEW_STRING_HEX} -lt ${#OLD_STRING_HEX} ] ; do
+                    NEW_STRING_HEX="${NEW_STRING_HEX}00"
+                done
+
+                #now, replace every occurrence of OLD_STRING with NEW_STRING 
+                #echo -n "Replacing ${OLD_STRING} with ${NEW_STRING}... "
+                $hexdumpPath -ve '1/1 "%.2X"' "${FILE}" | \
+                $sedPath "s/${OLD_STRING_HEX}/${NEW_STRING_HEX}/g" | \
+                $xxdPath -r -p > "${FILE}.tmp"
+                SAVEMOD=$($statPath -r "$FILE" | $cutPath -f3 -d' ')
+                $chmodPath "${SAVEMOD}" "${FILE}.tmp"
+                $mvPath "${FILE}.tmp" "${FILE}"
+            else
+                echo "NOT OK. New string '${NEW_STRING}' is longer than old" \
+                     "string '${OLD_STRING}'. Skipping."
+            fi
         done
     else
     	echo "NOT OK. No filepath given for the hacking. Aborting."
@@ -1259,7 +1180,7 @@ function patchBluetoothKext(){
 		echo -n "Patching blacklist..."
 		
 		#(re)populate blacklist
-		blacklistedMacs=($("${stringsPath}" ${btBinPath} "Mac" | $awkPath -F"'" '{print $2}'))
+		blacklistedMacs=($("${stringsPath}" -a -t x ${btBinPath} | $grepPath Mac | $awkPath -F"'" '{print $2}'))
 
     	#build a disabled blacklist
     	local disabledBlacklist=()
@@ -1299,7 +1220,7 @@ function patchWifiKext(){
 	fi
 
 	#populate whitelist
-	local whitelist=($("${stringsPath}" ${wifiBrcmBinPath} "Mac-" | $awkPath -F" " '{print $2}'))
+	local whitelist=($("${stringsPath}" -a -t x ${wifiBrcmBinPath} | $grepPath Mac- | $awkPath -F" " '{print $2}'))
 
 	#check if it needs patching: will do it if the whitelist is not full of own board id
 	local occurence=0
@@ -1362,57 +1283,20 @@ function updateSystemCache(){
 	echo -e "\rUpdating system caches...               OK"
 }
 
+#Prompts to reboot your system, e.g. after patching
+function rebootPrompt(){
+	echo ""
+	$readPath -n 1 -p "Press any key to reboot or CTRL-C to cancel..."
+	echo ""
+	osascript -e 'tell app "System Events" to restart'
+	$killallPath "Terminal"
+	exit;
+}
+
 #Silently repairs the disk permissions using the Disk Utility. Takes a few minutes.
 function repairDiskPermissions(){
-	$diskutilPath repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
+	sudo $diskutilPath repairpermissions / >> /dev/null 2>&1 & spinner "Fixing disk permissions (~5min wait)... "
 	echo -e "\rFixing disk permissions...              OK"
-}
-
-#A utility to check for the System Continuity and kext-dev-mode status. 
-#Will warn the user after logging in if Continuity is not active.
-function autoCheckApp(){
-	if [ -z "$1" ]; then
-    	echo "Internal error: No login item argument given."; backToMainMenu;
-    else
-    	if [ "$1" == "enable" ]; then
-			echo "Do you want to enable a Automatic check for Continuity each boot?";
-			select yn in "Yes" "No"; do
-				case $yn in
-					Yes) #continue
-						break;;
-					No) echo "OK.";
-						return;;
-					*) echo "Invalid option, enter a number";;
-				esac
-			done
-			osascript -e 'tell application "System Events" to make login item at end with properties {path:"'"$appDir"'/continuityCheck.app", hidden:false}'  > /dev/null
-			echo "OK. Automatic continuity check enabled."
-		else
-			if [ "$1" == "disable" ]; then
-				osascript -e 'tell application "System Events" to delete login item "continuityCheck"' > /dev/null
-				echo "OK. Automatic continuity check disabled."	
-			else 
-				echo "Internal error: Wrong login item argument given."
-			fi
-		fi
-	fi				
-}
-
-#Verfies if autoCheckApp is already installed.
-function checkLoginItem(){
-	echo -n "Verifying Login Item...                 "
-	result="$(osascript -e 'tell application "System Events" to return the name of every login item')" >> /dev/null 2>&1
-	if [[ $result == *"continuityCheck"* ]]; then
-		autoCheckAppEnabled="1"
-		if [ "$1" != "verbose" ]; then echo "OK. Auto Continuity Check on";
-		else echo "OK. Login item for Auto Continuity Check is set."; 
-		fi
-	else 
-		autoCheckAppEnabled="0"
-		if [ "$1" != "verbose" ]; then echo "OK. Auto Continuity Check off";
-		else echo "OK. Login item for Auto Continuity Check is not set."; 
-		fi
-	fi
 }
 
 #Verifies if the kexts from a previous backup can be restored, otherwise use those from the Recovery Disk
@@ -1566,9 +1450,6 @@ function compatibilityPrecautions(){
 	displaySplash
 	echo '--- Initiating system compatibility check ---'
 	echo ''
-	if [ "$subVersion" -eq 11 ]; then
-		verifySIP
-	fi
 	initializeBackupFolders
 	isMyMacModelCompatible
 	isMyMacBoardIdCompatible
@@ -1576,26 +1457,12 @@ function compatibilityPrecautions(){
 	areMyActiveWifiDriversOk
 	isMyBluetoothVersionCompatible
 	areMyBtFeatureFlagsCompatible
-	if [ "$subVersion" -eq 11 ]; then
-		checkContinuitySupport
-		verifySIP
-		if [ $? -eq 0 ]; then
-			echo "To continue you need to disable System Integrity Protection and come back here."
-			echo "1. Reboot and hold CMD + R"
-			echo "2. Utilities - Terminal"
-			echo "3. enter 'csrutil disable'"
-			echo "4. reboot"
-			exit;
-		fi
-	fi
 	canMyKextsBeModded
-	if [ "$subVersion" -ne 11 ]; then
-		isMyMacBlacklisted "verbose"
-	fi
+	isMyMacBlacklisted
 	isMyMacWhitelisted
 	hasTheLegacyWifiPatchBeenApplied
 	detectLegacyWifiDriver
-	checkLoginItem
+
 }
 
 #Initiates the system compatibility checks, displays detailed interpretations of each test's result.
@@ -1611,28 +1478,22 @@ function verboseCompatibilityCheck(){
 	isMyMacBoardIdCompatible "verbose"
 	isMyMacOSCompatible "verbose"
 	areMyActiveWifiDriversOk "verbose"
+	#isMyAirPortCardALegacyBroadcom "verbose"
 	isAwdlActive "verbose"
 	isABluetoothDongleActive "verbose"
 	isMyBluetoothVersionCompatible "verbose"
 	areMyBtFeatureFlagsCompatible "verbose"
 	verifyFwVersion "verbose"
-	checkLoginItem "verbose"
 	echo ''
 	echo '--- Modifications check ---'
 	verifyOsKextDevMode "verbose"
-	if [ "$subVersion" -eq 11 ]; then
-		verifySIP "verbose"
-		checkContinuitySupport "verbose"
-	fi
 	canMyKextsBeModded "verbose"
+	isMyMacBlacklisted "verbose"
 	isMyMacWhitelisted "verbose"
-	if [ "$subVersion" -ne 11 ]; then
-		isMyMacBlacklisted "verbose"
-		verifyFeatureFlagsPatch "verbose"
-	fi
 	detectLegacyWifiDriver "verbose"
 	hasTheLegacyWifiPatchBeenApplied "verbose"
-	echo '--- Modifications check ---'
+	verifyFeatureFlagsPatch "verbose"
+
 }
 
 #Initiates the backup, patching and clean-up.
@@ -1651,7 +1512,6 @@ function checkAndHack(){
 		compatibilityPrecautions 
 	else
 		doDonglePatch="1"
-		myMacIsBlacklisted="1"
 	fi
 
 	echo ""
@@ -1659,7 +1519,7 @@ function checkAndHack(){
 	echo ""
 
 	#prevent patching if all the patches were detected to be already applied
-	if [ "${doDonglePatch}" == "0" ] && [ "$subVersion" -ne 11 ]; then
+	if [ "${doDonglePatch}" == "0" ]; then
 		doDonglePatch=$(shouldDoDonglePatch)
 	fi
 
@@ -1673,28 +1533,15 @@ function checkAndHack(){
 	modifyKextDevMode "enableDevMode"
 	repairDiskPermissions
 	backupKexts "${backupFolderBeforePatch}"
-	
-	if [ "$subVersion" -ne 11 ]; then
-		patchBluetoothKext
-		initiateDonglePatch
-	fi
-		
+	patchBluetoothKext
 	patchWifiKext
 	removeObsoleteWifiDriver
 	enableLegacyWifi
-	
-	if [ "$subVersion" -eq 11 ]; then 
-		patchContinuitySupport "enable"
-	fi
-	
+	initiateDonglePatch
+	applyPermissions
 	updatePrelinkedKernelCache
 	updateSystemCache
 	backupKexts "${backupFolderAfterPatch}"
-	
-	if [ "${autoCheckAppEnabled}" == 0 ]; then
-		autoCheckApp "enable"
-	fi
-	
 	echo ""
 	echo "ALMOST DONE! After rebooting:"
 	echo "1) Make sure that both your Mac and iOS device have Bluetooth turned on, and are on the same Wi-Fi network."
@@ -1702,7 +1549,6 @@ function checkAndHack(){
 	echo "3) On iOS go to SETTINGS> GENERAL> HANDOFF & SUGGESTED APPS> and ENABLE HANDOFF."
 	echo "4) On OS X, sign out and then sign in again to your iCloud account."
 	echo "Troubleshooting: support.apple.com/kb/TS5458"
-	echo "After verifying that Continuity works, you can reenable SIP via the Recovery OS";
 	displayThanks
 	rebootPrompt
 }
@@ -1712,19 +1558,7 @@ function uninstall(){
 	displaySplash
 	echo '--- Initiating uninstallation ---'
 	echo ''
-	
-	if [ "$subVersion" -eq 11 ]; then
-		verifySIP
-		if [ $? -eq 0 ]; then
-			echo "To continue you need to disable System Integrity Protection and come back here."
-			echo "1. Reboot and hold CMD + R"
-			echo "2. Utilities - Terminal"
-			echo "3. enter 'csrutil disable'"
-			echo "4. reboot"
-			exit;
-		fi
-	fi
-	
+
 	initializeBackupFolders
 	startTheKextsReplacement
 	applyPermissions
@@ -1732,17 +1566,9 @@ function uninstall(){
 	updateSystemCache
 	disableBthcSwitchBehavior
 	modifyKextDevMode "disableDevMode"
-	patchContinuitySupport "disable"
 	echo ""
 	echo ""
-	echo "DONE. Please reboot now to complete the uninstallation."	
-	if [ "$subVersion" -eq 11 ]; then
-		echo "You can reenable the SIP if you want to."
-		echo "1. Reboot and hold CMD + R"
-		echo "2. Utilities - Terminal"
-		echo "3. enter 'csrutil enable'"
-		echo "4. reboot"
-	fi	
+	echo "DONE. Please reboot now to complete the uninstallation."
 	echo ""
 	rebootPrompt
 }
@@ -1751,7 +1577,6 @@ function displaySplash(){
 	tput clear
 	echo "--- OS X Continuity Activation Tool ${hackVersion} ---"
 	echo "                 by dokterdok                 "
-	echo "                                              "
 	echo ""	
 }
 
@@ -1759,7 +1584,6 @@ function displaySplash(){
 function displayThanks(){
 	echo ""
 	echo "Thanks to Lem3ssie, UncleSchnitty, Skvo, toleda, TealShark, Manic Harmonic, rob3r7o and the many beta testers for their support."
-	echo "Updated for El Capitan by sysfloat"
 	echo ""
 	echo ""
 }
@@ -1774,11 +1598,21 @@ function applyTerminalTheme(){
 	osascript -e 'tell application "Terminal" to activate'
 }
 
-#Verifies if the script is run with sudo privileges otherwise warns the user and quits the script. Clears the screen after execution
-function verifySudoPrivileges(){
-	if [[ -z "$SUDO_COMMAND" ]]; then
+#Verifies if the current user belongs to the admin group, otherwise warns the user and quits the script. Clears the screen after execution
+function veryifyAdminGroup(){
+	currentUserGroups=($(/usr/bin/id -G -n $(/usr/bin/id -un)))
+	result=$(containsElement "admin" "${currentUserGroups[@]}"; echo $?;)
+	if [ $result = "1" ]; then
 		echo ""
-		echo "You must run this script with admin privileges, please re-run the script with sudo. Aborting."
+		echo "You must run this script with admin privileges, please enter your password."
+		echo ""
+		sudo echo -n ""
+		tput clear
+	else
+		currentUser=$(/usr/bin/id -un)
+		echo ""
+		echo "The current user '${currentUser}' doesn't have the admin privileges required to launch the Continuity Activation Tool."
+		echo "You need admin privileges to run this tool. Aborting."
 		echo ""
 		exit;
 	fi
@@ -1797,35 +1631,18 @@ function showUsage(){
 	echo "  -z               uninstall Continuity mods"
 }
 
-function launchedFromApp() {
-	GPPID=$(ps -fp $PPID | awk "/$PPID/"' { print $3 } ')
-	GGPPID=$(ps -fp $GPPID | awk "/$GPPID/"' { print $3 } ')
-	GGParent=$(ps -ocommand= -p $GGPPID | awk -F/ '{print $NF}' | awk '{print $1}')
-	return $([[ $GGParent =~ .*contitool\.sh.* ]])
-}
-
 #Displays the main menu and asks the user to select an option
 function displayMainMenu(){
 	displaySplash
 	echo "Select an option:"
 	echo ""
-	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Disable Auto Check App" "Quit")
+	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
 			'Activate Continuity') 
-				if [[ $(verifySystemWideContinuityStatus) != "1" ]]; then 
-					if [ "%subVersion" -ne 11 ]; then
-						displayBluetoothDonglePrompt
-					fi	
-					checkAndHack
-				else
-					displaySplash
-					echo ""
-					echo "OS X reports Continuity as active."
-					echo "No changes were applied."
-					backToMainMenu
-				fi
+				displayBluetoothDonglePrompt
+				checkAndHack
 				;;
 			'System Diagnostic')
 				verboseCompatibilityCheck
@@ -1834,14 +1651,9 @@ function displayMainMenu(){
 			'Uninstall') 
 				uninstall
 				;;
-			'Disable Auto Check App')
-				autoCheckApp "disable"
-				;;
 			'Quit')
 				displayThanks
-				if launchedFromApp; then
-					osascript -e 'tell application "Terminal" to quit'
-				fi
+				osascript -e 'tell application "Terminal" to quit'
 				exit;;
 			*)
 		 		echo "Invalid option, enter a number"
@@ -1852,20 +1664,20 @@ function displayMainMenu(){
 
 if [ $# -eq 0 ]; then 
 	applyTerminalTheme
-	verifySudoPrivileges
+	veryifyAdminGroup
 	verifyStringsUtilPresence
 	displayMainMenu
 else
 	while [ "$1" != "" ]; do
 	    case $1 in
-	        -a | --activate )       		verifySudoPrivileges
+	        -a | --activate )       		veryifyAdminGroup
 											verifyStringsUtilPresence
 											checkAndHack
 	                                		;;
 	        -d | --diagnostic )     		verifyStringsUtilPresence
 											verboseCompatibilityCheck
 	                                		;;
-	        -f | --forceHack )				verifySudoPrivileges
+	        -f | --forceHack )				veryifyAdminGroup
 											verifyStringsUtilPresence
 											forceHack=1
 											checkAndHack
@@ -1873,12 +1685,12 @@ else
 	        -h | --help )           		showUsage
 	                                		exit
 	                                		;;
-			-r | --uninstallWithRecovery )  verifySudoPrivileges
+			-r | --uninstallWithRecovery )  veryifyAdminGroup
 											verifyStringsUtilPresence
 											forceRecoveryDiskBackup=1
 											uninstall
 											;;
-	        -z | --uninstall )				verifySudoPrivileges
+	        -z | --uninstall )				veryifyAdminGroup
 											verifyStringsUtilPresence
 											uninstall
 											;;

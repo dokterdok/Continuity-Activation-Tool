@@ -4,81 +4,27 @@
 <dict>
 	<key>files</key>
 	<dict>
-		<key>Resources/Scripts/main.scpt</key>
-		<data>
-		AWFNZhtUMowsUSFT/zFF4iLNAWw=
-		</data>
-		<key>Resources/applet.icns</key>
-		<data>
-		GNyBW58YJU2q1PTpv6LDrkDtZRQ=
-		</data>
-		<key>Resources/applet.rsrc</key>
-		<data>
-		x7fTaMiIx989YAC7143Syupinv0=
-		</data>
-		<key>Resources/contitool.sh</key>
-		<data>
-		d7Kq0/bFv3UpjI1XJnsrZoFB4KE=
-		</data>
-		<key>Resources/description.rtfd/TXT.rtf</key>
-		<data>
-		2yU3k+WRKYVpxccrZWUv3sAXcJc=
-		</data>
-		<key>Resources/diag.sh</key>
-		<data>
-		+vh98RXEfk5f+uhmORDAEncVYGU=
-		</data>
-		<key>Resources/sfDeviceSupportsContinuity</key>
-		<data>
-		epcO9OM+aVVqF2IVylGNDhK6Qos=
-		</data>
-		<key>Resources/sfDeviceSupportsContinuity.m</key>
-		<data>
-		UYNwQDWhM0Q3MjccTzItN1jkOME=
-		</data>
-		<key>Resources/strings</key>
-		<data>
-		vGT939+fEHUoBiyM4OSrVjOsZIs=
-		</data>
+		<key>Resources/Base.lproj/MainMenu.nib</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			xcCmvXTBY+KGxuBpcTCr5XDb0OY=
+			</data>
+			<key>optional</key>
+			<true/>
+		</dict>
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>Resources/Scripts/main.scpt</key>
-		<data>
-		AWFNZhtUMowsUSFT/zFF4iLNAWw=
-		</data>
-		<key>Resources/applet.icns</key>
-		<data>
-		GNyBW58YJU2q1PTpv6LDrkDtZRQ=
-		</data>
-		<key>Resources/applet.rsrc</key>
-		<data>
-		x7fTaMiIx989YAC7143Syupinv0=
-		</data>
-		<key>Resources/contitool.sh</key>
-		<data>
-		d7Kq0/bFv3UpjI1XJnsrZoFB4KE=
-		</data>
-		<key>Resources/description.rtfd/TXT.rtf</key>
-		<data>
-		2yU3k+WRKYVpxccrZWUv3sAXcJc=
-		</data>
-		<key>Resources/diag.sh</key>
-		<data>
-		+vh98RXEfk5f+uhmORDAEncVYGU=
-		</data>
-		<key>Resources/sfDeviceSupportsContinuity</key>
-		<data>
-		epcO9OM+aVVqF2IVylGNDhK6Qos=
-		</data>
-		<key>Resources/sfDeviceSupportsContinuity.m</key>
-		<data>
-		UYNwQDWhM0Q3MjccTzItN1jkOME=
-		</data>
-		<key>Resources/strings</key>
-		<data>
-		vGT939+fEHUoBiyM4OSrVjOsZIs=
-		</data>
+		<key>Resources/Base.lproj/MainMenu.nib</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			xcCmvXTBY+KGxuBpcTCr5XDb0OY=
+			</data>
+			<key>optional</key>
+			<true/>
+		</dict>
 	</dict>
 	<key>rules</key>
 	<dict>
