@@ -20,7 +20,17 @@ Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility 
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
 * Uninstall: Rolls back any changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are reinstalled. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed and valid, to prevent potential boot time issues with 3rd party tools or hardware.
 
-Donate now to support this project. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+## Can't open the Tool
+In order to run this Tool you need to temporarily disable Gatekeeper. In order to do this please follow these steps:
+
+1.	Open System Preferences
+2.	Go to Security & Privacy
+3.	Enable "Allows apps downloaded from" Anywhere
+4.	Run CAT
+5.	Verify Continuity works
+6.	Revert changes made in System Preferences
+
+
 
 ## Warning
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk. Always use the latest version of the tool to avoid issues.
@@ -95,7 +105,6 @@ If you run into issues:
 1. Make sure you understand the known limitations by reading the sections above carefully
 2. Go through the official Continuity [troubleshooting steps](http://support.apple.com/kb/TS5458)
 3. Search for similar issues in the [issues section](https://github.com/dokterdok/Continuity-Activation-Tool/issues?q=is%3Aissue) or on [forums](http://forums.macrumors.com/showpost.php?p=20124161), a solution to your problem might exist already
-<<<<<<< HEAD
 4. Create a [new issue](https://github.com/dokterdok/Continuity-Activation-Tool/issues/new) and include a description of the problem, the steps to reproduce it, and a System Diagnostic copy/paste from the latest version of the tool.
 
 Developers are more than welcome to contribute with bug fixes or improvements. In that case please upload changes to the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta).
@@ -109,7 +118,7 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 
 ### Changelog
 
-**v2.1.3 - 2015-10-09** 
+**v2.1.3 - 2015-10-09** : 
 *Fixed a bug where CAT would not work on some models and disable WiFi.
 *Fixed a bug where "Space bar" would not be recognized in the dongle detection promt.
 
