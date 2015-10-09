@@ -763,8 +763,8 @@ function displayBluetoothDonglePrompt(){
 	local donglePluggedIn=$(isABluetoothDongleActive)
 	local keypress=''
 	while [ "$keypress" = '' -a "$donglePluggedIn" -eq "0" ]; do
-  		echo -ne "\rPress ENTER to continue without a USB Bluetooth 4.0 dongle..."
-  		read keypress
+  		echo -ne "\rPress any key to continue without a USB Bluetooth 4.0 dongle..."
+  		IFS= read keypress
   		donglePluggedIn=$(isABluetoothDongleActive)
 	done
 	if [ -t 0 ]; then stty sane; fi
