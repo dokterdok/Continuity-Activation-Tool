@@ -119,14 +119,14 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 ### Changelog
 
 **v2.1.3 - 2015-10-09**
-*Fixed a bug where CAT would not work on some models and disable WiFi.
-*Fixed a bug where "Space bar" would not be recognized in the dongle detection promt.
+* Fixed a bug where CAT would not work on some models and disable WiFi.
+* Fixed a bug where "Space bar" would not be recognized in the dongle detection promt.
 
 **v2.1.2**
-*Minor improvemnts with El Capitan final
+* Minor improvemnts with El Capitan final
 
 **v2.1.1 - 2015-09-16**
-*Adds compability with El Capitan.
+* Adds compability with El Capitan.
 
 **v2.1 - 2015-06-20**
 * Works with El Capitan DP1
