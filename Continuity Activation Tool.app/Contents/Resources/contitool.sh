@@ -1650,8 +1650,10 @@ function checkAndHack(){
 		#run the checks
 		compatibilityPrecautions 
 	else
-		doDonglePatch="1"
-		myMacIsBlacklisted="1"
+		if [ "$subVersion" -ne 11 ]; then
+			doDonglePatch="1"
+			myMacIsBlacklisted="1"
+		fi
 	fi
 
 	echo ""
