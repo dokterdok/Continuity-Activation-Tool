@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.1.3"
+hackVersion="2.1.4"
 
 #---- PATH VARIABLES ------
 
@@ -217,15 +217,17 @@ function canMyKextsBeModded(){
 
 #Verifies the status of the ContinuitySupport bool for the given mac 
 function checkContinuitySupport(){
-	echo -n "Verifying ContinuitySupport...          "
+	if [ "$1" == "verbose" ]; then
+		echo -n "Verifying ContinuitySupport...          "
+	fi
 	local contiSupport=$($plistBuddy -c "Print :${myMacIdPattern}:ContinuitySupport" "${systemParameters}")
 	if [[ "${contiSupport}" == "true" ]]; then
-		if [ "$1" != "verbose" ]; then echo "OK.";
+		if [ "$1" != "verbose" ]; then echo "1";
 		else echo "OK. Already patched.";
 		fi
 	else 
 		if [[ "${contiSupport}" == "false" ]]; then
-			if [ "$1" != "verbose" ]; then echo "OK.";
+			if [ "$1" != "verbose" ]; then echo "0";
 			else echo "OK. This tool can fix this.";
 			fi
 		else 
@@ -233,6 +235,7 @@ function checkContinuitySupport(){
 		fi
 	fi
 }
+
 #Patches the ContinuitySupport bool to true for the given Mac boad-id
 function patchContinuitySupport(){
 	local action="$1"
@@ -1577,7 +1580,7 @@ function compatibilityPrecautions(){
 	isMyBluetoothVersionCompatible
 	areMyBtFeatureFlagsCompatible
 	if [ "$subVersion" -eq 11 ]; then
-		checkContinuitySupport
+		checkContinuitySupport "verbose"
 		verifySIP
 		if [ $? -eq 0 ]; then
 			echo "To continue you need to disable System Integrity Protection and come back here."
@@ -1817,7 +1820,7 @@ function displayMainMenu(){
 		case $opt in
 			'Activate Continuity') 
 				if [[ $(verifySystemWideContinuityStatus) != "1" ]]; then 
-					if [ "%subVersion" -ne 11 ]; then
+					if [ "$subVersion" -ne 11 ]; then
 						displayBluetoothDonglePrompt
 					fi	
 					checkAndHack
@@ -1825,7 +1828,12 @@ function displayMainMenu(){
 					displaySplash
 					echo ""
 					echo "OS X reports Continuity as active."
-					echo "No changes were applied."
+					if [ "$subVersion" -eq 11 ] && [[ $(checkContinuitySupport) != "1" ]]; then
+						patchContinuitySupport "enable"
+						rebootPrompt
+					else
+						echo "No changes were applied."
+					fi
 					backToMainMenu
 				fi
 				;;
