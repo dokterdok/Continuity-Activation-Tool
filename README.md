@@ -118,6 +118,9 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 
 ### Changelog
 
+**v2.1.4 - 2015-10-11**
+* Fix for some models where some patches would not apply correctly([#229](https://github.com/dokterdok/Continuity-Activation-Tool/issues/229), [#222](https://github.com/dokterdok/Continuity-Activation-Tool/issues/222)) 
+
 **v2.1.3 - 2015-10-09**
 * Fixed a bug where CAT would not work on some models and disable WiFi.
 * Fixed a bug where "Space bar" would not be recognized in the dongle detection promt.
