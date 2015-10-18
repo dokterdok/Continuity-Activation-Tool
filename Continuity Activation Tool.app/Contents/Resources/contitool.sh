@@ -97,6 +97,7 @@ blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macm
 legacyBrcmCardIds=("pci14e4,432b") #includes the legacy broadcom AirPort card pci identifiers from the Brcm4331 kext. Additional brcm pci identifiers can be injected in this array for compatibility tests.
 autoCheckAppEnabled="0" #automatically set to 1 if the login item for the Continuity Check app is present.
 subVersion="0"
+subVersion=$(sw_vers -productVersion | $cutPath -d '.' -f 2)
 
 #---- CAT 2 Binary patches ----
 #3rd party BT 4.0 patchfor IOBluetoothFamily, working with OS X 10.10.0 and 10.10.1
@@ -112,8 +113,8 @@ usbBinaryPatchFindEscaped10="\x48\x85\xC0\x74\x5C\x0F\xB7\x48\x10\x83\xC9\x04\x8
 usbBinaryPatchReplaceWithEscaped10="\x3E\xC6\x83\xBC\x02\x00\x00\x02\x41\xBE\x0F\x00\x00\x00\xE9\x4E\x00\x00\x00" #replacement hexadecimal sequence for the IOBluetoothFamily binary
 
 #3rd party BT 4.0 patch for IOBluetoothFamily, working with OS X 10.11 and above
-usbBinaryPatchFindEscaped11="\x48\x85\xFF\x74\x47\x48\x8B\x07"#hexadecimal sequence to replace in the the IOBluetoothFamily binary
-usbBinaryPatchReplaceWithEscaped11="\x41\xBE\x0F\x00\x00\x00\xEB\x44"#replacement hexadecimal sequence for the IOBluetoothFamily binary
+usbBinaryPatchFindEscaped11="\x48\x85\xFF\x74\x47\x48\x8B\x07" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
+usbBinaryPatchReplaceWithEscaped11="\x41\xBE\x0F\x00\x00\x00\xEB\x44" #replacement hexadecimal sequence for the IOBluetoothFamily binary
 
 usbBinaryPatchFindEscaped=""
 usbBinaryPatchReplaceWithEscaped=""
@@ -1340,7 +1341,7 @@ function patchWifiKext(){
 			patchStringsInFile "${wifiBrcmBinPath}" "${whitelistedBoardId}" "${myMacIdPattern}"
 			echo -n "."
 		done
-		echo "      OK"
+		echo "     OK"
 	fi
 }
 
@@ -1831,7 +1832,6 @@ function launchedFromApp() {
 #Displays the main menu and asks the user to select an option
 function displayMainMenu(){
 	displaySplash
-	subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
 	echo "Select an option:"
 	echo ""
 	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Uninstall with Recovery" "Disable Auto Check App" "Quit")
