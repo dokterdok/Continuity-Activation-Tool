@@ -1834,7 +1834,7 @@ function displayMainMenu(){
 	subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
 	echo "Select an option:"
 	echo ""
-	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Disable Auto Check App" "Quit")
+	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Uninstall with Recovery" "Disable Auto Check App" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
@@ -1860,6 +1860,12 @@ function displayMainMenu(){
 				backToMainMenu
 				;;
 			'Uninstall') 
+				uninstall
+				;;
+			'Uninstall with Recovery')
+				verifySudoPrivileges
+				verifyStringsUtilPresence
+				forceRecoveryDiskBackup=1
 				uninstall
 				;;
 			'Disable Auto Check App')
