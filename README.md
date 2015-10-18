@@ -84,7 +84,7 @@ Mac mini mid 2011 | No | Yes
 Mac mini 2012-2014 | No (works OTB) | No (works OTB)
 Mac Pro early 2008-2012 | Yes, new wireless card BCM94360CD + adapter | No
 Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
-iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | No
+iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | Yes (Patch Board-ID)
 iMac 2012-2014 | No (works OTB) | No (works OTB)
 
 ## How to use it
