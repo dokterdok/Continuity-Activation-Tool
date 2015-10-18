@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.1.4"
+hackVersion="2.1.5 beta"
 
 #---- PATH VARIABLES ------
 
@@ -79,6 +79,7 @@ wcPath="/usr/bin/wc"
 xxdPath="/usr/bin/xxd"
 csrutilPath="/usr/bin/csrutil"
 plistBuddy="/usr/libexec/PlistBuddy"
+tailPath="/usr/bin/tail"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -107,8 +108,16 @@ subVersion="0"
 #usbBinaryPatchReplaceWithEscaped="\x41\xBE\x0F\x00\x00\x00\xEB\x59" #replacement hexadecimal sequence for the IOBluetoothFamily binary
 
 #3rd party BT 4.0 patch for IOBluetoothFamily, working with OS X 10.10.0 and above (isofunctional to the original driver besides compatibility checks)
-usbBinaryPatchFindEscaped="\x48\x85\xC0\x74\x5C\x0F\xB7\x48\x10\x83\xC9\x04\x83\xF9\x06\x75\x50\x48\x8B" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
-usbBinaryPatchReplaceWithEscaped="\x3E\xC6\x83\xBC\x02\x00\x00\x02\x41\xBE\x0F\x00\x00\x00\xE9\x4E\x00\x00\x00" #replacement hexadecimal sequence for the IOBluetoothFamily binary
+usbBinaryPatchFindEscaped10="\x48\x85\xC0\x74\x5C\x0F\xB7\x48\x10\x83\xC9\x04\x83\xF9\x06\x75\x50\x48\x8B" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
+usbBinaryPatchReplaceWithEscaped10="\x3E\xC6\x83\xBC\x02\x00\x00\x02\x41\xBE\x0F\x00\x00\x00\xE9\x4E\x00\x00\x00" #replacement hexadecimal sequence for the IOBluetoothFamily binary
+
+#3rd party BT 4.0 patch for IOBluetoothFamily, working with OS X 10.11 and above
+usbBinaryPatchFindEscaped11="\x48\x85\xFF\x74\x47\x48\x8B\x07"#hexadecimal sequence to replace in the the IOBluetoothFamily binary
+usbBinaryPatchReplaceWithEscaped11="\x41\xBE\x0F\x00\x00\x00\xEB\x44"#replacement hexadecimal sequence for the IOBluetoothFamily binary
+
+usbBinaryPatchFindEscaped=""
+usbBinaryPatchReplaceWithEscaped=""
+
 usbBinaryPatchFind=$(echo ${usbBinaryPatchFindEscaped} | $trPath -d '\\x' | $trPath -d ' ')
 usbBinaryPatchReplaceWith=$(echo ${usbBinaryPatchReplaceWithEscaped} | $trPath -d '\\x' | $trPath -d ' ')
 
@@ -834,13 +843,12 @@ function isABluetoothDongleActive(){
 #Silent helper funcition that determines whether patching the file is appropriate
 #Returns: 1 if the patch should happen, 0 if not
 function shouldDoDonglePatch(){
-
 	#check the if the patching should be forced
 	if [ "${forceHack}" == "1" ]; then
 		echo "1"
 	else 
-		local featureFlags=$($ioregPath -l | $grepPath "FeatureFlags" | $awkPath -F' = ' '{print $2}')
-		local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}')
+		local featureFlags=$($ioregPath -l | $grepPath "FeatureFlags" | $awkPath -F' = ' '{print $2}' | $tailPath -1)
+		local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" -m 1| $awkPath -F' = ' '{print $2}')
 		local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
 		local activeBtControllerId=$($nvramPath -p | $grepPath "bluetoothActiveControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
 		local brcmKext=$($kextstatPath | $grepPath "Brcm")
@@ -867,6 +875,16 @@ function shouldDoDonglePatch(){
 function initiateDonglePatch(){
 
 	echo -n "Verifying BT4 dongle patch status...    "
+	
+	if [ $subVersion -eq 10 ]; then
+		usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped10
+		usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped10
+	else
+		if [ $subVersion -eq 11 ];then
+			usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped11
+			usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped11
+		fi
+	fi
 
 	if [ -z "${doDonglePatch}" ]; then 
 		doDonglePatch=$(shouldDoDonglePatch)
@@ -1009,9 +1027,9 @@ function verifyFeatureFlagsPatch(){
 
 #Sets the IOBluetoothHCIController::FeatureFlags getter to always return 0xf, compatible with Continuity
 function activateContinuityFeatureFlags(){
-	
-	echo -n "Patching Bluetooth feature flags...     "
 
+	echo -n "Patching Bluetooth feature flags...     "
+			
 	sudo $perlPath -i.bak -pe "s|${usbBinaryPatchFindEscaped}|${usbBinaryPatchReplaceWithEscaped}|sg" "${btBinPath}"
 	#echo "$perlPath -i.bak -pe 's|${usbBinaryPatchFindEscaped}|${usbBinaryPatchReplaceWithEscaped}|sg' '${btBinPath}'"
 	sudo $rmPath "${btBinPath}.bak"
@@ -1631,8 +1649,8 @@ function verboseCompatibilityCheck(){
 	isMyMacWhitelisted "verbose"
 	if [ "$subVersion" -ne 11 ]; then
 		isMyMacBlacklisted "verbose"
-		verifyFeatureFlagsPatch "verbose"
 	fi
+	verifyFeatureFlagsPatch "verbose"
 	detectLegacyWifiDriver "verbose"
 	hasTheLegacyWifiPatchBeenApplied "verbose"
 	echo '--- Modifications check ---'
@@ -1653,8 +1671,8 @@ function checkAndHack(){
 		#run the checks
 		compatibilityPrecautions 
 	else
-		if [ "$subVersion" -ne 11 ]; then
-			doDonglePatch="1"
+		doDonglePatch="1"
+		if [ $subVersion -ne 11 ]; then
 			myMacIsBlacklisted="1"
 		fi
 	fi
@@ -1664,7 +1682,7 @@ function checkAndHack(){
 	echo ""
 
 	#prevent patching if all the patches were detected to be already applied
-	if [ "${doDonglePatch}" == "0" ] && [ "$subVersion" -ne 11 ]; then
+	if [ "${doDonglePatch}" == "0" ]; then
 		doDonglePatch=$(shouldDoDonglePatch)
 	fi
 
@@ -1681,8 +1699,9 @@ function checkAndHack(){
 	
 	if [ "$subVersion" -ne 11 ]; then
 		patchBluetoothKext
-		initiateDonglePatch
 	fi
+	
+	initiateDonglePatch
 		
 	patchWifiKext
 	removeObsoleteWifiDriver
@@ -1812,6 +1831,7 @@ function launchedFromApp() {
 #Displays the main menu and asks the user to select an option
 function displayMainMenu(){
 	displaySplash
+	subVersion=$(echo "$osVersion" | $cutPath -d '.' -f 2)
 	echo "Select an option:"
 	echo ""
 	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Disable Auto Check App" "Quit")
@@ -1820,9 +1840,7 @@ function displayMainMenu(){
 		case $opt in
 			'Activate Continuity') 
 				if [[ $(verifySystemWideContinuityStatus) != "1" ]]; then 
-					if [ "$subVersion" -ne 11 ]; then
-						displayBluetoothDonglePrompt
-					fi	
+					displayBluetoothDonglePrompt
 					checkAndHack
 				else
 					displaySplash
