@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.1.5 beta"
+hackVersion="2.1.5"
 
 #---- PATH VARIABLES ------
 
@@ -877,6 +877,7 @@ function initiateDonglePatch(){
 
 	echo -n "Verifying BT4 dongle patch status...    "
 	
+	#detect OS version and choose correct hex sequence
 	if [ $subVersion -eq 10 ]; then
 		usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped10
 		usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped10
