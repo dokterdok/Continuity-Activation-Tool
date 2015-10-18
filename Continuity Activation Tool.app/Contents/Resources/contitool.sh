@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.1.5"
+hackVersion="2.2"
 
 #---- PATH VARIABLES ------
 
@@ -112,7 +112,7 @@ subVersion=$(sw_vers -productVersion | $cutPath -d '.' -f 2)
 usbBinaryPatchFindEscaped10="\x48\x85\xC0\x74\x5C\x0F\xB7\x48\x10\x83\xC9\x04\x83\xF9\x06\x75\x50\x48\x8B" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
 usbBinaryPatchReplaceWithEscaped10="\x3E\xC6\x83\xBC\x02\x00\x00\x02\x41\xBE\x0F\x00\x00\x00\xE9\x4E\x00\x00\x00" #replacement hexadecimal sequence for the IOBluetoothFamily binary
 
-#3rd party BT 4.0 patch for IOBluetoothFamily, working with OS X 10.11 and above
+#3rd party BT 4.0 patch for IOBluetoothFamily, working with OS X 10.11 and above, thanks to RehabMan for the updated patch
 usbBinaryPatchFindEscaped11="\x48\x85\xFF\x74\x47\x48\x8B\x07" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
 usbBinaryPatchReplaceWithEscaped11="\x41\xBE\x0F\x00\x00\x00\xEB\x44" #replacement hexadecimal sequence for the IOBluetoothFamily binary
 
@@ -1785,7 +1785,7 @@ function displaySplash(){
 #Displays credits, people who helped make it happen
 function displayThanks(){
 	echo ""
-	echo "Thanks to Lem3ssie, UncleSchnitty, Skvo, toleda, TealShark, Manic Harmonic, rob3r7o and the many beta testers for their support."
+	echo "Thanks to Lem3ssie, UncleSchnitty, Skvo, toleda, TealShark, Manic Harmonic, rob3r7o, RehabMan, kramsee and the many beta testers for their support."
 	echo "Updated for El Capitan by sysfloat"
 	echo ""
 	echo ""
