@@ -1758,6 +1758,7 @@ function uninstall(){
 	disableBthcSwitchBehavior
 	modifyKextDevMode "disableDevMode"
 	patchContinuitySupport "disable"
+	autoCheckApp "disable"
 	echo ""
 	echo ""
 	echo "DONE. Please reboot now to complete the uninstallation."	
