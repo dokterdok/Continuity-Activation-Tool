@@ -15,6 +15,8 @@ Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility 
 **[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)**
 =======
 
+**You can donate to keep this project alive by sending some bucks to catbetaelcap@gmail.com via PayPal. Thanks :)**
+
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
@@ -129,6 +131,11 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
 ### Changelog
+
+**v2.2 - 2015-10-18**
+* Support for dongles with El Capitan
+* Added uninstall via Recovery disk menu option
+* Improved uninstallation
 
 **v2.1.4 - 2015-10-11**
 * Fix for some models where some patches would not apply correctly([#229](https://github.com/dokterdok/Continuity-Activation-Tool/issues/229), [#222](https://github.com/dokterdok/Continuity-Activation-Tool/issues/222))
