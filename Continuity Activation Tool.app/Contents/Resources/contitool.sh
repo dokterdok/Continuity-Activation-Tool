@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.2"
+hackVersion="2.2.1"
 
 #---- PATH VARIABLES ------
 
@@ -86,6 +86,7 @@ forceHack="0" #default is 0. when set to 1, skips all compatibility checks and f
 doDonglePatch="" #set to 1 or 0 if the hardware is fit to enable USB BT4 dongle
 myMacIdPattern="" #Mac board id, detected later. Can be manually set here for debugging purposes. E.g.: Mac-00BE6ED71E35EB86.
 myMacModel="" #Mac model nb, automatically detected later. Can be manually set here for debugging purposes. E.g.: MacBookAir4,1
+myMacIdPattern=$($ioregPath -l | $grepPath "board-id" | $awkPath -F\" '{print $4}') #Get macIdPattern
 
 whitelistAlreadyPatched="0" #automatically set to 1 when detected that the current board-id is whitelisted in the Wi-Fi drivers.
 myMacIsBlacklisted="0" #automatically set to 1 when detected that the Mac model is blacklisted in the Bluetooth drivers.
@@ -97,7 +98,7 @@ blacklistedMacs=("MacBookAir4,1" "MacBookAir4,2" "Macmini5,1" "Macmini5,2" "Macm
 legacyBrcmCardIds=("pci14e4,432b") #includes the legacy broadcom AirPort card pci identifiers from the Brcm4331 kext. Additional brcm pci identifiers can be injected in this array for compatibility tests.
 autoCheckAppEnabled="0" #automatically set to 1 if the login item for the Continuity Check app is present.
 subVersion="0"
-subVersion=$(sw_vers -productVersion | $cutPath -d '.' -f 2)
+subVersion=$(sw_vers -productVersion | $cutPath -d '.' -f 2) #Get subversion e.g. 11 for OS X 10.11.1
 
 #---- CAT 2 Binary patches ----
 #3rd party BT 4.0 patchfor IOBluetoothFamily, working with OS X 10.10.0 and 10.10.1

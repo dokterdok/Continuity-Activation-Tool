@@ -132,6 +132,9 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 
 ### Changelog
 
+**v2.2.1 - 2015-10-22**
+* fixed an issue where the SystemParameters would not get patched correctly([#242](https://github.com/dokterdok/Continuity-Activation-Tool/issues/242))
+
 **v2.2 - 2015-10-18**
 * Support for dongles with El Capitan
 * Added uninstall via Recovery disk menu option
