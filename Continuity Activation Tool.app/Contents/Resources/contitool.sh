@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.2.1"
+hackVersion="2.2.2"
 
 #---- PATH VARIABLES ------
 
@@ -421,7 +421,7 @@ function isMyMacModelCompatible(){
 #Verifies if the active Bluetooth chip is compatible, by checking if the LMP version is 6
 function isMyBluetoothVersionCompatible(){
 	echo -n "Verifying Bluetooth version...          "
-	local lmpVersion=$($ioregPath -l | $grepPath -m 1 "LMPVersion" | $awkPath -F' = ' '{print $2}')
+	local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}' | $tailPath -1)
 
 	if [ ! "${lmpVersion}" == "" ]; then
 		if [ "${lmpVersion}" == "6" ]; then
@@ -620,8 +620,8 @@ function verifySIP(){
 	if [ $SIPresult -eq 0 ]; then #SIP is disabled
 			if [ "$1" != "verbose" ]; then echo "OK"; 
 			else echo "Ok. System Integrity Protection is already disabled"; 
-			return 1
 			fi
+			return 1
 	else
 			#Extra check needed, csrutil lists that SIP is enabled and all of it's options are disabled instead of just labeling it as disabled.
 			local SIPresult=$($csrutilPath status | $grepPath -c ": disabled")
@@ -850,7 +850,7 @@ function shouldDoDonglePatch(){
 		echo "1"
 	else 
 		local featureFlags=$($ioregPath -l | $grepPath "FeatureFlags" | $awkPath -F' = ' '{print $2}' | $tailPath -1)
-		local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" -m 1| $awkPath -F' = ' '{print $2}')
+		local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}' | $tailPath -1)
 		local internalBtControllerId=$($nvramPath -p | $grepPath "bluetoothInternalControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
 		local activeBtControllerId=$($nvramPath -p | $grepPath "bluetoothActiveControllerInfo" | $awkPath -F' ' '{print $2}' | $trPath -d "%" | $headPath -c7)
 		local brcmKext=$($kextstatPath | $grepPath "Brcm")
@@ -922,7 +922,7 @@ function disableBthcSwitchBehavior()
 function areMyBtFeatureFlagsCompatible(){
 	echo -n "Verifying Bluetooth features...         "
 
-	local featureFlags=$($ioregPath -l | $grepPath -m 1 "FeatureFlags" | $awkPath -F' = ' '{print $2}')
+	local featureFlags=$($ioregPath -l | $grepPath "FeatureFlags" | $awkPath -F' = ' '{print $2}' | $tailPath -1)
 
 	if [ ! "${featureFlags}" == "" ]; then
 		if [ "${featureFlags}" == "15" ]; then

@@ -131,6 +131,8 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
 ### Changelog
+**v2.2.2- 2015-10-31**
+* fixed an issure where SIP wouldn't get detected correctly on 10.11.2+([#250](https://github.com/dokterdok/Continuity-Activation-Tool/issues/250))
 
 **v2.2.1 - 2015-10-22**
 * fixed an issue where the SystemParameters would not get patched correctly([#242](https://github.com/dokterdok/Continuity-Activation-Tool/issues/242))
