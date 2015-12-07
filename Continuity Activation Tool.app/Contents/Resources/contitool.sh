@@ -15,7 +15,7 @@
 #
 # 
 
-hackVersion="2.2.2"
+hackVersion="2.2.3"
 
 #---- PATH VARIABLES ------
 
@@ -1877,7 +1877,7 @@ function displayMainMenu(){
 			'Quit')
 				displayThanks
 				if launchedFromApp; then
-					osascript -e 'tell application "Terminal" to quit'
+					osascript -e 'tell application "System Events" to keystroke "q" using command down'
 				fi
 				exit;;
 			*)
