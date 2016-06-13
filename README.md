@@ -6,7 +6,7 @@ OS X 10.11 (El Capitan) dongle support is not stable yet!
 
 
 ## News
-2016-06-13: **macOS Sierra** The work on the newest version of macOS will begin as soon a possible. New updates will be released on the beta branch while macOS Sierra is in beta! 
+2016-06-13: **macOS Sierra** ~~The work on the newest version of macOS will begin as soon a possible.~~ CAT mostly works fine with Sierra! (New Features like auto-unlock still need to be tested). New updates will be released on the beta branch while macOS Sierra is in beta! 
 
 2016-06-13: **wiki page** A wiki page has been erstablished and will be used to suggest fixes for the most common issues. A issue template was added to help the users provide more details.
 
