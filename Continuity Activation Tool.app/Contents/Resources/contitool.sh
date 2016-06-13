@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.2.3"
+hackVersion="2.2.4"
 
 #---- PATH VARIABLES ------
 
@@ -421,7 +421,13 @@ function isMyMacModelCompatible(){
 #Verifies if the active Bluetooth chip is compatible, by checking if the LMP version is 6
 function isMyBluetoothVersionCompatible(){
 	echo -n "Verifying Bluetooth version...          "
-	local lmpVersion=$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}' | $tailPath -1)
+	lmpVersion="0"
+	while read line ;
+	 do
+		 if [ "$line" -gt "$lmpVersion" ]; then
+			 lmpVersion=$line
+		 fi
+	 done <<< "$($ioregPath -l | $grepPath "LMPVersion" | $awkPath -F' = ' '{print $2}')"
 
 	if [ ! "${lmpVersion}" == "" ]; then
 		if [ "${lmpVersion}" == "6" ]; then
