@@ -1,4 +1,4 @@
-Have you tried these steps?
+Have you tried [these steps](https://github.com/dokterdok/Continuity-Activation-Tool/wiki#cant-open-the-tool)?
 
 Is there already an open topic for this issue?
 
