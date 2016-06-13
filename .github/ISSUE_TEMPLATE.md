@@ -5,6 +5,7 @@ Is there already an open topic for this issue?
 Please include the following information.
 
 - OS Version:
+- Mac model:
 - Dongle or replaced card?:
 - Used dongle/card:
 
