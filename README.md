@@ -2,10 +2,14 @@ Continuity Activation Tool
 ==========================
 
 This tool makes the necessary changes to enable OS X 10.10 and 10.11 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
-OS X 10.11 (El Capitan) does not support dongles yet.
+OS X 10.11 (El Capitan) dongle support is not stable yet!
 
 
 ## News
+2016-06-13: **macOS Sierra** The work on the newest version of macOS will begin as soon a possible. New updates will be released on the beta branch while macOS Sierra is in beta! 
+
+2016-06-13: **wiki page** A wiki page has been erstablished and will be used to suggest fixes for the most common issues. A issue template was added to help the users provide more details.
+
 2015-10-09 : **Version 2.1.3** Merged with the beta version. Should now work on 10.10 - 10.11
 
 2015-08-13 : **New active lead** : I (sysfloat) will now be the main contributer and manager of the project, since dokterdok is not able to support this project anymore. He supported me with a lot of stuff and his research into enabling Continuity with dongles. I will contact some old beta testers and will do my best to get the dongles working on El Capitan and merge my fork with the beta branch.
@@ -22,29 +26,13 @@ Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility 
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
 * Uninstall: Rolls back any changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are reinstalled. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed and valid, to prevent potential boot time issues with 3rd party tools or hardware.
 
-## Can't open the Tool
+## Issues
 
-### OS X 10.10
-In order to run this Tool you need to temporarily disable Gatekeeper. In order to do this please follow these steps:
+Before submitting a new issue please check the Wiki for common issues! When submitting a new issue please check if there's already an issue open. 
 
-1.	Open System Preferences
-2.	Go to Security & Privacy
-3.	Enable "Allows apps downloaded from" Anywhere
-4.	Run CAT
-5.	Verify Continuity works
-6.	Revert changes made in System Preferences
+Please fill out the template as detailed as possible.
 
-### OS X 10.11
-OS X 10.11 introduces System Integrity Protection (SIP) which will prevent this tool from running. In order to run this tool you will need to disable SIP by following these steps:
-
-1.  Reboot your Mac and hold Command + R in the boot screen to boot into Recovery Mode.
-2.  In the top menu, click on Utilities and start the Terminal application.
-3.  Enter the following command: `csrutil disable` and you will see a message saying SIP has been disabled.
-4.  Reboot your Mac and let it boot up normally.
-5.  Disable Gatekeeper by following the OS X 10.10 instructions above.
-6.  Run CAT
-7.  Verify Continuity works
-8.  Revert the changes made to Gatekeeper and SIP.
+Issues that do not follow the rules and are unclear on the issue might get deleted without help!
 
 ## Warning
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk. Always use the latest version of the tool to avoid issues.
