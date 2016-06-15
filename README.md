@@ -119,6 +119,10 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
 ### Changelog
+
+**v2.3 - 2016-06-15**
+* Fixed Handoff on Sierra
+
 **v2.2.4 - 2016-06-13**
 * Fixed LMPVersion detection. This should fix #303 #303 #286 #278 and possibly more.
 

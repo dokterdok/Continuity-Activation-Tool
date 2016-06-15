@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.2.4"
+hackVersion="2.3"
 
 #---- PATH VARIABLES ------
 
@@ -889,7 +889,7 @@ function initiateDonglePatch(){
 		usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped10
 		usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped10
 	else
-		if [ $subVersion -eq 11 ];then
+		if [ $subVersion -eq 11 ]; then
 			usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped11
 			usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped11
 		fi
@@ -1596,7 +1596,7 @@ function compatibilityPrecautions(){
 	displaySplash
 	echo '--- Initiating system compatibility check ---'
 	echo ''
-	if [ "$subVersion" -eq 11 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
 		verifySIP
 	fi
 	initializeBackupFolders
@@ -1606,7 +1606,7 @@ function compatibilityPrecautions(){
 	areMyActiveWifiDriversOk
 	isMyBluetoothVersionCompatible
 	areMyBtFeatureFlagsCompatible
-	if [ "$subVersion" -eq 11 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
 		checkContinuitySupport "verbose"
 		verifySIP
 		if [ $? -eq 0 ]; then
@@ -1619,7 +1619,7 @@ function compatibilityPrecautions(){
 		fi
 	fi
 	canMyKextsBeModded
-	if [ "$subVersion" -ne 11 ]; then
+	if [ "$subVersion" -eq 10 ]; then
 		isMyMacBlacklisted "verbose"
 	fi
 	isMyMacWhitelisted
@@ -1650,13 +1650,13 @@ function verboseCompatibilityCheck(){
 	echo ''
 	echo '--- Modifications check ---'
 	verifyOsKextDevMode "verbose"
-	if [ "$subVersion" -eq 11 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
 		verifySIP "verbose"
 		checkContinuitySupport "verbose"
 	fi
 	canMyKextsBeModded "verbose"
 	isMyMacWhitelisted "verbose"
-	if [ "$subVersion" -ne 11 ]; then
+	if [ "$subVersion" -eq 10 ]; then
 		isMyMacBlacklisted "verbose"
 	fi
 	verifyFeatureFlagsPatch "verbose"
@@ -1681,7 +1681,7 @@ function checkAndHack(){
 		compatibilityPrecautions
 	else
 		doDonglePatch="1"
-		if [ $subVersion -ne 11 ]; then
+		if [ $subVersion -eq 10 ]; then
 			myMacIsBlacklisted="1"
 		fi
 	fi
@@ -1716,7 +1716,7 @@ function checkAndHack(){
 	removeObsoleteWifiDriver
 	enableLegacyWifi
 
-	if [ "$subVersion" -eq 11 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
 		patchContinuitySupport "enable"
 	fi
 
@@ -1746,7 +1746,7 @@ function uninstall(){
 	echo '--- Initiating uninstallation ---'
 	echo ''
 
-	if [ "$subVersion" -eq 11 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
 		verifySIP
 		if [ $? -eq 0 ]; then
 			echo "To continue you need to disable System Integrity Protection and come back here."
@@ -1770,7 +1770,7 @@ function uninstall(){
 	echo ""
 	echo ""
 	echo "DONE. Please reboot now to complete the uninstallation."
-	if [ "$subVersion" -eq 11 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
 		echo "You can reenable the SIP if you want to."
 		echo "1. Reboot and hold CMD + R"
 		echo "2. Utilities - Terminal"
@@ -1784,7 +1784,8 @@ function uninstall(){
 function displaySplash(){
 	tput clear
 	echo "--- OS X Continuity Activation Tool ${hackVersion} ---"
-	echo "                 by dokterdok                 "
+	echo "                 by sysfloat                  "
+	echo "           original by dokterdok              "
 	echo "                                              "
 	echo ""
 }
@@ -1793,7 +1794,7 @@ function displaySplash(){
 function displayThanks(){
 	echo ""
 	echo "Thanks to Lem3ssie, UncleSchnitty, Skvo, toleda, TealShark, Manic Harmonic, rob3r7o, RehabMan, kramsee and the many beta testers for their support."
-	echo "Updated for El Capitan by sysfloat"
+	echo "Updated by sysfloat"
 	echo ""
 	echo ""
 }
@@ -1855,7 +1856,7 @@ function displayMainMenu(){
 					displaySplash
 					echo ""
 					echo "OS X reports Continuity as active."
-					if [ "$subVersion" -eq 11 ] && [[ $(checkContinuitySupport) != "1" ]]; then
+					if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ] && [[ $(checkContinuitySupport) != "1" ]]; then
 						patchContinuitySupport "enable"
 						rebootPrompt
 					else
