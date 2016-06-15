@@ -50,7 +50,7 @@ bool showError(bool kextDev) {
     [alert addButtonWithTitle:@"Open Continuity Activation Tool"];
     [alert addButtonWithTitle:@"Dismiss"];
     [alert setMessageText:@"Error: Continuity not Active"];
-    [alert setInformativeText:@"Continuity is currently no active!\nThis might be due to an System update..\nDo you want to open Continuity Activation Tool to reenable it?"];
+    [alert setInformativeText:@"Continuity is currently not active!\nThis might be due to an System update..\nDo you want to open Continuity Activation Tool to reenable it?"];
     if(kextDev) {
         [alert setMessageText:@"Error: Kext developer mode not set"];
         [alert setInformativeText:@"Kext developer mode is not set!\nThis might result in unusable WiFi/Bluetooth\nDo you want to open Continuity Activation to to fix this?"];

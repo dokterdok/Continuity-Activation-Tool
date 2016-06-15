@@ -1,38 +1,28 @@
 Continuity Activation Tool
 ==========================
 
-This tool makes the necessary changes to enable OS X 10.10 and 10.11 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
-OS X 10.11 (El Capitan) dongle support is not stable yet!
-
+This tool makes the necessary changes to enable OS X 10.10 and 10.11 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop. 
+Support for OS X 10.11 (El Capitan) is currently experimental and does not support dongles yet. 
+Use the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta) if you're interested.
 
 ## News
-2016-06-13: **macOS Sierra** ~~The work on the newest version of macOS will begin as soon a possible.~~ CAT mostly works fine with Sierra! (New Features like auto-unlock still need to be tested). New updates will be released on the beta branch while macOS Sierra is in beta! 
-
-2016-06-13: **wiki page** A wiki page has been erstablished and will be used to suggest fixes for the most common issues. A issue template was added to help the users provide more details.
-
-2015-10-09 : **Version 2.1.3** Merged with the beta version. Should now work on 10.10 - 10.11
 
 2015-08-13 : **New active lead** : I (sysfloat) will now be the main contributer and manager of the project, since dokterdok is not able to support this project anymore. He supported me with a lot of stuff and his research into enabling Continuity with dongles. I will contact some old beta testers and will do my best to get the dongles working on El Capitan and merge my fork with the beta branch.
 
-Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options.
+Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options. 
 
 **[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)**
-=======
 
-**You can donate to keep this project alive by sending some bucks to catbetaelcap@gmail.com via PayPal. Thanks :)**
+May 5 2015 : **Shameless self promotion**: How you can prevent being overcharged for data when using a mobile hotspot with your Mac: checkout my latest OS X app, [TripMode](http://www.tripmode.ch).
+
+[![TripMode](http://tripmode.ch/TripModeLogoSmall.png)](http://www.TripMode.ch)
 
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
 * Uninstall: Rolls back any changes applied by the tool. It firsts looks for previous backups made with the tool, and if it can't find any, kexts from the OS X Recovery Disk are reinstalled. It will only reactivate OS kext signature protection if it is sure that all system kexts installed are signed and valid, to prevent potential boot time issues with 3rd party tools or hardware.
 
-## Issues
-
-Before submitting a new issue please check the Wiki for common issues! When submitting a new issue please check if there's already an issue open. 
-
-Please fill out the template as detailed as possible.
-
-Issues that do not follow the rules and are unclear on the issue might get deleted without help!
+Donate now to support this project. Thanks! [![Donate](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dokterdok%40gmail%2ecom&lc=CH&item_name=Continuity%20Activation%20Tool&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
 
 ## Warning
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk. Always use the latest version of the tool to avoid issues.
@@ -74,7 +64,7 @@ Mac mini mid 2011 | No | Yes
 Mac mini 2012-2014 | No (works OTB) | No (works OTB)
 Mac Pro early 2008-2012 | Yes, new wireless card BCM94360CD + adapter | No
 Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
-iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | Yes (Patch Board-ID)
+iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | No
 iMac 2012-2014 | No (works OTB) | No (works OTB)
 
 ## How to use it
@@ -89,7 +79,7 @@ iMac 2012-2014 | No (works OTB) | No (works OTB)
 
 Script location: ```Continuity Activation Tool.app/Contents/Resources/contitool.sh```
 
-Usage: ```sudo contitool.sh -a | -d | -f | -h | -r | -z```
+Usage: ```contitool.sh -a | -d | -f | -h | -r | -z```
 
 Options:
 ```
@@ -110,8 +100,6 @@ If you run into issues:
 4. Create a [new issue](https://github.com/dokterdok/Continuity-Activation-Tool/issues/new) and include a description of the problem, the steps to reproduce it, and a System Diagnostic copy/paste from the latest version of the tool.
 
 Developers are more than welcome to contribute with bug fixes or improvements. In that case please upload changes to the [beta branch](https://github.com/dokterdok/Continuity-Activation-Tool/tree/beta).
-=======
-4. Create a [new issue](https://github.com/dokterdok/Continuity-Activation-Tool/issues/new) and include a description of the problem, the steps to reproduce it, and a System Diagnostic copy/paste from the latest version of the tool
 
 ### Sources
 * [Get help using Continuity with iOS 8 and OS X (Apple Support KB)](http://support.apple.com/kb/TS5458)
@@ -119,53 +107,6 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
 ### Changelog
-
-**v2.3 - 2016-06-15**
-* Fixed Handoff on Sierra
-
-**v2.2.4 - 2016-06-13**
-* Fixed LMPVersion detection. This should fix #303 #303 #286 #278 and possibly more.
-
-**v2.2.3 - 2015-12-07**
-* fixed an issue where to wrong window would get closed on exit.([#248](https://github.com/dokterdok/Continuity-Activation-Tool/issues/248))
- 
-**v2.2.2 - 2015-10-31**
-* fixed an issue where SIP wouldn't get detected correctly on 10.11.2+([#250](https://github.com/dokterdok/Continuity-Activation-Tool/issues/250))
-
-**v2.2.1 - 2015-10-22**
-* fixed an issue where the SystemParameters would not get patched correctly([#242](https://github.com/dokterdok/Continuity-Activation-Tool/issues/242))
-
-**v2.2 - 2015-10-18**
-* Support for dongles with El Capitan
-* Added uninstall via Recovery disk menu option
-* Improved uninstallation
-
-**v2.1.4 - 2015-10-11**
-* Fix for some models where some patches would not apply correctly([#229](https://github.com/dokterdok/Continuity-Activation-Tool/issues/229), [#222](https://github.com/dokterdok/Continuity-Activation-Tool/issues/222))
-
-**v2.1.3 - 2015-10-09**
-* Fixed a bug where CAT would not work on some models and disable WiFi.
-* Fixed a bug where "Space bar" would not be recognized in the dongle detection promt.
-
-**v2.1.2**
-* Minor improvemnts with El Capitan final
-
-**v2.1.1 - 2015-09-16**
-* Adds compability with El Capitan.
-
-**v2.1 - 2015-06-20**
-* Works with El Capitan DP1
-* New AppleScript, allows renaming the app
-* switched from apples strings utility to a new selfmade app that does pretty much the same job for this purpose, but does not use any apple code.
-* speed up some parts of the code
-
-**v.2.0.1 - 2014.12.21**
-* Improved USB Bluetooth dongle detection([#103](https://github.com/dokterdok/Continuity-Activation-Tool/issues/103))
-* Fixed an OS X version check bug, which affected execution on case sensitive file systems ([#96](https://github.com/dokterdok/Continuity-Activation-Tool/issues/96))
-* Fixed a rare ioreg crash issue ([#100](https://github.com/dokterdok/Continuity-Activation-Tool/issues/100))
-* Fixed a command line issue which quit the Terminal when quitting the script ([#101](https://github.com/dokterdok/Continuity-Activation-Tool/pull/101))
-* Fixed: the ```-f | --forceHack``` command line option now correctly skips the Wi-Fi card device-id(s) injection check and Bluetooth blacklist check
-* Minor optimisations and bug fixes
 
 **v.2.0.0 - 2014.12.14**
 * Added compatibility with many older Macs when using a USB Bluetooth 4.0 dongle (see chart).
