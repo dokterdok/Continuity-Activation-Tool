@@ -117,6 +117,11 @@ usbBinaryPatchReplaceWithEscaped10="\x3E\xC6\x83\xBC\x02\x00\x00\x02\x41\xBE\x0F
 usbBinaryPatchFindEscaped11="\x48\x85\xFF\x74\x47\x48\x8B\x07" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
 usbBinaryPatchReplaceWithEscaped11="\x41\xBE\x0F\x00\x00\x00\xEB\x44" #replacement hexadecimal sequence for the IOBluetoothFamily binary
 
+#3rd party BT 4.0 patch for IOBluetoothFamily, working with OS X 10.12 and above
+usbBinaryPatchFindEscaped12="\x48\x85\xFF\x74\x47\x48\x8B\x07\x48\x8D\x35\x46\x9E\x01\x00\xFF\x90\x88\x08\x00\x00" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
+usbBinaryPatchReplaceWithEscaped12="\xC6\x83\x7A\x03\x00\x00\x02\x41\xBE\x0F\x00\x00\x00\xE9\x3A\x00\x00\x00\x90\x90\x90" #replacement hexadecimal sequence for the IOBluetoothFamily binary
+
+
 usbBinaryPatchFindEscaped=""
 usbBinaryPatchReplaceWithEscaped=""
 
@@ -892,6 +897,11 @@ function initiateDonglePatch(){
 		if [ $subVersion -eq 11 ]; then
 			usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped11
 			usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped11
+		else
+			if [ $subVersion -eq 12 ]; then
+				usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped12
+				usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped12
+			fi
 		fi
 	fi
 
