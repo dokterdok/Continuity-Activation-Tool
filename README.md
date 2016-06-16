@@ -1,25 +1,24 @@
 Continuity Activation Tool
 ==========================
 
-This tool makes the necessary changes to enable OS X 10.10 and 10.11 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
-OS X 10.11 (El Capitan) dongle support is not stable yet!
+This tool makes the necessary changes on macOS 10.10-10.12 to enable Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
+
+**Help and keep this project alive!**
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="FFPMWHPFWZJFU">
+<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1">
+</form>
 
 
 ## News
-2016-06-13: **macOS Sierra** ~~The work on the newest version of macOS will begin as soon a possible.~~ CAT mostly works fine with Sierra! (New Features like auto-unlock still need to be tested). New updates will be released on the beta branch while macOS Sierra is in beta! 
+2016-06-13: **macOS Sierra** CAT should work fine on macOS Sierra!
 
-2016-06-13: **wiki page** A wiki page has been erstablished and will be used to suggest fixes for the most common issues. A issue template was added to help the users provide more details.
-
-2015-10-09 : **Version 2.1.3** Merged with the beta version. Should now work on 10.10 - 10.11
-
-2015-08-13 : **New active lead** : I (sysfloat) will now be the main contributer and manager of the project, since dokterdok is not able to support this project anymore. He supported me with a lot of stuff and his research into enabling Continuity with dongles. I will contact some old beta testers and will do my best to get the dongles working on El Capitan and merge my fork with the beta branch.
-
-Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options.
+2014-12-14: **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options.
 
 **[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)**
 =======
-
-**You can donate to keep this project alive by sending some bucks to catbetaelcap@gmail.com via PayPal. Thanks :)**
 
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
@@ -119,6 +118,9 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 * [Article on the disabling OS security features and related risks (Cindori.org)](http://www.cindori.org/trim-enabler-and-yosemite)
 
 ### Changelog
+
+**v2.4 - 2016-06-16** 
+*Updated dongle patch for macOS Sierra
 
 **v2.3 - 2016-06-15**
 * Fixed Handoff on Sierra
