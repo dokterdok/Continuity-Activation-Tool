@@ -3,12 +3,6 @@ Continuity Activation Tool
 
 This tool makes the necessary changes on macOS 10.10-10.12 to enable Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
 
-**Help and keep this project alive!**
-
-[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FFPMWHPFWZJFU)
-
-
-
 ## News
 2016-06-13: **macOS Sierra** CAT should work fine on macOS Sierra!
 
@@ -24,7 +18,7 @@ This tool makes the necessary changes on macOS 10.10-10.12 to enable Continuity 
 
 ## Issues
 
-Before submitting a new issue please check the Wiki for common issues! When submitting a new issue please check if there's already an issue open. 
+Before submitting a new issue please check the Wiki for common issues! When submitting a new issue please check if there's already an issue open.
 
 Please fill out the template as detailed as possible.
 
@@ -116,7 +110,7 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 
 ### Changelog
 
-**v2.4 - 2016-06-16** 
+**v2.4 - 2016-06-16**
 *Updated dongle patch for macOS Sierra
 
 **v2.3 - 2016-06-15**
@@ -127,7 +121,7 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 
 **v2.2.3 - 2015-12-07**
 * fixed an issue where to wrong window would get closed on exit.([#248](https://github.com/dokterdok/Continuity-Activation-Tool/issues/248))
- 
+
 **v2.2.2 - 2015-10-31**
 * fixed an issue where SIP wouldn't get detected correctly on 10.11.2+([#250](https://github.com/dokterdok/Continuity-Activation-Tool/issues/250))
 
