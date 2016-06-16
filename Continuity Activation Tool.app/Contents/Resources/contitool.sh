@@ -1788,7 +1788,7 @@ function uninstall(){
 		echo "You can reenable the SIP if you want to."
 		echo "1. Reboot and hold CMD + R"
 		echo "2. Utilities - Terminal"
-		echo "3. enter 'csrutil enable'"
+		echo "3. enter 'csrutil enable --without-kext'"
 		echo "4. reboot"
 	fi
 	echo ""
