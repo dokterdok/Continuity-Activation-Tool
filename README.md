@@ -41,7 +41,7 @@ Issues that do not follow the rules and are unclear on the issue might get delet
 ## Compatibility list
 Your Mac might require a hardware upgrade to be able to work with Continuity. See the chart below to understand what your Mac supports, and use the System Diagnostic feature of the Continuity Activation Tool for a compatibility check of your Mac.
 
-![Compatibility Chart](https://github.com/dokterdok/Continuity-Activation-Tool/blob/beta/CompatibilityChart-13.12.2014.png)
+![Compatibility Chart](https://github.com/dokterdok/Continuity-Activation-Tool/blob/beta/CompatibilityChart-16.06.2016.png)
 
 **Chart data sources**: Feedback from >150 CAT 2.0 beta testers, feedback reported on this GitHub site, UncleSchnitty's [guide](http://forums.macrumors.com/showpost.php?p=20124161).
 
