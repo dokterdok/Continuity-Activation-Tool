@@ -6,7 +6,7 @@ OS X 10.11 (El Capitan) dongle support is not stable yet!
 
 
 ## News
-2016-06-13: **macOS Sierra** ~~The work on the newest version of macOS will begin as soon a possible.~~ CAT mostly works fine with Sierra! (New Features like auto-unlock still need to be tested). New updates will be released on the beta branch while macOS Sierra is in beta! 
+2016-06-13: **macOS Sierra** ~~The work on the newest version of macOS will begin as soon a possible.~~ CAT mostly works fine with Sierra! (New Features like auto-unlock still need to be tested). New updates will be released on the beta branch while macOS Sierra is in beta!
 
 2016-06-13: **wiki page** A wiki page has been erstablished and will be used to suggest fixes for the most common issues. A issue template was added to help the users provide more details.
 
@@ -19,8 +19,6 @@ Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility 
 **[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)**
 =======
 
-**You can donate to keep this project alive by sending some bucks to catbetaelcap@gmail.com via PayPal. Thanks :)**
-
 ## Features
 * Activate Continuity: Does a Continuity compatibility check, makes a backup of the Systems kexts before and after patching, applies patches relevant to the current configuration.
 * System Diagnostic: Produces a report of the current system parameters influencing Continuity.
@@ -28,7 +26,7 @@ Dec. 14 2014 : **Continuity Activation Tool 2.0 released** : Adds compatibility 
 
 ## Issues
 
-Before submitting a new issue please check the Wiki for common issues! When submitting a new issue please check if there's already an issue open. 
+Before submitting a new issue please check the Wiki for common issues! When submitting a new issue please check if there's already an issue open.
 
 Please fill out the template as detailed as possible.
 
@@ -128,7 +126,7 @@ Developers are more than welcome to contribute with bug fixes or improvements. I
 
 **v2.2.3 - 2015-12-07**
 * fixed an issue where to wrong window would get closed on exit.([#248](https://github.com/dokterdok/Continuity-Activation-Tool/issues/248))
- 
+
 **v2.2.2 - 2015-10-31**
 * fixed an issue where SIP wouldn't get detected correctly on 10.11.2+([#250](https://github.com/dokterdok/Continuity-Activation-Tool/issues/250))
 
