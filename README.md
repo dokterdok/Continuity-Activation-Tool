@@ -4,14 +4,10 @@ Continuity Activation Tool
 This tool makes the necessary changes on macOS 10.10-10.12 to enable Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
 
 **Help and keep this project alive!**
-<div>
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="FFPMWHPFWZJFU">
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1">
-</form>
-</div>
+
+[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FFPMWHPFWZJFU)
+
+
 
 ## News
 2016-06-13: **macOS Sierra** CAT should work fine on macOS Sierra!
