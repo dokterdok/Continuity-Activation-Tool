@@ -1238,7 +1238,7 @@ function patchStringsInFile() {
         #echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
         for OFFSET in ${STRINGS} ; do
             # Create the new string with a simple bash-replacement
-            printf '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' | dd of="$FILE" bs=1 seek="0x""$OFFSET" conv=notrunc >> /dev/null 2>&1
+            printf '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' | dd of="$FILE" bs=1 seek="0x""$OFFSET" conv=notrunc >> /dev/null 2>&1
             printf "%s" $REPLACEMENT | dd of="$FILE" bs=1 seek="0x""$OFFSET" conv=notrunc >> /dev/null 2>&1
         done
     else
