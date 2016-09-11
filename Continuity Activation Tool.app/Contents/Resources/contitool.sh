@@ -493,7 +493,9 @@ function modifyKextDevMode(){
 
 			#first we need to be sure that no other unsigned kexts are found in the Extensions folder
 			#otherwise, disabling dev mode might prevent the system from booting.
-			$(nbOfInvalidKexts=$(countInvalidKexts "${driverPath}")) >> /dev/null 2>&1 & spinner "Verifying system kexts signatures...    "
+			countInvalidKexts "${targetRoot}${driverPath}" > /tmp/tempfile 2>/dev/null & spinner "Verifying system kexts signatures...    "
+            		nbOfInvalidKexts=$(cat /tmp/tempfile)
+            		rm /tmp/tempfile
 
 			if [ "${nbOfInvalidKexts}" != "0" ]; then
 				echo -e "\rVerifying system kexts signatures...    OK. 1 or more unsigned drivers were found. OS kext security protection won't be changed to prevent issues."; return;
