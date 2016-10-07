@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.4b2"
+hackVersion="2.4b3"
 
 #---- PATH VARIABLES ------
 
@@ -235,12 +235,11 @@ function canMyKextsBeModded(){
 		fi
 }
 
-#Verifies the status of the ContinuitySupport bool for the given mac
 function checkContinuitySupport(){
 	if [ "$1" == "verbose" ]; then
 		echo -n "Verifying ContinuitySupport...          "
 	fi
-	local contiSupport=$($plistBuddy -c "Print :${myMacIdPattern}:ContinuitySupport" "${systemParameters}")
+	local contiSupport=$($plistBuddy -c "Print :${myMacIdPattern}:ContinuitySupport" "${systemParameters}" 2>&1)
 	if [[ "${contiSupport}" == "true" ]]; then
 		if [ "$1" != "verbose" ]; then echo "1";
 		else echo "OK. Already patched.";
@@ -251,10 +250,16 @@ function checkContinuitySupport(){
 			else echo "OK. This tool can fix this.";
 			fi
 		else
-			echo "NOT OK. Unknown state. Your Mac might not be compatible."
+			if [[ "${contiSupport}" == *"Does Not Exist"* ]]; then
+				if [ "$1" != "verbose" ]; then echo "2";
+				else echo "OK. Unknown Mac Model. This tool will try to fix this";
+				fi
+			else
+					echo "NOT OK. Unknown state. Your Mac might not be compatible."
+			fi
 		fi
 	fi
-}
+	}
 
 #Patches the ContinuitySupport bool to true for the given Mac boad-id
 function patchContinuitySupport(){
@@ -266,7 +271,12 @@ function patchContinuitySupport(){
 		if [[ "${action}" == "disable" ]]; then
 			$plistBuddy -c "Set :${myMacIdPattern}:ContinuitySupport false" "${systemParameters}";
 		else
-			echo "Internal error. Unknown patch action."
+			if [[ "${action}" == "add" ]]; then
+				$plistBuddy -c "Add :${myMacIdPattern} dict"
+				$plistBuddy -c "Add :${myMacIdPattern}:ContinuitySupport bool TRUE"
+			else
+				echo "Internal error. Unknown patch action."
+			fi
 		fi
 	fi
 	echo "OK."
@@ -297,7 +307,6 @@ function isMyMacBoardIdCompatible(){
 		else echo "NOT OK. Board-id could not be detected. You may try to set it manually in the script."; fi
 	fi
 }
-
 #Verifies that at least 1 known Broadcom Wi-Fi kext is currently in use.
 #The long branching was done only for verbose reporting.
 function areMyActiveWifiDriversOk(){
@@ -1871,10 +1880,14 @@ function displayMainMenu(){
 					echo ""
 					echo "OS X reports Continuity as active."
 					if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ] && [[ $(checkContinuitySupport) != "1" ]]; then
-						patchContinuitySupport "enable"
+						if [[ $(checkContinuitySupport) == "2" ]]; then
+							patchContinuitySupport "add"
+						else
+							if [[ $(checkContinuitySupport) == "0" ]]; then
+								patchContinuitySupport "enable"
+							fi
+						fi
 						rebootPrompt
-					else
-						echo "No changes were applied."
 					fi
 					backToMainMenu
 				fi
