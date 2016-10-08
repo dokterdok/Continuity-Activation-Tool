@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.4b3"
+hackVersion="2.4b4"
 
 #---- PATH VARIABLES ------
 
@@ -272,8 +272,8 @@ function patchContinuitySupport(){
 			$plistBuddy -c "Set :${myMacIdPattern}:ContinuitySupport false" "${systemParameters}";
 		else
 			if [[ "${action}" == "add" ]]; then
-				$plistBuddy -c "Add :${myMacIdPattern} dict"
-				$plistBuddy -c "Add :${myMacIdPattern}:ContinuitySupport bool TRUE"
+				$plistBuddy -c "Add :${myMacIdPattern} dict" "${systemParameters}"
+				$plistBuddy -c "Add :${myMacIdPattern}:ContinuitySupport bool TRUE" "${systemParameters}"
 			else
 				echo "Internal error. Unknown patch action."
 			fi
