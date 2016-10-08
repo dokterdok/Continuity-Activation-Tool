@@ -4,6 +4,9 @@ Continuity Activation Tool
 This tool makes the necessary changes to enable OS X 10.10 and 10.11 Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
 OS X 10.11 (El Capitan) dongle support is not stable yet!
 
+Please check the [Wiki](https://github.com/dokterdok/Continuity-Activation-Tool/wiki) before using this tool and opening any issues that are already referenced in the Wiki!
+
+Use the latest beta if you are on **macOS Sierra**. [Download latest beta](https://github.com/dokterdok/Continuity-Activation-Tool/archive/beta.zip)
 
 ## News
 2016-06-13: **macOS Sierra** ~~The work on the newest version of macOS will begin as soon a possible.~~ CAT mostly works fine with Sierra! (New Features like auto-unlock still need to be tested). New updates will be released on the beta branch while macOS Sierra is in beta!
@@ -35,45 +38,6 @@ Issues that do not follow the rules and are unclear on the issue might get delet
 ## Warning
 * You should exercise caution when using the Continuity Activation Tool, as it moves around low level files and there's a possibility it could cause problems. Using this tool is at your own risk. Always use the latest version of the tool to avoid issues.
 * The tool disables the verification of original Apple drivers in order to work, which lowers the overall system security.
-
-## Compatibility list
-Your Mac might require a hardware upgrade to be able to work with Continuity. See the chart below to understand what your Mac supports, and use the System Diagnostic feature of the Continuity Activation Tool for a compatibility check of your Mac.
-
-![Compatibility Chart](https://github.com/dokterdok/Continuity-Activation-Tool/blob/beta/CompatibilityChart-13.12.2014.png)
-
-**Chart data sources**: Feedback from >150 CAT 2.0 beta testers, feedback reported on this GitHub site, UncleSchnitty's [guide](http://forums.macrumors.com/showpost.php?p=20124161).
-
-**Pros of using USB BT4.0 dongles**: low cost, easy to install, easy to find on the market
-
-**Pros of using AirPort Extreme cards**: authentic Apple hardware, better support for Continuity features, doesn't occupy a USB slot
-
-### Bluetooth 4.0 USB dongles
-A few important notes about using CAT with USB Bluetooth 4.0 dongles:
-* Bluetooth 4.0 dongles based on the Cambridge Silicon Radio CSR8510 A10 chip (e.g. Inatek Nano) are not compatible with CAT.
-* The recommendation is to look for dongles based on the Broadcom BCM20702 chip, which are similar to the ones used by Apple in their Continuity compatible Macs. A few examples: Asus BT400, IOGEAR GBU521, GMYLE, and many others. Compatibility with CSR dongles is not guaranteed.
-* Instant Hotspot currently doesn't work reliably when using a dongle. This is a known issue, no workarounds have been identified yet.
-* Atheros Wi-Fi AirPort cards will prevent Continuity from working even when adding a Bluetooth 4.0 dongle. The System Diagnostic feature of CAT tells which Wi-Fi brand is active. There are no workarounds and no patch is expected to change this, an AirPort card upgrade is required.
-
-### AirPort Extreme card upgrades
-
-The table below is based on this [guide (forum thread)](http://forums.macrumors.com/showpost.php?p=20124161). If you notice inaccuracies, please report them to the guide author and open an issue.
-
-Mac Model | Hardware change required | Software patch required (e.g. via this tool)
-:---|:---|:---
-MacBook Air late 2010 | Yes, new wireless card BCM94360CS2, see [here](https://github.com/dokterdok/Continuity-Activation-Tool/issues/41#issuecomment-66827305) | No
-MacBook Air mid 2011 | No | Yes
-MacBook Air 2012-2014 | No (works OTB) | No (works OTB)
-MacBook Pro early 2008 (15" only) | Yes, new wireless card BCM94360CD + adapter | Yes
-MacBook Pro mid 2010 (15" only) | Yes, new wireless card BCM94331PCIEBT4CAX, see [guide](http://forums.macrumors.com/showpost.php?p=20269421&postcount=639) | Yes
-MacBook Pro early 2011 to late 2011 (all models) | Yes, new wireless card BCM94331PCIEBT4CAX | Yes
-MacBook Pro mid 2012 (non-retina) | No (works OTB)| No (works OTB)
-MacBook Pro Retina (all models) | No (works OTB) | No (works OTB)
-Mac mini mid 2011 | No | Yes
-Mac mini 2012-2014 | No (works OTB) | No (works OTB)
-Mac Pro early 2008-2012 | Yes, new wireless card BCM94360CD + adapter | No
-Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
-iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | Yes (Patch Board-ID)
-iMac 2012-2014 | No (works OTB) | No (works OTB)
 
 ## How to use it
 
