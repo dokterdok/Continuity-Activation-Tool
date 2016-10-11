@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.4b4"
+hackVersion="2.4b5"
 
 #---- PATH VARIABLES ------
 
@@ -1882,12 +1882,15 @@ function displayMainMenu(){
 					if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ] && [[ $(checkContinuitySupport) != "1" ]]; then
 						if [[ $(checkContinuitySupport) == "2" ]]; then
 							patchContinuitySupport "add"
+							rebootPrompt
 						else
 							if [[ $(checkContinuitySupport) == "0" ]]; then
 								patchContinuitySupport "enable"
+								rebootPrompt
+							else
+								echo "No changes were applied."
 							fi
 						fi
-						rebootPrompt
 					fi
 					backToMainMenu
 				fi
