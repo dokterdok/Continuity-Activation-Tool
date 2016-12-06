@@ -8,7 +8,7 @@ This tool makes the necessary changes on macOS 10.10-10.12 to enable Continuity 
 
 2014-12-14: **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options.
 
-**[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/master.zip)**
+**[Download link](https://github.com/dokterdok/Continuity-Activation-Tool/archive/beta.zip)**
 =======
 
 ## Features
