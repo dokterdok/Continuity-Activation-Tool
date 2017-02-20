@@ -15,12 +15,13 @@
 #
 #
 
-hackVersion="2.4b5"
+hackVersion="2.5b1"
 
 #---- PATH VARIABLES ------
 
 #APP PATHS
 appDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+runFromDir="$appDir" #will be changed by initializeRunFromDir if run from app wrapper.
 continuityCheckUtilPath="$appDir/continuityCheck.app/Contents/MacOS/continuityCheck"
 backupFolderNameBeforePatch="KextsBackupBeforePatch" #kexts backup folder name, where the original untouched kexts should be placed
 backupFolderNameAfterPatch="KextsBackupAfterPatch" #kexts backup folder name, where the patched kexts should be placed, after a successful backup
@@ -80,6 +81,19 @@ xxdPath="/usr/bin/xxd"
 csrutilPath="/usr/bin/csrutil"
 plistBuddy="/usr/libexec/PlistBuddy"
 tailPath="/usr/bin/tail"
+pbzxPath="$appDir/pbzx"
+tmpPath="/tmp"
+#Get current time as unix timestamp
+#catTmpPath="$tmpPath/$(date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s")CAT"
+catTmpPath="$tmpPath/CAT"
+updateDownloadPath="$catTmpPath/Downloads"
+updateExtractPath="$catTmpPath/Extracted"
+updateDMG="osxupd10.10.5.dmg"
+updateVolumeName="OS X 10.10.5 Update"
+updatePKGName="OSXUpd10.10.5.pkg"
+updatePKGPath="$updateExtractPath/$updatePKGName"
+updateDMGPath="$updateDownloadPath/$updateDMG"
+
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -99,6 +113,8 @@ legacyBrcmCardIds=("pci14e4,432b") #includes the legacy broadcom AirPort card pc
 autoCheckAppEnabled="0" #automatically set to 1 if the login item for the Continuity Check app is present.
 subVersion="0"
 subVersion=$(sw_vers -productVersion | $cutPath -d '.' -f 2) #Get subversion e.g. 11 for OS X 10.11.1
+
+useLegacyKext="0"
 
 #---- CAT 2 Binary patches ----
 #3rd party BT 4.0 patchfor IOBluetoothFamily, working with OS X 10.10.0 and 10.10.1
@@ -1853,6 +1869,7 @@ function showUsage(){
 	echo "  -h               display a help message and quit"
 	echo "  -r               uninstall Continuity mods by directly using OS X recovery disk files"
 	echo "  -z               uninstall Continuity mods"
+	echo "  -l               download legacy drivers"
 }
 
 function launchedFromApp() {
@@ -1867,7 +1884,7 @@ function displayMainMenu(){
 	displaySplash
 	echo "Select an option:"
 	echo ""
-	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Uninstall with Recovery" "Disable Auto Check App" "Quit")
+	options=("Activate Continuity" "System Diagnostic" "Uninstall" "Uninstall with Recovery" "Disable Auto Check App" "Download legacy kext" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
@@ -1910,6 +1927,8 @@ function displayMainMenu(){
 				;;
 			'Disable Auto Check App')
 				autoCheckApp "disable"
+				;;
+			'Download legacy kext')
 				;;
 			'Quit')
 				displayThanks
