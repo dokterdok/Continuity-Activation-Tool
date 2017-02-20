@@ -1154,6 +1154,26 @@ function hasTheLegacyWifiPatchBeenApplied(){
 
 #------------ BT USB Specific Procedures End ------------------
 
+#---------- Legacy kext Specific Procedures Start -------------
+
+function verifypbzxUtilPresence() {
+	if [ ! -f "${pbzxPath}" ]; then
+
+		tput clear
+		echo ""
+		echo "Error: the 'pbzx' command line utility was not found and is necessary to run the script."
+		echo ""
+		echo "It is expected to be bundled with the app and located at :"
+		echo "'${appDir}/'"
+		echo ""
+		echo "Aborting."
+		echo ""
+		exit;
+	fi
+}
+#---------- Legacy Kext Specific Procedures End -------------
+
+
 #Uses a app that checks the SFDeviceSupportsContinuity flag, used in Apple's Sharing private framework
 #This is indicator is used by System Report to determine whether Handoff and Instant Hotspot are active,
 #meaning that it should be a reliable indicator of Continuity's status system wide
