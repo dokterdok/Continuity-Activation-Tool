@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.5b1"
+hackVersion="2.6b1"
 
 #---- PATH VARIABLES ------
 
@@ -49,6 +49,7 @@ awkPath="/usr/bin/awk"
 chmodPath="/bin/chmod"
 chownPath="/usr/sbin/chown"
 cpPath="/bin/cp"
+curlPath="/usr/bin/curl"
 cutPath="/usr/bin/cut"
 diskutilPath="/usr/sbin/diskutil"
 duPath="/usr/bin/du"
@@ -86,6 +87,7 @@ tmpPath="/tmp"
 #Get current time as unix timestamp
 #catTmpPath="$tmpPath/$(date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s")CAT"
 catTmpPath="$tmpPath/CAT"
+updateLink="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-30889-20150813-dd510a7c-41d6-11e5-b51e-060f11ba098f/osxupd10.10.5.dmg"
 updateDownloadPath="$catTmpPath/Downloads"
 updateExtractPath="$catTmpPath/Extracted"
 updateDMG="osxupd10.10.5.dmg"
@@ -93,7 +95,7 @@ updateVolumeName="OS X 10.10.5 Update"
 updatePKGName="OSXUpd10.10.5.pkg"
 updatePKGPath="$updateExtractPath/$updatePKGName"
 updateDMGPath="$updateDownloadPath/$updateDMG"
-
+pkgutilPath="/usr/sbin/pkgutil"
 
 #---- CONFIG VARIABLES ----
 forceHack="0" #default is 0. when set to 1, skips all compatibility checks and forces the hack to be applied (WARNING: may corrupt your system)
@@ -1171,6 +1173,129 @@ function verifypbzxUtilPresence() {
 		exit;
 	fi
 }
+
+function initializeRunFromDir()
+{
+  if [[ "$appDir" == *.app/Contents/Resources* ]]; then #the script is run from within its .app wrapper
+    runFromDir="$appDir/../../.."
+  fi
+}
+
+function startLegacyKextDownload()
+{
+  displaySplash
+  echo '---            Legacy kext menu           ---'
+  echo ''
+  echo "if you don't know what this menu does please visit the wiki at: TODO:addlink"
+	initializeRunFromDir
+	downloadUpdate
+  getUpdateFromDMG
+  extractPKG
+  cleanAndGetLegacyKext
+	backToMainMenu
+}
+
+function downloadUpdate()
+{
+  echo "Starting the download (this might take awhile)...                   "
+  echo "Are you sure you want to download 972MB?"
+  select yn in "Yes" "No"; do
+    case $yn in
+      Yes) #continue
+        break;;
+      No)
+        backToMainMenu;;
+      *) echo "Invalid option, enter a number";;
+    esac
+  done
+  $mkdirPath -p "$updateDownloadPath"
+  $curlPath -o "$updateDownloadPath/$updateDMG" "$updateLink"
+	if [ ! "$?" == "0" ]; then
+		echo "An error occured while downloading."
+		backToMainMenu
+	fi
+}
+
+function getUpdateFromDMG()
+{
+  $mkdirPath -p "$updateExtractPath"
+  $hdiutilPath attach -nobrowse "${updateDMGPath}"  >> /dev/null 2>&1
+  $cpPath "/Volumes/$updateVolumeName/$updatePKGName" "$updateExtractPath" >> /dev/null 2>&1 & spinner "Moving update pkg...                    "
+  $hdiutilPath detach -force -quiet "/Volumes/$updateVolumeName"
+  echo ""
+}
+
+function extractPKG()
+{
+  $pkgutilPath --expand "$updatePKGPath" "$updateExtractPath/unpacked" >> /dev/null 2>&1 & spinner "Expanding update pkg...                 "
+  echo ""
+  (cd "$updateExtractPath/unpacked/$updatePKGName" && "$pbzxPath" -n Payload | cpio -i) >> /dev/null 2>&1 & spinner "Unpacking update payload...             "
+  echo ""
+}
+
+function installLegacyKext()
+{
+	echo -n "Installing legacy kext...                 "
+  $rmPath -rf "$wifiKextPath"
+	if [ "$?" == "0" ]; then
+  	$mvPath "$runFromDir" "$wifiKextPath"
+		if [ "$?" == "0" ]; then
+			echo "OK."
+		else
+			echo "NOT OK. Error while installing new kext."
+		fi
+	else
+		echo "NOT OK. Error while removing old kext."
+	fi
+}
+
+function checkLegacyKext()
+{
+  echo -n "Checking legacy kext...                 "
+  if [ -d "$runFromDir/$wifiKextFilename" ]; then
+    if [ "$1" != "verbose" ]; then
+      echo "Attention: A legacy kext has been found in your directory. "
+      echo "Do you want to use it?"
+      select yn in "Yes" "No"; do
+        case $yn in
+          Yes) #continue
+            useLegacyKext="1";
+            echo "OK. Installing legacy kext."
+            break;;
+          No) echo "OK."
+            break;;
+          *) echo "Invalid option, enter a number";;
+        esac
+      done
+    else
+      echo "OK. Legacy kext found."
+    fi
+  else
+    if [ "$1" != "verbose" ]; then
+      echo "OK."
+    else
+      echo "OK. Not using legacy kext."
+    fi
+  fi
+}
+
+function cleanAndGetLegacyKext()
+{
+  echo -n "Moving Legacy Kext...                   "
+  if [ -d "$runFromDir/$wifiKextFilename" ]; then
+    echo "OK. Already present."
+  else
+    $mvPath "$updateExtractPath/unpacked/$updatePKGName/System/Library/Extensions/$wifiKextFilename" "$runFromDir/" >> /dev/null 2>&1
+    if [ $? == "0" ]; then
+      echo "OK. Legacy kext has been moved."
+    else
+      echo "NOT OK. An error occured while moving"; backToMainMenu
+    fi
+  fi
+  $rmPath -rf $catTmpPath >> /dev/null 2>&1 & spinner "Removing temporary folder               "
+	echo ""
+}
+
 #---------- Legacy Kext Specific Procedures End -------------
 
 
@@ -1655,7 +1780,7 @@ function compatibilityPrecautions(){
 	displaySplash
 	echo '--- Initiating system compatibility check ---'
 	echo ''
-	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ]; then
 		verifySIP
 	fi
 	initializeBackupFolders
@@ -1665,7 +1790,7 @@ function compatibilityPrecautions(){
 	areMyActiveWifiDriversOk
 	isMyBluetoothVersionCompatible
 	areMyBtFeatureFlagsCompatible
-	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ]; then
 		checkContinuitySupport "verbose"
 		verifySIP
 		if [ $? -eq 0 ]; then
@@ -1680,6 +1805,8 @@ function compatibilityPrecautions(){
 	canMyKextsBeModded
 	if [ "$subVersion" -eq 10 ]; then
 		isMyMacBlacklisted "verbose"
+	else
+		checkLegacyKext "verbose"
 	fi
 	isMyMacWhitelisted
 	hasTheLegacyWifiPatchBeenApplied
@@ -1709,7 +1836,7 @@ function verboseCompatibilityCheck(){
 	echo ''
 	echo '--- Modifications check ---'
 	verifyOsKextDevMode "verbose"
-	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ]; then
 		verifySIP "verbose"
 		checkContinuitySupport "verbose"
 	fi
@@ -1717,6 +1844,8 @@ function verboseCompatibilityCheck(){
 	isMyMacWhitelisted "verbose"
 	if [ "$subVersion" -eq 10 ]; then
 		isMyMacBlacklisted "verbose"
+	else
+		checkLegacyKext "verbose"
 	fi
 	verifyFeatureFlagsPatch "verbose"
 	detectLegacyWifiDriver "verbose"
@@ -1754,12 +1883,26 @@ function checkAndHack(){
 		doDonglePatch=$(shouldDoDonglePatch)
 	fi
 
+
+
 	#echo "whitelistAlreadyPatched=$whitelistAlreadyPatched myMacIsBlacklisted=$myMacIsBlacklisted doDonglePatch=$doDonglePatch"
 	if [ "${whitelistAlreadyPatched}" == "1" -a "${myMacIsBlacklisted}" == "0" -a "${legacyWifiKextsRemoved}" == "1" -a "${doDonglePatch}" == "0" -a "${legacyWifiPatchApplied}" == "1" ]; then
-		echo "No changes were applied, your system seems to be already OK for Continuity"
-		backToMainMenu
+		if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ] && [[ $(checkContinuitySupport) != "1" ]]; then
+			if [[ $(checkContinuitySupport) == "2" ]]; then
+				patchContinuitySupport "add"
+				rebootPrompt
+			else
+				if [[ $(checkContinuitySupport) == "0" ]]; then
+					patchContinuitySupport "enable"
+					rebootPrompt
+				else
+					echo "No changes were applied, your system seems to be already OK for Continuity"
+					backToMainMenu
+				fi
+			fi
+		fi
 	fi
-
+	checkLegacyKext
 	initializeBackupFolders
 	modifyKextDevMode "enableDevMode"
 	repairDiskPermissions
@@ -1775,7 +1918,7 @@ function checkAndHack(){
 	removeObsoleteWifiDriver
 	enableLegacyWifi
 
-	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ]; then
 		patchContinuitySupport "enable"
 	fi
 
@@ -1805,7 +1948,7 @@ function uninstall(){
 	echo '--- Initiating uninstallation ---'
 	echo ''
 
-	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13]; then
 		verifySIP
 		if [ $? -eq 0 ]; then
 			echo "To continue you need to disable System Integrity Protection and come back here."
@@ -1829,7 +1972,7 @@ function uninstall(){
 	echo ""
 	echo ""
 	echo "DONE. Please reboot now to complete the uninstallation."
-	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13]; then
 		echo "You can reenable the SIP if you want to."
 		echo "1. Reboot and hold CMD + R"
 		echo "2. Utilities - Terminal"
@@ -1916,7 +2059,7 @@ function displayMainMenu(){
 					displaySplash
 					echo ""
 					echo "OS X reports Continuity as active."
-					if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 ] && [[ $(checkContinuitySupport) != "1" ]]; then
+					if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ] && [[ $(checkContinuitySupport) != "1" ]]; then
 						if [[ $(checkContinuitySupport) == "2" ]]; then
 							patchContinuitySupport "add"
 							rebootPrompt
@@ -1949,6 +2092,7 @@ function displayMainMenu(){
 				autoCheckApp "disable"
 				;;
 			'Download legacy kext')
+				startLegacyKextDownload
 				;;
 			'Quit')
 				displayThanks
@@ -1967,6 +2111,8 @@ if [ $# -eq 0 ]; then
 	applyTerminalTheme
 	verifySudoPrivileges
 	verifyStringsUtilPresence
+	verifypbzxUtilPresence
+	initializeRunFromDir
 	displayMainMenu
 else
 	while [ "$1" != "" ]; do
@@ -1995,6 +2141,8 @@ else
 											verifyStringsUtilPresence
 											uninstall
 											;;
+					-l )		startLegacyKextDownload
+									;;
 	        * )                     		showUsage
 	                                		exit 1
 	    esac
