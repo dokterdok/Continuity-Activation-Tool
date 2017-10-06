@@ -1,9 +1,11 @@
 Continuity Activation Tool
 ==========================
 
-This tool makes the necessary changes on macOS 10.10-10.12 to enable Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
+This tool makes the necessary changes on macOS 10.10-10.13 to enable Continuity features on compatible hardware. Continuity features activated by this tool include Handoff, Instant Hotspot, and New Airdrop.
 
 ## News
+2017-10-06: **macOS High Sierra** First beta released for macOS High Sierra (10.13)!
+
 2016-06-13: **macOS Sierra** CAT should work fine on macOS Sierra!
 
 2014-12-14: **Continuity Activation Tool 2.0 released** : Adds compatibility with Bluetooth 4.0 USB dongles, allowing many Macs from 2008 and later to easily upgrade to Continuity. See the chart below to verify available upgrade options.
