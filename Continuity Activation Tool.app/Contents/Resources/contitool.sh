@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.6b2"
+hackVersion="2.6b3"
 
 #---- PATH VARIABLES ------
 
@@ -2139,7 +2139,23 @@ if [ $# -eq 0 ]; then
 	verifyStringsUtilPresence
 	verifypbzxUtilPresence
 	initializeRunFromDir
-	displayMainMenu
+	readxattr=$(xattr -x "$runFromDir/Continuity Activation Tool.app")
+	if [ ! -z $readxattr ]; then
+		echo "ATTENTION: missing permissions. Read more here:  TODO:addlink"
+		echo "You have to do the following steps:"
+		echo "1. Navigate to the location of the app via terminal"
+		echo "2. run 'xattr -d com.apple.quarantine Continuity\ Activation\ Tool.app/' (without ')"
+		echo "3. start CAT again"
+		echo ""
+		echo ""
+		echo ""
+		echo ""
+		echo ""
+		exit;
+	else
+		displayMainMenu
+	fi
+
 else
 	while [ "$1" != "" ]; do
 	    case $1 in
