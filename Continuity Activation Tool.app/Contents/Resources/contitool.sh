@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.6b3"
+hackVersion="2.6b4"
 
 #---- PATH VARIABLES ------
 
@@ -43,6 +43,9 @@ recoveryHdName="Recovery HD"
 recoveryDmgPath="/Volumes/Recovery HD/com.apple.recovery.boot/BaseSystem.dmg"
 osxBaseSystemPath="/Volumes/OS X Base System"
 systemParameters="/System/Library/Frameworks/IOBluetooth.framework/Versions/A/Resources/SystemParameters.plist"
+#recoveryHDNames since the transition to macOS
+recoveryHdNamemacOS="Recovery"
+recoveryDmgPathmacOS="/Volumes/Recovery/*/BaseSystem.dmg"
 
 #UTILITIES PATHS
 awkPath="/usr/bin/awk"
@@ -1714,7 +1717,26 @@ function mountRecoveryBaseSystem(){
 	$diskutilPath mount "${recoveryHdName}" >> /dev/null 2>&1
 
 	if [ $? == "1" ]; then
-		echo "Mounting Recovery HD...                 NOT OK. Error mounting '${recoveryHdName}'"; backToMainMenu
+		#mount with the new naming scheme
+		$diskutilPath mount "${recoveryHdNamemacOS}" >> /dev/null 2>&1
+		if [ $? == "1" ]; then
+			echo "Mounting Recovery HD...                 NOT OK. Error mounting '${recoveryHdName}'"; backToMainMenu
+		else
+			#new way
+			files=( "${recoveryDmgPathmacOS}" )
+			if (( ${#files[@]} )); then
+					#attach the OS X Base System DMG without opening a Finder window
+					$hdiutilPath attach -nobrowse ${recoveryDmgPathmacOS}  >> /dev/null 2>&1 & spinner "Mounting Recovery HD...                 "
+				if [ $? == "1" ]; then
+					echo -e "\rMounting Recovery HD...                 NOT OK. Error attaching '${recoveryDmgPathmacOS}'"; backToMainMenu
+				else
+
+					echo -e "\rMounting Recovery HD...                 OK"
+				fi
+			else
+				echo "Mounting Recovery HD...                 NOT OK. The recovery DMG could not be found at ${recoveryDmgPathmacOS}"; backToMainMenu
+			fi
+		fi
 	else
 		#disk mounted
 		if [ -f "${recoveryDmgPath}" ]; then
@@ -1728,7 +1750,8 @@ function mountRecoveryBaseSystem(){
 				echo -e "\rMounting Recovery HD...                 OK"
 			fi
 		else
-			echo "Mounting Recovery HD...                 NOT OK. The recovery DMG could not be found at ${recoveryDmgPath}"; backToMainMenu
+				echo "Mounting Recovery HD...                 NOT OK. The recovery DMG could not be found at ${recoveryDmgPathmacOS}"; backToMainMenu
+
 		fi
 	fi
 }
