@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.6b1"
+hackVersion="2.6b2"
 
 #---- PATH VARIABLES ------
 
@@ -87,12 +87,29 @@ tmpPath="/tmp"
 #Get current time as unix timestamp
 #catTmpPath="$tmpPath/$(date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s")CAT"
 catTmpPath="$tmpPath/CAT"
-updateLink="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-30889-20150813-dd510a7c-41d6-11e5-b51e-060f11ba098f/osxupd10.10.5.dmg"
+
+#updateLink="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-30889-20150813-dd510a7c-41d6-11e5-b51e-060f11ba098f/osxupd10.10.5.dmg"
+#updateDownloadPath="$catTmpPath/Downloads"
+#updateExtractPath="$catTmpPath/Extracted"
+#updateDMG="osxupd10.10.5.dmg"
+#updateVolumeName="OS X 10.10.5 Update"
+#updatePKGName="OSXUpd10.10.5.pkg"
+
+
+updateLink="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-42278-20151021-40e0f5a6-7806-11e5-8b62-f64340b99175/osxupd10.11.1.dmg"
 updateDownloadPath="$catTmpPath/Downloads"
 updateExtractPath="$catTmpPath/Extracted"
-updateDMG="osxupd10.10.5.dmg"
-updateVolumeName="OS X 10.10.5 Update"
-updatePKGName="OSXUpd10.10.5.pkg"
+updateDMG="osxupd10.11.1.dmg"
+updateVolumeName="OS X El Capitan Update"
+updatePKGName="OSXUpd10.11.1.pkg"
+
+#updateLink="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-94640-20161212-01e40d92-bef1-11e6-bcc2-62ed82fdb0cc/macosupdcombo10.12.2.dmg"
+#updateDownloadPath="$catTmpPath/Downloads"
+#updateExtractPath="$catTmpPath/Extracted"
+#updateDMG="macosupd10.12.2.dmg"
+#updateVolumeName="macOS 10.12.2 Update"
+#updatePKGName="macOSUpdCombo10.12.2.pkg"
+
 updatePKGPath="$updateExtractPath/$updatePKGName"
 updateDMGPath="$updateDownloadPath/$updateDMG"
 pkgutilPath="/usr/sbin/pkgutil"
@@ -142,6 +159,9 @@ usbBinaryPatchFindEscaped11="\x48\x85\xFF\x74\x47\x48\x8B\x07\x48\x8D\x35\x13\xB
 #3rd party BT 4.0 patch for IOBluetoothFamily, working with OS X 10.11 and 10.12
 usbBinaryPatchFindEscaped12="\x48\x85\xFF\x74\x47\x48\x8B\x07\x48\x8D\x35\x46\x9E\x01\x00\xFF\x90\x88\x08\x00\x00" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
 usbBinaryPatchReplaceWithEscaped12="\xC6\x83\x7A\x03\x00\x00\x02\x41\xBE\x0F\x00\x00\x00\xE9\x3A\x00\x00\x00\x90\x90\x90" #replacement hexadecimal sequence for the IOBluetoothFamily binary
+
+usbBinaryPatchFindEscaped13="\x48\x85\xFF\x74\x47\x48\x8B\x07\x48\x8D\x35" #hexadecimal sequence to replace in the the IOBluetoothFamily binary
+usbBinaryPatchReplaceWithEscaped13="\x41\xBE\x0F\x00\x00\x00\xE9\x36\x00\x00\x00" #replacement hexadecimal sequence for the IOBluetoothFamily binary
 
 
 usbBinaryPatchFindEscaped=""
@@ -932,6 +952,11 @@ function initiateDonglePatch(){
 			if [ $subVersion -eq 12 ]; then
 				usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped12
 				usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped12
+			else
+				if [ $subVersion -eq 13 ]; then
+					usbBinaryPatchFindEscaped=$usbBinaryPatchFindEscaped13
+					usbBinaryPatchReplaceWithEscaped=$usbBinaryPatchReplaceWithEscaped13
+				fi
 			fi
 		fi
 	fi
@@ -1286,6 +1311,7 @@ function cleanAndGetLegacyKext()
     echo "OK. Already present."
   else
     $mvPath "$updateExtractPath/unpacked/$updatePKGName/System/Library/Extensions/$wifiKextFilename" "$runFromDir/" >> /dev/null 2>&1
+		$mvPath "$updateExtractPath/unpacked/$updatePKGName/System/Library/Extensions/$btKextFilename" "$runFromDir/" >> /dev/null 2>&1
     if [ $? == "0" ]; then
       echo "OK. Legacy kext has been moved."
     else
