@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.6b4"
+hackVersion="2.6b5"
 
 #---- PATH VARIABLES ------
 
