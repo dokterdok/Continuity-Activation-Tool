@@ -91,28 +91,27 @@ tmpPath="/tmp"
 #catTmpPath="$tmpPath/$(date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s")CAT"
 catTmpPath="$tmpPath/CAT"
 
-#updateLink="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-30889-20150813-dd510a7c-41d6-11e5-b51e-060f11ba098f/osxupd10.10.5.dmg"
-#updateDownloadPath="$catTmpPath/Downloads"
-#updateExtractPath="$catTmpPath/Extracted"
-#updateDMG="osxupd10.10.5.dmg"
-#updateVolumeName="OS X 10.10.5 Update"
-#updatePKGName="OSXUpd10.10.5.pkg"
+updateLink10105="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-30889-20150813-dd510a7c-41d6-11e5-b51e-060f11ba098f/osxupd10.10.5.dmg"
+updateDMG10105="osxupd10.10.5.dmg"
+updateVolumeName10105="OS X 10.10.5 Update"
+updatePKGName10105="OSXUpd10.10.5.pkg"
 
+updateLink10111="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-42278-20151021-40e0f5a6-7806-11e5-8b62-f64340b99175/osxupd10.11.1.dmg"
+updateDMG10111="osxupd10.11.1.dmg"
+updateVolumeName10111="OS X El Capitan Update"
+updatePKGName10111="OSXUpd10.11.1.pkg"
 
-updateLink="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-42278-20151021-40e0f5a6-7806-11e5-8b62-f64340b99175/osxupd10.11.1.dmg"
+updateLink10122="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-94640-20161212-01e40d92-bef1-11e6-bcc2-62ed82fdb0cc/macosupdcombo10.12.2.dmg"
+updateDMG10122="macosupd10.12.2.dmg"
+updateVolumeName10122="macOS 10.12.2 Update"
+updatePKGName10122="macOSUpdCombo10.12.2.pkg"
+
+updateLink=""
+updateDMG=""
+updateVolumeName=""
+updatePKGName=""
 updateDownloadPath="$catTmpPath/Downloads"
 updateExtractPath="$catTmpPath/Extracted"
-updateDMG="osxupd10.11.1.dmg"
-updateVolumeName="OS X El Capitan Update"
-updatePKGName="OSXUpd10.11.1.pkg"
-
-#updateLink="http://supportdownload.apple.com/download.info.apple.com/Apple_Support_Area/Apple_Software_Updates/Mac_OS_X/downloads/031-94640-20161212-01e40d92-bef1-11e6-bcc2-62ed82fdb0cc/macosupdcombo10.12.2.dmg"
-#updateDownloadPath="$catTmpPath/Downloads"
-#updateExtractPath="$catTmpPath/Extracted"
-#updateDMG="macosupd10.12.2.dmg"
-#updateVolumeName="macOS 10.12.2 Update"
-#updatePKGName="macOSUpdCombo10.12.2.pkg"
-
 updatePKGPath="$updateExtractPath/$updatePKGName"
 updateDMGPath="$updateDownloadPath/$updateDMG"
 pkgutilPath="/usr/sbin/pkgutil"
@@ -1215,6 +1214,42 @@ function startLegacyKextDownload()
   echo '---            Legacy kext menu           ---'
   echo ''
   echo "if you don't know what this menu does please visit the wiki at: TODO:addlink"
+	echo "Select an option:"
+	options=("10.10.5 (971MB)" "10.11.1 (1133MB)" "10.12.2 (1956MB)" "Exit")
+	select opt in "${options[@]}"
+	do
+		case $opt in
+			'10.10.5 (971MB)')
+				updateLink=$updateLink10105
+				updateDMG=$updateDMG10105
+				updateVolumeName=$updateVolumeName10105
+				updatePKGName=$updatePKGName10105
+				break;
+				;;
+			'10.11.1 (1133MB)')
+				updateLink=$updateLink10111
+				updateDMG=$updateDMG10111
+				updateVolumeName=$updateVolumeName10111
+				updatePKGName=$updatePKGName10111
+				break;
+				;;
+			'10.12.2 (1956MB)')
+				updateLink=$updateLink10122
+				updateDMG=$updateDMG10122
+				updateVolumeName=$updateVolumeName10122
+				updatePKGName=$updatePKGName10122
+				break;
+				;;
+			'Exit')
+				backToMainMenu
+				;;
+			*)
+		 		echo "Invalid option, enter a number"
+		 		;;
+		esac
+	done
+	updatePKGPath="$updateExtractPath/$updatePKGName"
+	updateDMGPath="$updateDownloadPath/$updateDMG"
 	initializeRunFromDir
 	downloadUpdate
   getUpdateFromDMG
@@ -1226,16 +1261,6 @@ function startLegacyKextDownload()
 function downloadUpdate()
 {
   echo "Starting the download (this might take awhile)...                   "
-  echo "Are you sure you want to download 972MB?"
-  select yn in "Yes" "No"; do
-    case $yn in
-      Yes) #continue
-        break;;
-      No)
-        backToMainMenu;;
-      *) echo "Invalid option, enter a number";;
-    esac
-  done
   $mkdirPath -p "$updateDownloadPath"
   $curlPath -o "$updateDownloadPath/$updateDMG" "$updateLink"
 	if [ ! "$?" == "0" ]; then
@@ -1264,9 +1289,22 @@ function extractPKG()
 function installLegacyKext()
 {
 	echo -n "Installing legacy kext...                 "
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ]; then
+		verifySIP
+		if [ $? -eq 0 ]; then
+			echo "To continue you need to disable System Integrity Protection and come back here."
+			echo "1. Reboot and hold CMD + R"
+			echo "2. Utilities - Terminal"
+			echo "3. enter 'csrutil disable'"
+			echo "4. reboot"
+			exit;
+		fi
+	fi
   $rmPath -rf "$wifiKextPath"
+	$rmPath -rf "$btKextPath"
 	if [ "$?" == "0" ]; then
-  	$mvPath "$runFromDir" "$wifiKextPath"
+  	$mvPath "$runFromDir/$wifiKextFilename" "$wifiKextPath"
+		$mvPath "$runFromDir/$btKextFilename" "$btKextPath"
 		if [ "$?" == "0" ]; then
 			echo "OK."
 		else
@@ -1275,12 +1313,16 @@ function installLegacyKext()
 	else
 		echo "NOT OK. Error while removing old kext."
 	fi
+	applyPermissions
+	updatePrelinkedKernelCache
+	updateSystemCache
+	rebootPrompt
 }
 
 function checkLegacyKext()
 {
   echo -n "Checking legacy kext...                 "
-  if [ -d "$runFromDir/$wifiKextFilename" ]; then
+  if [ -d "$runFromDir/$wifiKextFilename" -a -d "$runFromDir/$btKextFilename" ]; then
     if [ "$1" != "verbose" ]; then
       echo "Attention: A legacy kext has been found in your directory. "
       echo "Do you want to use it?"
@@ -1693,9 +1735,13 @@ function startTheKextsReplacement(){
 			local uninstallOk=0
 			local errorOutput=""
 
-			if sudo $cpPath -X -R "${backupFolderBeforePatch}/${wifiKextFilename}/" "${driverPath}/${wifiKextFilename}"; then ((uninstallOk+=1)); else errorOutput="Failed to restore ${wifiKextFilename} from ${backupFolderBeforePatch}."; fi
-			if sudo $cpPath -X -R "${backupFolderBeforePatch}/${btKextFilename}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} Failed to restore ${btKextFilename} from ${backupFolderBeforePatch}."; fi
-
+			if [ -d "${backupFolderBeforePatch}" ]; then
+				if sudo $cpPath -X -R "${backupFolderBeforePatch}/${wifiKextFilename}/" "${driverPath}/${wifiKextFilename}"; then ((uninstallOk+=1)); else errorOutput="Failed to restore ${wifiKextFilename} from ${backupFolderBeforePatch}."; fi
+				if sudo $cpPath -X -R "${backupFolderBeforePatch}/${btKextFilename}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} Failed to restore ${btKextFilename} from ${backupFolderBeforePatch}."; fi
+			else
+				if sudo $cpPath -X -R "/System/CAT-bak/before/${wifiKextFilename}/" "${driverPath}/${wifiKextFilename}"; then ((uninstallOk+=1)); else errorOutput="Failed to restore ${wifiKextFilename} from /System/CAT-bak/before/"; fi
+				if sudo $cpPath -X -R "System/CAT-bak/before/${btKextFilename}/" "${driverPath}/${btKextFilename}"; then ((uninstallOk+=1)); else errorOutput="${errorOutput} Failed to restore ${btKextFilename} from /System/CAT-bak/before/"; fi
+			fi
 			if [ "${uninstallOk}" -eq "2" ]; then
 				echo "OK. Restored backup drivers found in '${backupFolderBeforePatch}'"
 			else
@@ -1762,7 +1808,7 @@ function replaceKextsWithRecoveryDiskOnes(){
 	echo -n "Reinstalling original Apple drivers...  "
 
 	#detect the presence of the base system kexts files
-	if [ -d "${osxBaseSystemPath}/${wifiKextPath}" -a -d "${osxBaseSystemPath}/${btKextPath}" ]; then
+	if [ -d "${osxBaseSystemPath}${wifiKextPath}" -a -d "${osxBaseSystemPath}${btKextPath}" ]; then
 
 		#silently remove any existing previous kext backups (doesn't care if the old kexts were found or not)
 		sudo $rmPath -rf "${wifiKextPath}" >> /dev/null 2>&1
@@ -1852,6 +1898,10 @@ function compatibilityPrecautions(){
 		fi
 	fi
 	canMyKextsBeModded
+	checkXattr
+	if [ $? -eq 1 ]; then
+		backupFolderBeforePatch = "/CAT-Backup/before"
+		backupFolderAfterPatch = "/CAT-Backup/after"
 	if [ "$subVersion" -eq 10 ]; then
 		isMyMacBlacklisted "verbose"
 	else
@@ -1890,6 +1940,7 @@ function verboseCompatibilityCheck(){
 		checkContinuitySupport "verbose"
 	fi
 	canMyKextsBeModded "verbose"
+	checkXattr "verbose"
 	isMyMacWhitelisted "verbose"
 	if [ "$subVersion" -eq 10 ]; then
 		isMyMacBlacklisted "verbose"
@@ -1997,7 +2048,7 @@ function uninstall(){
 	echo '--- Initiating uninstallation ---'
 	echo ''
 
-	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ]; then
 		verifySIP
 		if [ $? -eq 0 ]; then
 			echo "To continue you need to disable System Integrity Protection and come back here."
@@ -2021,7 +2072,7 @@ function uninstall(){
 	echo ""
 	echo ""
 	echo "DONE. Please reboot now to complete the uninstallation."
-	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13]; then
+	if [ "$subVersion" -eq 11 -o "$subVersion" -eq 12 -o "$subVersion" -eq 13 ]; then
 		echo "You can reenable the SIP if you want to."
 		echo "1. Reboot and hold CMD + R"
 		echo "2. Utilities - Terminal"
@@ -2156,28 +2207,33 @@ function displayMainMenu(){
 	done
 }
 
+function checkXattr()
+{
+	readxattr=$(xattr -x "$runFromDir/Continuity Activation Tool.app")
+	if [ ! -z $readxattr ]; then
+			if [ "$1" != "verbose" ]; then
+				echo "ATTENTION: App run in sandbox! TODO:addwikilink"
+			else
+				echo "ATTENTION: run in sandbox"
+			fi
+			return 1;
+		else
+			if [ "$1" != "verbose" ]; then
+				echo "OK";
+			else
+				echo "OK. Not run in sandbox";
+			fi
+			return 0;
+		fi
+}
+
 if [ $# -eq 0 ]; then
 	applyTerminalTheme
 	verifySudoPrivileges
 	verifyStringsUtilPresence
 	verifypbzxUtilPresence
 	initializeRunFromDir
-	readxattr=$(xattr -x "$runFromDir/Continuity Activation Tool.app")
-	if [ ! -z $readxattr ]; then
-		echo "ATTENTION: missing permissions. Read more here:  TODO:addlink"
-		echo "You have to do the following steps:"
-		echo "1. Navigate to the location of the app via terminal"
-		echo "2. run 'xattr -d com.apple.quarantine Continuity\ Activation\ Tool.app/' (without ')"
-		echo "3. start CAT again"
-		echo ""
-		echo ""
-		echo ""
-		echo ""
-		echo ""
-		exit;
-	else
-		displayMainMenu
-	fi
+	displayMainMenu
 
 else
 	while [ "$1" != "" ]; do
