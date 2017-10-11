@@ -15,7 +15,7 @@
 #
 #
 
-hackVersion="2.6b5"
+hackVersion="2.6b6"
 
 #---- PATH VARIABLES ------
 
@@ -1902,6 +1902,7 @@ function compatibilityPrecautions(){
 	if [ $? -eq 1 ]; then
 		backupFolderBeforePatch = "/CAT-Backup/before"
 		backupFolderAfterPatch = "/CAT-Backup/after"
+	fi
 	if [ "$subVersion" -eq 10 ]; then
 		isMyMacBlacklisted "verbose"
 	else
