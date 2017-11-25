@@ -64,7 +64,7 @@ MacBook Pro mid 2012 (non-retina) | No (works OTB)| No (works OTB)
 MacBook Pro Retina (all models) | No (works OTB) | No (works OTB)
 Mac mini mid 2011 | No | Yes
 Mac mini 2012-2014 | No (works OTB) | No (works OTB)
-Mac Pro early 2008-2012 | Yes, new wireless card BCM94360CD + adapter | No
+Mac Pro early 2008-2012 | Yes, new wireless card BCM94360CD + adapter | No (10.12.5 and below), Yes (10.12.6 and above)
 Mac Pro 2013-2014 | No (works OTB) | No (works OTB)
 iMac 2007-2011 | Yes, new wireless card BCM94360CD + adapter | Yes (Patch Board-ID)
 iMac 2012-2014 | No (works OTB) | No (works OTB)
